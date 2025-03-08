@@ -1,0 +1,6 @@
+{
+    "cmake.configureArgs": [
+        "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/Retro68-build/toolchain/m68k-apple-macos/cmake/retro68.toolchain.cmake"
+    ],
+    "cmake.configureOnOpen": true
+}
