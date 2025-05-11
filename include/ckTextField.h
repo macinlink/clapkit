@@ -1,35 +1,34 @@
 /**
- * 
+ *
  * Clapkit
  * ----------------------------------------------------------------------
  * A wrapper for creating a 'generalized' app for Classic MacOS
  * that (hopefully) can be ported easily to other platforms.
- * 
+ *
  * CKTextField
  * ----------------------------------------------------------------------
  * Defines an editable, one-line text field.
- * 
-*/
+ *
+ */
 
-#pragma once 
+#pragma once
 
 #include "ckApp.h"
 #include "ckLabel.h"
 #include "ck_pFocusableControl.h"
 
-class CKTextField: public CKLabel, public CKFocusableControl {
+class CKTextField : public CKLabel, public CKFocusableControl {
 
-    public:
-        CKTextField(const CKControlInitParams& params);
-        virtual ~CKTextField();
-        virtual void Redraw();
-        virtual void Blurred();
-        virtual void Focused();
-        virtual void PrepareForDraw();
-        virtual bool HandleEvent(CKControlEvent evt);
-        virtual const char* GetText();
+	public:
+		CKTextField(const CKControlInitParams& params);
+		virtual ~CKTextField();
+		virtual void Redraw();
+		virtual void Blurred();
+		virtual void Focused();
+		virtual void PrepareForDraw();
+		virtual bool HandleEvent(CKControlEvent evt);
+		virtual const char* GetText();
 
-    protected:
-        virtual void TECreated();
-
+	protected:
+		virtual void TECreated();
 };

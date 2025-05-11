@@ -1,121 +1,116 @@
 /**
- * 
+ *
  * Clapkit
  * ----------------------------------------------------------------------
  * A wrapper for creating a 'generalized' app for Classic MacOS
  * that (hopefully) can be ported easily to other platforms.
- * 
+ *
  * CKWindow
  * ----------------------------------------------------------------------
  * Defines a window.
- * 
-*/
+ *
+ */
 
 #include "ckWindow.h"
-#include "ck_pFocusableControl.h"
 #include "ckButton.h"
+#include "ck_pFocusableControl.h"
 
 /**
  * Create a new window with the parameters passed.
  * Check the CKWindowInitParams object for required/optional parameters.
-*/
-CKWindow::CKWindow(CKWindowInitParams params): CKObject() {
+ */
+CKWindow::CKWindow(CKWindowInitParams params)
+	: CKObject() {
 
-    CKPROFILE
+	CKPROFILE
 
-    this->__controls = std::vector<CKControl*>();
-    this->__visible = false;
+	this->__controls = std::vector<CKControl*>();
+	this->__visible = false;
 
-    // this->__rect = (CKRect*)CKMalloc(sizeof(*this->__rect));
-    this->__rect = CKNew CKRect(params.x, params.y, params.width, params.height);
+	// this->__rect = (CKRect*)CKMalloc(sizeof(*this->__rect));
+	this->__rect = CKNew CKRect(params.x, params.y, params.width, params.height);
 
-    Rect* r = this->__rect->ToOSPtr();
-    this->__windowPtr = NewCWindow(nil, r, "\p", false, 0, 0, params.closable, 0);
-    this->SetTitle(params.title);
-    CKFree(r);
+	Rect* r = this->__rect->ToOSPtr();
+	this->__windowPtr = NewCWindow(nil, r, "\p", false, 0, 0, params.closable, 0);
+	this->SetTitle(params.title);
+	CKFree(r);
 
-    this->latestDownControl = 0;
-    this->activeTextInputControl = 0;
-    this->shouldReceiveMouseMoveEvents = false;
+	this->latestDownControl = 0;
+	this->activeTextInputControl = 0;
+	this->shouldReceiveMouseMoveEvents = false;
 
-    CKLog("Created window %x", this);
-
+	CKLog("Created window %x", this);
 }
 
 CKWindow::~CKWindow() {
 
-    CKPROFILE
+	CKPROFILE
 
-    CKLog("Destroying window %x", this);
+	CKLog("Destroying window %x", this);
 
-    CKControlEvent evt = CKControlEvent(CKControlEventType::deleted);
-    this->HandleEvent(evt);
+	CKControlEvent evt = CKControlEvent(CKControlEventType::deleted);
+	this->HandleEvent(evt);
 
-    if (this->__rect) {
-        CKDelete(this->__rect);
-    }
+	if (this->__rect) {
+		CKDelete(this->__rect);
+	}
 
-    while (this->__controls.size() > 0) {
-        this->RemoveControl(this->__controls.at(0), true);   
-    }
+	while (this->__controls.size() > 0) {
+		this->RemoveControl(this->__controls.at(0), true);
+	}
 
-    while (this->__handlers.size() > 0) {
-        this->RemoveHandler(this->__handlers.at(0)->type);
-    }
-
+	while (this->__handlers.size() > 0) {
+		this->RemoveHandler(this->__handlers.at(0)->type);
+	}
 }
 
 /**
  * Change the window's title.
-*/
+ */
 void CKWindow::SetTitle(const char* title) {
 
-    CKPROFILE
+	CKPROFILE
 
-    unsigned char* tbResult = CKC2P(title);
-    SetWTitle(this->__windowPtr, tbResult);
-    CKFree(tbResult);
-
+	unsigned char* tbResult = CKC2P(title);
+	SetWTitle(this->__windowPtr, tbResult);
+	CKFree(tbResult);
 }
 
 /**
  * Get the window's title.
-*/
+ */
 char* CKWindow::GetTitle() {
 
-    CKPROFILE
+	CKPROFILE
 
-    unsigned char* tbResult = (unsigned char*)CKMalloc(256);
-    GetWTitle(this->__windowPtr, tbResult);
+	unsigned char* tbResult = (unsigned char*)CKMalloc(256);
+	GetWTitle(this->__windowPtr, tbResult);
 
-    char* result = CKP2C(tbResult);
-    CKFree(tbResult);
-    return result;
-    
+	char* result = CKP2C(tbResult);
+	CKFree(tbResult);
+	return result;
 }
 
 /**
  * Show the window.
-*/
+ */
 void CKWindow::Show() {
 
-    CKPROFILE
+	CKPROFILE
 
-    ShowWindow(this->__windowPtr);
-    this->__visible = true;
-
+	ShowWindow(this->__windowPtr);
+	this->__visible = true;
 }
 
 /**
  * Hide the window, but keep in memory.
-*/
+ */
 void CKWindow::Hide() {
 
-    CKPROFILE
+	CKPROFILE
 
-    HideWindow(this->__windowPtr);
-    this->__visible = false;
-
+	HideWindow(this->__windowPtr);
+	this->__visible = false;
 }
 
 /**
@@ -124,8 +119,7 @@ void CKWindow::Hide() {
  */
 bool CKWindow::IsVisible() {
 
-    return this->__visible;
-
+	return this->__visible;
 }
 
 /**
@@ -133,213 +127,204 @@ bool CKWindow::IsVisible() {
  */
 void CKWindow::Focus() {
 
-    if (!this->IsVisible()) {
-        this->Show();
-    }
+	if (!this->IsVisible()) {
+		this->Show();
+	}
 
-    SelectWindow(this->__windowPtr);
-
+	SelectWindow(this->__windowPtr);
 }
 
 /**
  * pwnd lol ya
-*/
+ */
 CKRect* CKWindow::GetRect(bool getCopy) {
 
-    CKPROFILE
-    
-    if (getCopy) {
-        CKRect* r = CKNew CKRect(this->__rect->x, this->__rect->y, this->__rect->width, this->__rect->height);
-        return r;
-    } else {
-        return this->__rect;
-    }
+	CKPROFILE
 
+	if (getCopy) {
+		CKRect* r = CKNew CKRect(this->__rect->x, this->__rect->y, this->__rect->width, this->__rect->height);
+		return r;
+	} else {
+		return this->__rect;
+	}
 }
 
 /**
  * Move window to a specific location.
-*/
+ */
 void CKWindow::Move(int x, int y) {
 
-    CKPROFILE
+	CKPROFILE
 
-    this->__rect->x = x;
-    this->__rect->y = y;
+	this->__rect->x = x;
+	this->__rect->y = y;
 
-    CKLog("Moving window %x to %d,%d (size: %dx%d)", this->__windowPtr, x, y, this->GetRect()->width, this->GetRect()->height);
-    MoveWindow(this->__windowPtr, x, y, false);
+	CKLog("Moving window %x to %d,%d (size: %dx%d)", this->__windowPtr, x, y, this->GetRect()->width, this->GetRect()->height);
+	MoveWindow(this->__windowPtr, x, y, false);
 
-    CKPoint p = CKPoint(x, y);
-    CKControlEvent evt = CKControlEvent(CKControlEventType::moved, p);
-    this->HandleEvent(evt);
-
+	CKPoint p = CKPoint(x, y);
+	CKControlEvent evt = CKControlEvent(CKControlEventType::moved, p);
+	this->HandleEvent(evt);
 }
 
 /**
  * Change the size of the window..
-*/
+ */
 void CKWindow::Resize(int width, int height) {
 
-    CKPROFILE
+	CKPROFILE
 
-    this->__rect->width = width;
-    this->__rect->height = height;
+	this->__rect->width = width;
+	this->__rect->height = height;
 
-    SizeWindow(this->__windowPtr, this->__rect->width, this->__rect->height, true);
-
+	SizeWindow(this->__windowPtr, this->__rect->width, this->__rect->height, true);
 }
 
 /**
  * Center the window on screen.
-*/
+ */
 void CKWindow::Center() {
 
-    CKPROFILE
+	CKPROFILE
 
-    GrafPtr globalPort;
-    GetPort(&globalPort);
+	GrafPtr globalPort;
+	GetPort(&globalPort);
 
-    int x = ((globalPort->portRect.right - globalPort->portRect.left) - this->__rect->width) / 2;
-    int y = ((globalPort->portRect.bottom - globalPort->portRect.top) - this->__rect->height) / 2;
-    this->Move(x, y);
-
+	int x = ((globalPort->portRect.right - globalPort->portRect.left) - this->__rect->width) / 2;
+	int y = ((globalPort->portRect.bottom - globalPort->portRect.top) - this->__rect->height) / 2;
+	this->Move(x, y);
 }
 
 /**
  * Override to stop closage.
-*/
+ */
 void CKWindow::Close() {
 
-    CKPROFILE
+	CKPROFILE
 
-    this->__dead = true;
-    
-    this->Hide();
+	this->__dead = true;
 
-    CKControlEvent evt = CKControlEvent(CKControlEventType::removed);
-    this->HandleEvent(evt);
+	this->Hide();
 
-    this->__owner->CKRemoveWindow(this);
+	CKControlEvent evt = CKControlEvent(CKControlEventType::removed);
+	this->HandleEvent(evt);
 
+	this->__owner->CKRemoveWindow(this);
 }
 
 /**
  * Add control to the window.
  * Control must NOT be already in another window, or this fails.
  * Returns false if fails (i.e. control already exists)
-*/
+ */
 bool CKWindow::AddControl(CKControl* control) {
 
-    CKPROFILE
+	CKPROFILE
 
-    if (control == nil) {
-        CKLog("Nil control passed to AddControl!");
-        return false;
-    }
+	if (control == nil) {
+		CKLog("Nil control passed to AddControl!");
+		return false;
+	}
 
-    if (control->owner != nil) {
-        if (control->owner == this) {
-            // Let's check if its actually here.
-            // We have to do this because even though Toolbox controls
-            // do require and utilize the window passed to them, we
-            // still need to track them ourselves, so AddControl needs to
-            // be called.
-            if (this->ContainsControl(control)) {
-                CKLog("AddControl called but control already inside me.");
-                return true;
-            }
-        } else {
-            CKLog("AddControl called but control already has an owner");
-            return false;
-        }
-    }
+	if (control->owner != nil) {
+		if (control->owner == this) {
+			// Let's check if its actually here.
+			// We have to do this because even though Toolbox controls
+			// do require and utilize the window passed to them, we
+			// still need to track them ourselves, so AddControl needs to
+			// be called.
+			if (this->ContainsControl(control)) {
+				CKLog("AddControl called but control already inside me.");
+				return true;
+			}
+		} else {
+			CKLog("AddControl called but control already has an owner");
+			return false;
+		}
+	}
 
-    control->owner = this;
-    this->__controls.push_back(control);
-    control->AddedToWindow(this);
+	control->owner = this;
+	this->__controls.push_back(control);
+	control->AddedToWindow(this);
 
-    return true;
-
+	return true;
 }
 
 /**
  * Remove control from the window.
  * Does nothing if the control is already not there.
-*/
+ */
 void CKWindow::RemoveControl(CKControl* control, bool free) {
 
-    CKPROFILE
+	CKPROFILE
 
-    // Mark as dirty so it is then deleted once we are done.
-    control->MarkAsDirty();
+	// Mark as dirty so it is then deleted once we are done.
+	control->MarkAsDirty();
 
-    // If we don't do this, we'll surely explode in a crash
-    // later on when we get a mouseDown event.
-    if (this->latestDownControl == control) {
-        this->latestDownControl = 0;
-    }
+	// If we don't do this, we'll surely explode in a crash
+	// later on when we get a mouseDown event.
+	if (this->latestDownControl == control) {
+		this->latestDownControl = 0;
+	}
 
-    control->owner = nil;
+	control->owner = nil;
 
-    bool found = false;
-    for (auto it = this->__controls.begin(); it != this->__controls.end(); ++it) {
-        if (*it == control) {
-            it = this->__controls.erase(it);
-            found = true;
-            break;
-        }
-    }
+	bool found = false;
+	for (auto it = this->__controls.begin(); it != this->__controls.end(); ++it) {
+		if (*it == control) {
+			it = this->__controls.erase(it);
+			found = true;
+			break;
+		}
+	}
 
-    if (!found) {
-        CKLog("RemoveControl called for %x but can't find it!");
-    } else {
-        CKLog("RemoveControl successfully removed control %x.", control);
-        if (free) {
-            CKDelete(control);
-        }
-    }
-
+	if (!found) {
+		CKLog("RemoveControl called for %x but can't find it!");
+	} else {
+		CKLog("RemoveControl successfully removed control %x.", control);
+		if (free) {
+			CKDelete(control);
+		}
+	}
 }
 
 /**
  * Redraw part(s) of the window.
-*/
+ */
 void CKWindow::Redraw(CKRect rectToRedraw) {
-    CKPROFILE
+	CKPROFILE
 
-    // TODO: This is stupid and draws the entire control list.
-    // Maybe don't do that.
+	// TODO: This is stupid and draws the entire control list.
+	// Maybe don't do that.
 
-    GrafPtr oldPort;
-    GetPort(&oldPort);
-    SetPort(this->__windowPtr);
+	GrafPtr oldPort;
+	GetPort(&oldPort);
+	SetPort(this->__windowPtr);
 
-    // Use stack-allocated Rect (No malloc needed)
-    Rect r;
-    r.top = 0;
-    r.left = 0;
-    r.right = this->__rect->width;
-    r.bottom = this->__rect->height;
+	// Use stack-allocated Rect (No malloc needed)
+	Rect r;
+	r.top = 0;
+	r.left = 0;
+	r.right = this->__rect->width;
+	r.bottom = this->__rect->height;
 
-    EraseRect(&r);  // Clear the window
+	EraseRect(&r); // Clear the window
 
-    // Redraw all controls
-    for (auto& c : this->__controls) {
-        c->Redraw();
-    }
+	// Redraw all controls
+	for (auto& c : this->__controls) {
+		c->Redraw();
+	}
 
-    SetPort(oldPort); // Restore port AFTER drawing everything
+	SetPort(oldPort); // Restore port AFTER drawing everything
 }
 
 /**
  * Set the owner – if this is set to nil,
  * we won't be able to do much.
-*/
+ */
 void CKWindow::SetOwner(CKApp* owner) {
 
-    this->__owner = owner;
-
+	this->__owner = owner;
 }
 
 /**
@@ -347,154 +332,152 @@ void CKWindow::SetOwner(CKApp* owner) {
  * Returns nil if nothing is at that point.
  * Due to the way it works, undefined behavior when
  * two controls overlap (so don't do that, perhaps.)
- * 
+ *
  * CKPoint passed here MUST be local to the window.
-*/
+ */
 CKControl* CKWindow::FindControl(CKPoint point) {
 
-    CKPROFILE
+	CKPROFILE
 
-    for (auto& c : this->__controls) {
-        if (!c->GetEnabled()) { continue; }
-        if (!c->GetVisible()) { continue; }
-        if (c->GetRect()->intersectsPoint(point)) {
-            return c;
-        }
-    }
+	for (auto& c : this->__controls) {
+		if (!c->GetEnabled()) {
+			continue;
+		}
+		if (!c->GetVisible()) {
+			continue;
+		}
+		if (c->GetRect()->intersectsPoint(point)) {
+			return c;
+		}
+	}
 
-    return nil;
-
+	return nil;
 }
 
 /**
  * True if we have the control here.
-*/
+ */
 bool CKWindow::ContainsControl(CKControl* control) {
 
-    CKPROFILE
+	CKPROFILE
 
-    for (auto& c : this->__controls) {
-        if (c == control) {
-            return true;
-        }
-    }
+	for (auto& c : this->__controls) {
+		if (c == control) {
+			return true;
+		}
+	}
 
-    return false;
-
+	return false;
 }
 
 /**
- * @brief Called by ckApp on a click event - to set the 
+ * @brief Called by ckApp on a click event - to set the
  * active control (like a textfield.)
  * @param control Can be nil.
  */
 void CKWindow::SetActiveControl(CKControl* control) {
 
-    if (this->__dead) {
-        return;
-    }
+	if (this->__dead) {
+		return;
+	}
 
-    if (this->activeTextInputControl) {
-        if (control && this->activeTextInputControl == control) {
-            return;
-        }
-        if (auto c = dynamic_cast<CKFocusableControl*>(this->activeTextInputControl)) {
-            c->Blurred();
-        }
-    }
+	if (this->activeTextInputControl) {
+		if (control && this->activeTextInputControl == control) {
+			return;
+		}
+		if (auto c = dynamic_cast<CKFocusableControl*>(this->activeTextInputControl)) {
+			c->Blurred();
+		}
+	}
 
-    this->activeTextInputControl = nil;
+	this->activeTextInputControl = nil;
 
-    if (control) {
-        if (auto c = dynamic_cast<CKFocusableControl*>(control)) {
-            c->Focused();
-            this->activeTextInputControl = control;
-        }
-    }
-
+	if (control) {
+		if (auto c = dynamic_cast<CKFocusableControl*>(control)) {
+			c->Focused();
+			this->activeTextInputControl = control;
+		}
+	}
 }
 
 /**
  * Called when the window becomes active/inactive.
-*/
+ */
 void CKWindow::SetIsActive(bool active) {
 
-    // TODO: Handle scrollbars, etc.
-
+	// TODO: Handle scrollbars, etc.
 }
 
 /**
  * Called by CKApp when the user interacts with
  * our control. Override for custom controls.
- * 
+ *
  * Returns true if handled.
-*/
+ */
 bool CKWindow::HandleEvent(CKControlEvent evt) {
 
-    CKPROFILE
+	CKPROFILE
 
-    if (this->__dead) {
-        return true;
-    }
+	if (this->__dead) {
+		return true;
+	}
 
-    if (evt.type == CKControlEventType::keyDown && evt.key == 13) {
-        for (auto it = this->__controls.begin(); it != this->__controls.end(); ++it) {
-            CKButton* button = dynamic_cast<CKButton*>(*it);
-            if (button && button->GetDefault()) {
-                CKControlEvent clickEvt = CKControlEvent(CKControlEventType::click);
-                button->HandleEvent(clickEvt);
-            }
-        }
-    }
+	if (evt.type == CKControlEventType::keyDown && evt.key == 13) {
+		for (auto it = this->__controls.begin(); it != this->__controls.end(); ++it) {
+			CKButton* button = dynamic_cast<CKButton*>(*it);
+			if (button && button->GetDefault()) {
+				CKControlEvent clickEvt = CKControlEvent(CKControlEventType::click);
+				button->HandleEvent(clickEvt);
+			}
+		}
+	}
 
-    if (this->activeTextInputControl) {
-        // TODO: Text-editable controls need to handle this, of course.
-        this->activeTextInputControl->HandleEvent(evt);
-    }
+	if (this->activeTextInputControl) {
+		// TODO: Text-editable controls need to handle this, of course.
+		this->activeTextInputControl->HandleEvent(evt);
+	}
 
-    // if (this->genericEventHandler) {
-    //     this->genericEventHandler(this, evt);
-    //     return true;
-    // }
+	// if (this->genericEventHandler) {
+	//     this->genericEventHandler(this, evt);
+	//     return true;
+	// }
 
-    CKHandlerContainer* handler = this->HasHandler(evt.type);
-    if (handler) {
-        CKLog("Found handler, calling.");
-        handler->callback_window(this, evt);
-        return true;
-    }
+	CKHandlerContainer* handler = this->HasHandler(evt.type);
+	if (handler) {
+		CKLog("Found handler, calling.");
+		handler->callback_window(this, evt);
+		return true;
+	}
 
-    return false;
-
+	return false;
 }
 
 /**
  * Add/replace a handler for an event type.
-*/
+ */
 void CKWindow::AddHandler(CKControlEventType type, std::function<void(CKWindow*, CKControlEvent)> callback) {
 
-    CKPROFILE
+	CKPROFILE
 
-    CKHandlerContainer* cbc = CKNew CKHandlerContainer();
-    cbc->type = type;
-    cbc->callback_window = callback;
+	CKHandlerContainer* cbc = CKNew CKHandlerContainer();
+	cbc->type = type;
+	cbc->callback_window = callback;
 
-    if (this->HasHandler(type)) {
-        CKLog("Found a handler for type %d, replacing it.", type);
-        this->RemoveHandler(type);
-    }
+	if (this->HasHandler(type)) {
+		CKLog("Found a handler for type %d, replacing it.", type);
+		this->RemoveHandler(type);
+	}
 
-    if (type == CKControlEventType::mouseMove) {
-        this->shouldReceiveMouseMoveEvents = true;
-    }
+	if (type == CKControlEventType::mouseMove) {
+		this->shouldReceiveMouseMoveEvents = true;
+	}
 
-    this->__handlers.push_back(cbc);
-
+	this->__handlers.push_back(cbc);
 }
 
 /**
  * @brief Add a generic handler for ALL types of events. This disables individual event handlers.
- * @param callback 
+ * @param callback
  */
 // void CKWindow::AddGenericHandler(std::function<void(CKWindow*, CKControlEvent)> callback) {
 
@@ -504,40 +487,38 @@ void CKWindow::AddHandler(CKControlEventType type, std::function<void(CKWindow*,
 
 /**
  * Remove - if it's there - an event handler.
-*/
+ */
 void CKWindow::RemoveHandler(CKControlEventType type) {
 
-    CKPROFILE
+	CKPROFILE
 
-    if (type == CKControlEventType::mouseMove) {
-        this->shouldReceiveMouseMoveEvents = false;
-    }
+	if (type == CKControlEventType::mouseMove) {
+		this->shouldReceiveMouseMoveEvents = false;
+	}
 
-    bool found = false;
-    for (auto it = this->__handlers.begin(); it != this->__handlers.end(); ++it) {
-        if ((*it)->type == type) {
-            CKDelete(*it);
-            it = this->__handlers.erase(it);
-            found = true;
-            break;
-        }
-    }
-
+	bool found = false;
+	for (auto it = this->__handlers.begin(); it != this->__handlers.end(); ++it) {
+		if ((*it)->type == type) {
+			CKDelete(*it);
+			it = this->__handlers.erase(it);
+			found = true;
+			break;
+		}
+	}
 }
 
 /**
  * Returns if we have a handler for this type.
-*/
+ */
 CKHandlerContainer* CKWindow::HasHandler(CKControlEventType type) {
 
-    CKPROFILE
+	CKPROFILE
 
-    for (auto& h : this->__handlers) {
-        if (h->type == type) {
-            return h;
-        }
-    }
+	for (auto& h : this->__handlers) {
+		if (h->type == type) {
+			return h;
+		}
+	}
 
-    return nil;
-
+	return nil;
 }

@@ -1,0 +1,27 @@
+BasedOnStyle: LLVM
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+
+AlwaysBreakAfterDefinitionReturnType: None
+BreakBeforeBraces: Attach
+
+PointerAlignment: Left
+
+IndentAccessModifiers: true
+AccessModifierOffset: 0
+
+AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: false
+
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+
+IndentCaseLabels: true
+
+ColumnLimit: 0
