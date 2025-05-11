@@ -123,6 +123,7 @@ void CKConsolePrint(const char* toPrint);
 
 #else
 
+    // Standard new/delete macros
     #define CKNew new
     #define CKDelete(ptr) delete ptr
     #define CKDeleteArray(ptr) delete[] ptr

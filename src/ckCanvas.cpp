@@ -187,6 +187,7 @@ void CKCanvas::DrawLine(int x1, int y1, int x2, int y2, u_int8_t r, u_int8_t g, 
 }
 
 
+
 void CKCanvas::Redraw() {
 
     CKPROFILE

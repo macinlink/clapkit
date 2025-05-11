@@ -18,12 +18,12 @@ include_directories(${RETRO68_PATH}/include)
 add_library(clapkit
     src/dlmalloc.c
     src/dlmalloc_mac.c
+    src/ckUtils.cpp
     src/ckApp.cpp
     src/ck_pFocusableControl.cpp
     src/ck_pTextableControl.cpp
     src/ckObject.cpp
     src/ckWindow.cpp
-    src/ckUtils.cpp
     src/ckControl.cpp
     src/ckControlToolbox.cpp
     src/ckButton.cpp
@@ -33,13 +33,23 @@ add_library(clapkit
     src/ckTextField.cpp
 )
 
-# Enable -ffunction-sections and -gc-sections to make the app as small as possible
-# On 68K, also enable --mac-single to build it as a single-segment app (so that this code path doesn't rot)
-set_target_properties(clapkit PROPERTIES COMPILE_OPTIONS -ffunction-sections)
-if(CMAKE_SYSTEM_NAME MATCHES Retro68)
-    set_target_properties(clapkit PROPERTIES LINK_FLAGS "-Wl,-gc-sections -Wl,--mac-single")
-else()
-    set_target_properties(clapkit PROPERTIES LINK_FLAGS "-Wl,-gc-sections")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Clapkit: Configuring Debug Build")
+    target_compile_definitions(clapkit PRIVATE CKAPPDEBUG=1)
+
+    set_target_properties(clapkit PROPERTIES 
+        COMPILE_FLAGS "-O0 -Wall -g -fdata-sections -ffunction-sections"
+        LINK_FLAGS "-Wl,--mac-single"
+    )
+
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    message(STATUS "Clapkit: Configuring Release Build")
+    target_compile_definitions(clapkit PRIVATE NDEBUG)
+
+    set_target_properties(clapkit PROPERTIES 
+        COMPILE_FLAGS "-s -O1 -Wall -fmerge-all-constants -fmerge-constants -fstrict-aliasing -fomit-frame-pointer -fdata-sections -ffunction-sections -finline-functions"
+        LINK_FLAGS "-Wl,--mac-single -Wl,--mac-strip-macsbug"
+    )
 endif()
 
 target_include_directories(clapkit PUBLIC include)

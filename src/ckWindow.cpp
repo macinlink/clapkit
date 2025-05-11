@@ -13,6 +13,7 @@
 
 #include "ckWindow.h"
 #include "ck_pFocusableControl.h"
+#include "ckButton.h"
 
 /**
  * Create a new window with the parameters passed.
@@ -37,17 +38,21 @@ CKWindow::CKWindow(CKWindowInitParams params): CKObject() {
     this->activeTextInputControl = 0;
     this->shouldReceiveMouseMoveEvents = false;
 
+    CKLog("Created window %x", this);
+
 }
 
 CKWindow::~CKWindow() {
 
     CKPROFILE
 
+    CKLog("Destroying window %x", this);
+
     CKControlEvent evt = CKControlEvent(CKControlEventType::deleted);
     this->HandleEvent(evt);
 
     if (this->__rect) {
-        CKFree(this->__rect);
+        CKDelete(this->__rect);
     }
 
     while (this->__controls.size() > 0) {
@@ -162,7 +167,7 @@ void CKWindow::Move(int x, int y) {
     this->__rect->x = x;
     this->__rect->y = y;
 
-    CKLog("Moving window %x to %dx%d", this->__windowPtr, x, y);
+    CKLog("Moving window %x to %d,%d (size: %dx%d)", this->__windowPtr, x, y, this->GetRect()->width, this->GetRect()->height);
     MoveWindow(this->__windowPtr, x, y, false);
 
     CKPoint p = CKPoint(x, y);
@@ -208,6 +213,8 @@ void CKWindow::Close() {
 
     CKPROFILE
 
+    this->__dead = true;
+    
     this->Hide();
 
     CKControlEvent evt = CKControlEvent(CKControlEventType::removed);
@@ -299,7 +306,6 @@ void CKWindow::RemoveControl(CKControl* control, bool free) {
  * Redraw part(s) of the window.
 */
 void CKWindow::Redraw(CKRect rectToRedraw) {
-
     CKPROFILE
 
     // TODO: This is stupid and draws the entire control list.
@@ -308,22 +314,22 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
     GrafPtr oldPort;
     GetPort(&oldPort);
     SetPort(this->__windowPtr);
-    Rect* r = (Rect*)CKMalloc(sizeof(r));
-    r->top = 0;
-    r->left = 0;
-    r->right = this->__rect->width;
-    r->bottom = this->__rect->height;
-    // FillRect(r, &qd.dkGray);
-    EraseRect(r);
-    SetPort(oldPort);
-    CKFree(r);
 
-    int count = 0;
+    // Use stack-allocated Rect (No malloc needed)
+    Rect r;
+    r.top = 0;
+    r.left = 0;
+    r.right = this->__rect->width;
+    r.bottom = this->__rect->height;
+
+    EraseRect(&r);  // Clear the window
+
+    // Redraw all controls
     for (auto& c : this->__controls) {
         c->Redraw();
-        count++;
     }
 
+    SetPort(oldPort); // Restore port AFTER drawing everything
 }
 
 /**
@@ -384,6 +390,10 @@ bool CKWindow::ContainsControl(CKControl* control) {
  */
 void CKWindow::SetActiveControl(CKControl* control) {
 
+    if (this->__dead) {
+        return;
+    }
+
     if (this->activeTextInputControl) {
         if (control && this->activeTextInputControl == control) {
             return;
@@ -423,6 +433,20 @@ bool CKWindow::HandleEvent(CKControlEvent evt) {
 
     CKPROFILE
 
+    if (this->__dead) {
+        return true;
+    }
+
+    if (evt.type == CKControlEventType::keyDown && evt.key == 13) {
+        for (auto it = this->__controls.begin(); it != this->__controls.end(); ++it) {
+            CKButton* button = dynamic_cast<CKButton*>(*it);
+            if (button && button->GetDefault()) {
+                CKControlEvent clickEvt = CKControlEvent(CKControlEventType::click);
+                button->HandleEvent(clickEvt);
+            }
+        }
+    }
+
     if (this->activeTextInputControl) {
         // TODO: Text-editable controls need to handle this, of course.
         this->activeTextInputControl->HandleEvent(evt);
@@ -435,7 +459,9 @@ bool CKWindow::HandleEvent(CKControlEvent evt) {
 
     CKHandlerContainer* handler = this->HasHandler(evt.type);
     if (handler) {
+        CKLog("Found handler, calling.");
         handler->callback_window(this, evt);
+        return true;
     }
 
     return false;

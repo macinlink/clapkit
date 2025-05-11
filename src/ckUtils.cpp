@@ -93,12 +93,9 @@ char* __CKP2C(const unsigned char* src, const char* func, int line, const char* 
  * Level 3 => Fatal Error
 */
 void __CKDebugLog(int level, const char* s, ...) {
-
-    // TODO: This whole thing is very UNSAFE!
-
+    // Allocate a larger buffer to avoid overflows
     char* buffer = (char*)CKMalloc(250);
     if (!buffer) {
-        // We are in deep shit.
         DebugStr("\pCant Allocate Mem to Print Debug Str! (1)");
         ExitToShell();
         return;
@@ -106,33 +103,55 @@ void __CKDebugLog(int level, const char* s, ...) {
 
     va_list va;
     va_start(va, s);
-    const int ret = vsprintf(buffer, s, va);
+    const int ret = vsprintf(buffer, s, va); // Retro68 supports `vsprintf`
     va_end(va);
 
-    if (ret < 0) {
+    if (ret < 0 || ret >= 250) { // Check if vsprintf overflowed
         DebugStr("\pCant do vsprintf to Print Debug Str!");
+        CKFree(buffer);
         return;
     }
 
-    // TODO: Fix this....
-    // switch (level) {
-    //     case 0:
-    //         buffer = strcat((char*)"[ LOG  ] ", buffer);
-    //         break;
-    //     case 1:
-    //         buffer = strcat((char*)"< WARN > ", buffer);
-    //         break;
-    //     case 2:
-    //         buffer = strcat((char*)"<!ERR!!> ", buffer);
-    //         break;
-    //     default:
-    //         break;
-    // }
+    // Prepend the log level manually without snprintf
+    char* logPrefix;
+    switch (level) {
+        case 1:
+            logPrefix = "< WARN > ";
+            break;
+        case 2:
+            logPrefix = "<!ERR!!> ";
+            break;
+        default:
+            logPrefix = "[ LOG  ] ";
+            break;
+    }
 
-    CKConsolePrint(buffer);
+    // Create a new buffer for the prefixed log
+    char* finalBuffer = (char*)CKMalloc(300);
+    if (!finalBuffer) {
+        DebugStr("\pCant Allocate Mem to Print Debug Str! (2)");
+        CKFree(buffer);
+        ExitToShell();
+        return;
+    }
+
+    // Concatenate manually (safer than strcat)
+    int prefixLen = strlen(logPrefix);
+    int textLen = strlen(buffer);
+    int totalLen = prefixLen + textLen;
+
+    if (totalLen >= 299) {
+        textLen = 299 - prefixLen; // Truncate text to fit
+    }
+
+    memcpy(finalBuffer, logPrefix, prefixLen);
+    memcpy(finalBuffer + prefixLen, buffer, textLen);
+    finalBuffer[prefixLen + textLen] = '\0'; // Ensure null termination
+
+    CKConsolePrint(finalBuffer);
+
     CKFree(buffer);
-    
-
+    CKFree(finalBuffer);
 }
 
 /**
@@ -141,16 +160,18 @@ void __CKDebugLog(int level, const char* s, ...) {
 void CKConsolePrint(const char* toPrint) {
 
     #ifdef CKAPPDEBUG
+    if (!toPrint) return; // Avoid passing NULL to DebugStr
+
     unsigned char* toPStrd = CKC2P(toPrint);
     if (!toPStrd) {
-        // Oh we are in deep shit.
         DebugStr("\pCant Allocate Mem to Print Debug Str! (2)");
         ExitToShell();
+    } else {
+        DebugStr(toPStrd);
+        CKFree(toPStrd);
     }
-    DebugStr(toPStrd);
-    CKFree(toPStrd);
     #endif
-
+    
 }
 
 #if CK_DEBUG_MEMORY == true
@@ -283,15 +304,20 @@ void* __CKMalloc(const char* func, int line, const char* file, size_t size) {
 void __CKFree(const char* func, int line, const char* file, void* ptr) {
 
     __CKReportDeallocation(ptr, func, line, file);
+    
     #ifdef CKAPPDEBUG
         DisposePtr((Ptr)ptr);
-        if (MemError()) {
-            DebugStr("\pCan't free using DisposePtr!");
+        int r = MemError();
+        if (r) {
+            char t[255];
+            sprintf(t, "Can't free using DisposePtr! Error code: %d", r);
+            CKConsolePrint(t);
+            sprintf(t, " -- From: %s, line %d on %s", func, line, file);
+            CKConsolePrint(t);
         }
     #else
         dlfree(ptr);
     #endif
-
 }
 
 #endif

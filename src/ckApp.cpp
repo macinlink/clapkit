@@ -41,6 +41,7 @@ CKApp::CKApp() {
 
     this->workCount = 0;
     this->__windows = std::vector<CKWindow*>();
+    this->__gc_windows = std::vector<CKWindow*>();
     this->lastMouseDownWindow = nil;
 
 }
@@ -65,6 +66,14 @@ int CKApp::Loop(int waitTime) {
     static EventRecord e;
 
     CKPROFILE
+
+    if (this->__gc_windows.size() > 0) {
+        CKLog("Doing Window garbage collectionism..");
+        while (this->__gc_windows.size() > 0) {
+            CKDelete(this->__gc_windows.at(0));
+            this->__gc_windows.erase(this->__gc_windows.begin());
+        }
+    }
 
     CKWindow* tmw = this->TopMostWindow();
     if (tmw && tmw->activeTextInputControl) {
@@ -143,6 +152,15 @@ void CKApp::Quit() {
     }
 
     #ifdef CKAPPDEBUG
+        // We don't really need Garbage Collection here at this point
+        // but we should or we'll report a lot of leaks.
+        if (this->__gc_windows.size() > 0) {
+            CKLog("Doing Window garbage collectionism..");
+            while (this->__gc_windows.size() > 0) {
+                CKDelete(this->__gc_windows.at(0));
+                this->__gc_windows.erase(this->__gc_windows.begin());
+            }
+        }
         CKPrintExitDebugData();
     #endif
 
@@ -203,6 +221,9 @@ CKWindow* CKApp::CKFindWindow(CKWindowPtr ptr) {
 /**
  * @brief Remove and destroy window.
  * You MUST use this function instead of deleting a window yourself.
+ * We don't immediately delete a window but rather collect it for future
+ * deletion - this is because mouseUp, etc. events might still pop
+ * during execution of an event handler. 
  * @param window 
  */
 void CKApp::CKRemoveWindow(CKWindow* window) {
@@ -221,7 +242,7 @@ void CKApp::CKRemoveWindow(CKWindow* window) {
     if (!found) {
         CKLog("CKRemoveWindow called for %x but can't find it!");
     } else {
-        CKDelete(window);
+        this->__gc_windows.push_back(window);
     }
 
 }
@@ -243,29 +264,54 @@ void CKApp::CKRemoveWindow(CKWindow* window) {
  */
 CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
 
-    int padding = 30;
+    CKPROFILE
+
+    int padding = 13;
 
     CKWindowInitParams params;
     params.width = 300;
     params.height = 0;
-    params.title = title;
+    params.title = title ? title : "Alert";
     params.closable = false;
     params.modal = true;
+    CKWindow* toReturn = this->CKNewWindow(params);
 
     CKLabel* label = CKNew CKLabel({ message, padding, padding, params.width - (padding * 2), 0 });
     label->AutoHeight(300);
-
-    params.height = label->GetRect()->height + (padding * 3) + 20;
-
-    int okButtonWidth = 100;
-    int okButtonLeft = params.width - padding - okButtonWidth;
-    CKButton* okButton = CKNew CKButton({ btnOk, okButtonLeft, params.height - padding, okButtonWidth, 20 });
-
-    CKWindow* toReturn = this->CKNewWindow(params);
-    toReturn->Center();
     toReturn->AddControl(label);
-    toReturn->AddControl(okButton);
 
+    int windowHeight = label->GetRect()->height + (padding * 3) + 20;
+
+    int okButtonWidth = 80;
+    int okButtonLeft = params.width - padding - okButtonWidth;
+
+    int buttonTop = windowHeight - (padding * 2) - 5;
+
+    // TODO: On Classic Mac OS, OK is on the left, Cancel is on the right.
+    // We have to flip these but at the same time, add maybe a check on the platform
+    // we are compiling for so if it's macOS >= 10, we flip it back.
+
+    if (btnCancel) {
+        int cancelButtonLeft = okButtonLeft;
+        CKButton* cancelButton = CKNew CKButton({ btnCancel, cancelButtonLeft, buttonTop, okButtonWidth, 20 });
+        toReturn->AddControl(cancelButton);
+        cancelButton->AddHandler(CKControlEventType::click, [callback, toReturn](CKControl* c, CKControlEvent e) {
+            toReturn->Close();
+            callback(false);
+        });
+        okButtonLeft -= okButtonWidth + padding;
+    }
+
+    CKButton* okButton = CKNew CKButton({ title ? title : "OK", okButtonLeft, buttonTop, okButtonWidth, 20 });
+    toReturn->AddControl(okButton);
+    okButton->AddHandler(CKControlEventType::click, [callback, toReturn](CKControl* c, CKControlEvent e) {
+        toReturn->Close();
+        callback(true);
+    });
+    okButton->SetDefault(true);
+    
+    toReturn->Resize(params.width, windowHeight);
+    toReturn->Center();
     toReturn->Show();
     return toReturn;
 
@@ -590,6 +636,8 @@ void CKApp::HandleEvtMouseMove(EventRecord event) {
 }
 
 void CKApp::HandleEvtUpdate(EventRecord event) {
+
+    CKLog("Update event received.");
 
     WindowPtr window = (WindowPtr)event.message;
     if (window == nil || ((WindowPeek) window)->windowKind != userKind) {

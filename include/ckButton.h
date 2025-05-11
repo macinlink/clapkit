@@ -22,4 +22,14 @@ class CKButton: public CKControlToolbox {
         CKButton(const CKControlInitParams& params);
         virtual ~CKButton();
 
+    public:
+        void SetDefault(bool isDefault);
+        bool GetDefault() {
+            return this->__is_default;
+        }
+        virtual void Redraw();
+
+    private:
+        bool __is_default = false;
+
 };

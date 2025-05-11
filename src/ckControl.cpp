@@ -94,7 +94,6 @@ void CKControl::RemovedFromWindow() {
 */
 void CKControl::Redraw() {
 
-    
 }
 
 /**
@@ -141,14 +140,17 @@ void CKControl::SetRect(CKRect* rect) {
 
     CKPROFILE
 
-    if (this->__rect) {
-        this->MarkAsDirty();
-        CKDelete(this->__rect);
-        this->__rect = 0;
-    }
-
-    if (rect) {
-        this->__rect = CKNew CKRect(rect->x, rect->y, rect->width, rect->height);
+    if (rect != this->__rect) {
+        if (this->__rect) {
+            this->MarkAsDirty();
+            CKDelete(this->__rect);
+            this->__rect = 0;
+        }
+        if (rect) {
+            this->__rect = CKNew CKRect(rect->x, rect->y, rect->width, rect->height);
+            this->MarkAsDirty();
+        }
+    } else {
         this->MarkAsDirty();
     }
 

@@ -4,16 +4,15 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/**/**",
+                "~/Retro68/InterfacesAndLibraries/**",
                 "~/Retro68-build/toolchain/m68k-apple-macos/include/**"
             ],
             "defines": [],
-            "macFrameworkPath": [
-                "~/Retro68-build/toolchain/m68k-apple-macos/include/**"
-            ],
-            "compilerPath": "/opt/homebrew/opt/llvm/bin/clang",
+            "compilerPath": "",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "macos-clang-arm64"
+            "intelliSenseMode": "gcc-arm"
         }
     ],
     "version": 4

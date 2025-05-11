@@ -23,3 +23,25 @@ CKButton::~CKButton() {
 
 
 }
+
+void CKButton::SetDefault(bool isDefault) {
+    this->__is_default = isDefault;
+}
+
+void CKButton::Redraw() {
+
+    CKControlToolbox::Redraw();
+
+    if (!this->__is_default) {
+        return;
+    }
+
+    Rect* r = this->GetRect()->ToOSPtr();
+    PenSize(3, 3);
+    InsetRect(r, -4, -4);
+    FrameRoundRect(r, 16, 16);
+    PenSize(1, 1);
+    CKFree(r);
+
+
+}

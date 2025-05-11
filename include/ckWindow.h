@@ -94,7 +94,8 @@ class CKWindow: public CKObject {
         CKRect* __rect;
         std::vector<CKControl*> __controls;
         CKApp* __owner;
-        bool __visible;
+        bool __visible = false;
+        bool __dead = false;
         std::vector<CKHandlerContainer*> __handlers;
 
 };

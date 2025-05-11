@@ -155,7 +155,7 @@ void CKLabel::Redraw() {
 
     TECalText(this->__teHandle);
     TEUpdate(&(trecord->viewRect), this->__teHandle);
-
+    
     ForeColor(blackColor);
 
     SetPort(oldPort);
@@ -183,6 +183,63 @@ void CKLabel::SetText(const char* text) {
  * @param maxHeight If set to non-zero value, will limit maximum height.
  */
 void CKLabel::AutoHeight(int maxHeight) {
+    if (!this->__text) return;
+
+    // Create a temporary TEHandle with a dummy GrafPort
+    GrafPtr oldPort;
+    GetPort(&oldPort);
+
+    CGrafPort tempPort;
+    OpenPort((GrafPtr)&tempPort);
+    SetPort((GrafPtr)&tempPort);
+
+    // Define a text rectangle for wrapping
+    Rect textRect;
+    textRect.left = 0;
+    textRect.top = 0;
+    textRect.right = std::max(1, this->GetRect()->width);
+    textRect.bottom = std::min(maxHeight, 500);
+
+    TEHandle tempTE = TEStyleNew(&textRect, &textRect);
+    if (!tempTE) {
+        ClosePort((GrafPtr)&tempPort);
+        SetPort(oldPort);
+        return;
+    }
+
+    // Set text (ensure non-empty)
+    const char* safeText = this->__text ? this->__text : " ";
+    TESetText(safeText, strlen(safeText), tempTE);
+
+    // Apply font settings BEFORE calling TECalText()
+    (*tempTE)->txFont = this->__fontNumber;
+    (*tempTE)->txSize = this->fontSize;
+    (*tempTE)->txFace = (this->bold ? QD_BOLD : 0) |
+                        (this->italic ? QD_ITALIC : 0) |
+                        (this->underline ? QD_UNDERLINE : 0);
+    (*tempTE)->txSize = this->fontSize;
+    (*tempTE)->lineHeight = this->fontSize + 3;
+    (*tempTE)->fontAscent = this->fontSize;
+
+    TECalText(tempTE); // Recalculate text layout
+
+    // Get total height using TEGetHeight
+    int totalHeight = TEGetHeight((*tempTE)->nLines, 0, tempTE);
+
+    // Limit max height if needed
+    if (maxHeight > 0 && totalHeight > maxHeight) {
+        totalHeight = maxHeight;
+    }
+
+    // Dispose of temp TEHandle and restore port
+    TEDispose(tempTE);
+    ClosePort((GrafPtr)&tempPort);
+    SetPort(oldPort);
+
+    // Update label's rect
+    CKRect* rect = this->GetRect();
+    rect->height = totalHeight;
+    this->SetRect(rect);
 
 }
 

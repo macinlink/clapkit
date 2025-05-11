@@ -82,5 +82,6 @@ class CKApp {
     private:
         int workCount;
         CKWindow* lastMouseDownWindow;
+        std::vector<CKWindow*> __gc_windows;
 
 };
