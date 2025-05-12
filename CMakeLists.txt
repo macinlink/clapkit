@@ -18,6 +18,7 @@ include_directories(${RETRO68_PATH}/include)
 add_library(clapkit
     src/dlmalloc.c
     src/dlmalloc_mac.c
+    src/ckMemory.cpp
     src/ckUtils.cpp
     src/ckApp.cpp
     src/ck_pFocusableControl.cpp
@@ -35,7 +36,8 @@ add_library(clapkit
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Clapkit: Configuring Debug Build")
-    target_compile_definitions(clapkit PRIVATE CKAPPDEBUG=1)
+    target_compile_definitions(clapkit PRIVATE kCKAPPDEBUG=1)
+    target_compile_definitions(clapkit PRIVATE kCKDEBUGMEMORY=1)
 
     set_target_properties(clapkit PROPERTIES 
         COMPILE_FLAGS "-O0 -Wall -g -fdata-sections -ffunction-sections"

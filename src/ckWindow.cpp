@@ -30,10 +30,9 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	// this->__rect = (CKRect*)CKMalloc(sizeof(*this->__rect));
 	this->__rect = CKNew CKRect(params.x, params.y, params.width, params.height);
 
-	Rect* r = this->__rect->ToOSPtr();
-	this->__windowPtr = NewCWindow(nil, r, "\p", false, 0, 0, params.closable, 0);
+	Rect r = this->__rect->ToOS();
+	this->__windowPtr = NewCWindow(nil, &r, "\p", false, 0, 0, params.closable, 0);
 	this->SetTitle(params.title);
-	CKFree(r);
 
 	this->latestDownControl = 0;
 	this->activeTextInputControl = 0;
@@ -504,6 +503,10 @@ void CKWindow::RemoveHandler(CKControlEventType type) {
 			found = true;
 			break;
 		}
+	}
+
+	if (!found) {
+		CKLog("Can't find handler (%x) to remove on window %x", type, this);
 	}
 }
 

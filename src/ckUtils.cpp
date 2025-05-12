@@ -13,30 +13,12 @@
 
 #include "ckUtils.h"
 #include "ckApp.h"
+#include <Appearance.h>
+#include <Gestalt.h>
 
-#ifdef CKAPPDEBUG
+#ifdef kCKAPPDEBUG
 std::vector<CKProfilerData*> _profilerData;
 bool _profilerDataInit = false;
-#endif
-
-#if CK_DEBUG_MEMORY == true
-static unsigned long totalAllocated = 0;
-static unsigned long totalFreed = 0;
-static int totalPointers = 0;
-struct CKAllocdMemory {
-		void* ptr;
-		size_t size;
-		bool viaNew;
-		CKAllocdMemory* prev;
-		char* funcName;
-		char* fileName;
-		int line;
-		char* f_funcName;
-		char* f_fileName;
-		int f_line;
-};
-
-CKAllocdMemory* lastAlloc = 0;
 #endif
 
 /**
@@ -52,7 +34,7 @@ unsigned char* __CKC2P(const char* src, const char* func, int line, const char* 
 		length = 254;
 	}
 
-#if CK_DEBUG_MEMORY == true
+#ifdef kCKDEBUGMEMORY
 	unsigned char* toPStrd = (unsigned char*)__CKMalloc(func, line, file, length + 1);
 #else
 	unsigned char* toPStrd = (unsigned char*)CKMalloc(length + 1);
@@ -74,7 +56,7 @@ char* __CKP2C(const unsigned char* src, const char* func, int line, const char* 
 	CKPROFILE
 
 	int length = src[0];
-#if CK_DEBUG_MEMORY == true
+#ifdef kCKDEBUGMEMORY
 	char* toReturn = (char*)__CKMalloc(func, line, file, length + 1);
 #else
 	char* toReturn = (char*)CKMalloc(length + 1);
@@ -113,7 +95,7 @@ void __CKDebugLog(int level, const char* s, ...) {
 	}
 
 	// Prepend the log level manually without snprintf
-	char* logPrefix;
+	const char* logPrefix;
 	switch (level) {
 		case 1:
 			logPrefix = "< WARN > ";
@@ -159,7 +141,7 @@ void __CKDebugLog(int level, const char* s, ...) {
  */
 void CKConsolePrint(const char* toPrint) {
 
-#ifdef CKAPPDEBUG
+#ifdef kCKAPPDEBUG
 	if (!toPrint)
 		return; // Avoid passing NULL to DebugStr
 
@@ -174,200 +156,7 @@ void CKConsolePrint(const char* toPrint) {
 #endif
 }
 
-#if CK_DEBUG_MEMORY == true
-
-void* operator new(size_t size, const char* func, int line, const char* file) {
-
-	if (size == 0) {
-		CKLog("new called with size of zero.");
-		return nil;
-	}
-
-	CKAllocdMemory* p = __CKReportAllocation(func, line, file, size, true);
-	p->ptr = dlmalloc(size);
-	return p->ptr;
-}
-
-void* operator new[](size_t size, const char* func, int line, const char* file) {
-
-	if (size == 0) {
-		CKLog("new called with size of zero.");
-		return nil;
-	}
-
-	CKAllocdMemory* p = __CKReportAllocation(func, line, file, size, true);
-	p->ptr = dlmalloc(size);
-	return p->ptr;
-}
-
-void operator delete(void* ptr, const char* file, const char* func, int line) noexcept {
-	if (ptr != nullptr) {
-		__CKReportDeallocation(ptr, func, line, file, true);
-		dlfree(ptr);
-	}
-}
-
-void operator delete[](void* ptr, const char* file, const char* func, int line) noexcept {
-	if (ptr != nullptr) {
-		__CKReportDeallocation(ptr, func, line, file, true);
-		dlfree(ptr);
-	}
-}
-
-CKAllocdMemory* __CKReportAllocation(const char* func, int line, const char* _file, size_t size, bool viaNew) {
-
-	char* lastSlash = strrchr(_file, '/');
-	char* file = 0;
-	if (lastSlash != nullptr) {
-		file = lastSlash + 1;
-	}
-
-	CKAllocdMemory* p = (CKAllocdMemory*)dlmalloc(sizeof(*p));
-	p->size = size;
-	p->viaNew = viaNew;
-	p->prev = lastAlloc;
-
-	p->funcName = (char*)dlmalloc(strlen(func) + 1);
-	strcpy(p->funcName, func);
-	p->fileName = (char*)dlmalloc(strlen(file) + 1);
-	strcpy(p->fileName, file);
-	p->line = line;
-
-	lastAlloc = p;
-	totalAllocated += size;
-
-	return p;
-}
-
-void __CKReportDeallocation(void* ptr, const char* func, int line, const char* _file, bool viaDelete) {
-
-	char* lastSlash = strrchr(_file, '/');
-	char* file = 0;
-	if (lastSlash != nullptr) {
-		file = lastSlash + 1;
-	}
-
-	// Try to find the thingy.
-	CKAllocdMemory* p = lastAlloc;
-	CKAllocdMemory* p_prev = 0;
-	bool found = false;
-	while (p) {
-		if (p->ptr == ptr) {
-			// We got it! Re-link the list..
-			if (p_prev && p) {
-				p_prev->prev = p->prev;
-			} else {
-				lastAlloc = p->prev;
-			}
-			totalFreed += p->size;
-			found = true;
-			break;
-		}
-		p_prev = p;
-		p = p->prev;
-	}
-
-	if (!found) {
-		CKDebugLog(0, "On Function: %s, Line: %d, File: %s:", func, line, file);
-		CKDebugLog(1, " - %s called on pointer (%x) not on memory alloc list!", viaDelete ? "Delete" : "Free", ptr);
-	}
-}
-
-/**
- * Wrapper for malloc used to find potential leaks.
- */
-void* __CKMalloc(const char* func, int line, const char* file, size_t size) {
-
-	CKAllocdMemory* p = __CKReportAllocation(func, line, file, size, false);
-#ifdef CKAPPDEBUG
-	p->ptr = NewPtr(size);
-	if (MemError()) {
-		DebugStr("\pCan't allocate using NewPtr!");
-		p->ptr = 0;
-		return 0;
-	}
-	return p->ptr;
-#else
-	p->ptr = dlmalloc(size);
-	return p->ptr;
-#endif
-}
-
-/**
- * Wrapper for free used to find potential leaks.
- */
-void __CKFree(const char* func, int line, const char* file, void* ptr) {
-
-	__CKReportDeallocation(ptr, func, line, file);
-
-#ifdef CKAPPDEBUG
-	DisposePtr((Ptr)ptr);
-	int r = MemError();
-	if (r) {
-		char t[255];
-		sprintf(t, "Can't free using DisposePtr! Error code: %d", r);
-		CKConsolePrint(t);
-		sprintf(t, " -- From: %s, line %d on %s", func, line, file);
-		CKConsolePrint(t);
-	}
-#else
-	dlfree(ptr);
-#endif
-}
-
-#endif
-
-/**
- * Return the stats about memory usage.
- */
-void CKMemoryUsage(size_t* _totalAllocd, size_t* _totalFreed, int* _numOfPtrs) {
-
-#if CK_DEBUG_MEMORY == true
-	CKAllocdMemory* p = lastAlloc;
-	*_totalAllocd = totalAllocated;
-	*_totalFreed = totalFreed;
-	*_numOfPtrs = totalPointers;
-#else
-	*_totalAllocd = 0;
-	*_totalFreed = 0;
-	*_numOfPtrs = 0;
-#endif
-}
-
-/**
- * (Try to) print all the leaks to the console.
- */
-void CKMemoryDumpLeaks() {
-
-#if CK_DEBUG_MEMORY == true
-
-	size_t leak = totalAllocated - totalFreed;
-	__CKWriteToExitFile("Memory Dump: %d bytes alloc'd, %d bytes freed.", totalAllocated, totalFreed);
-
-	if (leak == 0) {
-		__CKWriteToExitFile("Congrats, you have zero leaks!");
-		return;
-	} else {
-		__CKWriteToExitFile("- %d bytes leaked:", leak);
-	}
-
-	CKAllocdMemory* p = lastAlloc;
-
-	while (p) {
-		__CKWriteToExitFile("-- <%s> %d bytes - %s on %s, Line %d", p->viaNew ? "new" : "mal", p->size, p->funcName, p->fileName, p->line);
-		p = p->prev;
-	}
-
-	__CKWriteToExitFile("-- END OF LEAK LIST --");
-
-#else
-
-	CKLog("Debugging of memory not enabled");
-
-#endif
-}
-
-#ifdef CKAPPDEBUG
+#ifdef kCKAPPDEBUG
 
 short __eddf = -1;
 
@@ -425,7 +214,7 @@ void CKPrintExitDebugData() {
 	}
 
 start:
-#if CK_DEBUG_MEMORY == true
+#ifdef kCKDEBUGMEMORY
 	CKMemoryDumpLeaks();
 #endif
 	__CKWriteToExitFile("\r");
@@ -458,3 +247,12 @@ void CKPrintProfileData() {
 	__CKWriteToExitFile("-- END OF PROFILE LIST --");
 }
 #endif
+
+/**
+ * @brief Checks if Appearance Manager is present (8.x+)
+ * @return True if Appearance Manager is available
+ */
+bool CKHasAppearanceManager() {
+	long result;
+	return (Gestalt(gestaltAppearanceAttr, &result) == noErr) && (result & (1 << gestaltAppearanceExists));
+}

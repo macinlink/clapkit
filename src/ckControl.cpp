@@ -106,10 +106,9 @@ void CKControl::MarkAsDirty() {
 	GrafPtr oldPort;
 	GetPort(&oldPort);
 	SetPort(this->owner->__windowPtr);
-	Rect* r = this->GetRect()->ToOSPtr();
-	InvalRect(r);
+	Rect r = this->GetRect()->ToOS();
+	InvalRect(&r);
 	SetPort(oldPort);
-	CKFree(r);
 }
 
 /**

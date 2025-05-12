@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "ckMemory.h"
 #include "dlmalloc.h"
 #include <cstddef>
 #include <cstdlib>
@@ -20,19 +21,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#ifdef CKAPPDEBUG
-#define CK_DEBUG_MEMORY true
-#else
-#ifndef CK_DEBUG_MEMORY
-#define CK_DEBUG_MEMORY false
-#endif
-#ifndef NDEBUG
-#define NDEBUG
-#endif
-#endif
-
-#ifdef CKAPPDEBUG
-// #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#ifdef kCKAPPDEBUG
 #define __FILENAME__ __FILE__
 #else
 #define __FILENAME__ ""
@@ -43,28 +32,16 @@
 /**
  * Wrapper for simple logs.
  */
-#ifdef CKAPPDEBUG
+#ifdef kCKAPPDEBUG
 #define CKLog(s, ...)		  __CKDebugLog(0, s __VA_OPT__(, ) __VA_ARGS__)
 #define CKDebugLog(l, s, ...) __CKDebugLog(l, s __VA_OPT__(, ) __VA_ARGS__)
 #else
 #define CKLog(s, ...) \
 	do {              \
 	} while (0)
-#define CKDebugLog(s, ...) \
-	do {                   \
+#define CKDebugLog(l, s, ...) \
+	do {                      \
 	} while (0)
-#endif
-
-/**
- * Wrappers for malloc/free so we can track leaks.
- * Set `CK_DEBUG_MEMORY` to true to enable.
- */
-#if CK_DEBUG_MEMORY == true
-#define CKMalloc(s) __CKMalloc(__func__, __LINE__, __FILENAME__, s)
-#define CKFree(p)	__CKFree(__func__, __LINE__, __FILENAME__, p)
-#else
-#define CKMalloc(s) dlmalloc(s)
-#define CKFree(p)	dlfree(p)
 #endif
 
 /**
@@ -78,7 +55,7 @@ char* __CKP2C(const unsigned char* src, const char* func, int line, const char* 
  * Use these macros instead.
  */
 
-#ifdef CKAPPDEBUG
+#ifdef kCKAPPDEBUG
 #define CKC2P(s) __CKC2P(s, __func__, __LINE__, __FILENAME__)
 #define CKP2C(s) __CKP2C(s, __func__, __LINE__, __FILENAME__)
 #else
@@ -89,57 +66,10 @@ char* __CKP2C(const unsigned char* src, const char* func, int line, const char* 
 void __CKDebugLog(int level, const char* s, ...);
 void CKConsolePrint(const char* toPrint);
 
-#if CK_DEBUG_MEMORY == true
-
-struct CKAllocdMemory;
-void* operator new(size_t size, const char* func, int line, const char* file);
-void* operator new[](size_t size, const char* func, int line, const char* file);
-void operator delete(void* ptr, const char* file, const char* func, int line) noexcept;
-void operator delete[](void* ptr, const char* file, const char* func, int line) noexcept;
-
-CKAllocdMemory* __CKReportAllocation(const char* func, int line, const char* file, size_t size, bool viaNew);
-void __CKReportDeallocation(void* ptr, const char* func, int line, const char* file, bool viaDelete = false);
-void* __CKMalloc(const char* func, int line, const char* file, size_t size);
-void __CKFree(const char* func, int line, const char* file, void* ptr);
-
-#define CKNew new (__func__, __LINE__, __FILENAME__)
-
-template <typename T>
-void __CKDestroy(T* ptr, const char* file, const char* func, int line) noexcept {
-	if (ptr != nullptr) {
-		ptr->~T();								// Call the destructor
-		operator delete(ptr, file, func, line); // Call the custom delete operator
-	}
-}
-
-template <typename T>
-void __CKDestroy_Array(T* ptr, const char* file, const char* func, int line) noexcept {
-	if (ptr != nullptr) {
-		for (std::size_t i = 0; i < sizeof(T); i++) {
-			ptr[i].~T(); // Call the destructor for each element
-		}
-		operator delete[](ptr, file, func, line); // Call the custom delete[] operator
-	}
-}
-
-#define CKDelete(ptr)	   __CKDestroy(ptr, __FILENAME__, __func__, __LINE__)
-#define CKDeleteArray(ptr) __CKDestroy_Array(ptr, __FILENAME__, __func__, __LINE__)
-
-#else
-
-// Standard new/delete macros
-#define CKNew			   new
-#define CKDelete(ptr)	   delete ptr
-#define CKDeleteArray(ptr) delete[] ptr
-
-#endif
-void CKMemoryUsage(size_t* totalAllocd, size_t* totalFreed, int* numOfPtrs);
-void CKMemoryDumpLeaks();
-
 /**
  * Profiling
  */
-#ifdef CKAPPDEBUG
+#ifdef kCKAPPDEBUG
 #include <vector>
 class CKProfilerData {
 	public:
@@ -194,3 +124,5 @@ void __CKWriteToExitFile(const char* s, ...);
 #else
 #define CKPROFILE
 #endif
+
+bool CKHasAppearanceManager();

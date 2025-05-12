@@ -40,3 +40,14 @@ Then 'start' your app:
 app = CKNew RetroScript();
 ```
 
+You'll need to write a run-loop as well:
+
+```C++
+while(1) {
+    int result = app->Loop(5);
+    if (result != 0) {
+        // Exit the loop, done here.
+        break;
+    }
+}
+```

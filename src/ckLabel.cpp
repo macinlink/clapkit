@@ -33,9 +33,6 @@ CKLabel::CKLabel(const CKControlInitParams& params)
 }
 
 CKLabel::~CKLabel() {
-
-	CK_SAFE_COPY_STRING(this->__text, 0);
-
 	if (this->__teHandle != nullptr) {
 		TEDispose(this->__teHandle);
 		this->__teHandle = nullptr;
@@ -58,10 +55,9 @@ void CKLabel::AddedToWindow(CKWindow* window) {
 	GetPort(&oldPort);
 	SetPort(window->__windowPtr);
 
-	Rect* r = this->GetRect()->ToOSPtr();
-	this->__teHandle = TEStyleNew(r, r);
+	Rect r = this->GetRect()->ToOS();
+	this->__teHandle = TEStyleNew(&r, &r);
 	(*this->__teHandle)->txMode = srcCopy;
-	CKFree(r);
 
 	SetPort(oldPort);
 

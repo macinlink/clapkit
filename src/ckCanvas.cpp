@@ -51,7 +51,10 @@ void CKCanvas::FillRect(CKRect rect, u_int8_t r, u_int8_t g, u_int8_t b) {
 
 	CKPROFILE
 
-	RGBColor rgb = {r << 8, g << 8, b << 8};
+	RGBColor rgb = {
+		(unsigned short)(r << 8),
+		(unsigned short)(g << 8),
+		(unsigned short)(b << 8)};
 	PixPatHandle pixPat = NewPixPat();
 	if (pixPat != NULL) {
 		MakeRGBPat(pixPat, &rgb);
@@ -174,8 +177,10 @@ void CKCanvas::SetPixel(int x, int y, u_int8_t r, u_int8_t g, u_int8_t b) {
 }
 
 void CKCanvas::DrawLine(int x1, int y1, int x2, int y2, u_int8_t r, u_int8_t g, u_int8_t b) {
-	RGBColor rgb = {r << 8, g << 8, b << 8};
-
+	RGBColor rgb = {
+		(unsigned short)(r << 8),
+		(unsigned short)(g << 8),
+		(unsigned short)(b << 8)};
 	CGrafPtr oldPort;
 	GDHandle oldGD;
 	GetGWorld(&oldPort, &oldGD);		// Save the old port

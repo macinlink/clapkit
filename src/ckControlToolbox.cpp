@@ -15,6 +15,10 @@
 #include "ckWindow.h"
 #include <Controls.h>
 
+#define kControlProcIDButton   0
+#define kControlProcIDCheckbox 1
+#define kControlProcIDRadio	   2
+
 CKControlToolbox::CKControlToolbox(const CKControlInitParams& params, CKControlType type)
 	: CKControl(params, type) {
 
@@ -40,15 +44,18 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 		return;
 	}
 
-	Rect* r = this->__rect->ToOSPtr();
+	Rect r = this->__rect->ToOS();
 	unsigned char* title = CKC2P(this->__text);
 
 	switch (this->__type) {
 		case CKControlType::PushButton:
-			this->__ptr = NewControl(this->owner->__windowPtr, r, title, false, 0, 0, 0, 0 /* button */, 0);
+			this->__ptr = NewControl(this->owner->__windowPtr, &r, title, false, 0, 0, 0, kControlProcIDButton, 0);
 			break;
 		case CKControlType::Checkbox:
-			this->__ptr = NewControl(this->owner->__windowPtr, r, title, false, 0, 0, 1, 1 /* checkbox */, 0);
+			this->__ptr = NewControl(this->owner->__windowPtr, &r, title, false, 0, 0, 1, kControlProcIDCheckbox, 0);
+			break;
+		case CKControlType::RadioButton:
+			this->__ptr = NewControl(this->owner->__windowPtr, &r, title, false, 0, 0, 1, kControlProcIDRadio, 0);
 			break;
 		default:
 			throw CKNew CKException("Unknown/unhandled type passed to Toolbox control initializer!");
@@ -62,7 +69,6 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 	this->SetToggleValue(this->GetToggleValue());
 
 	CKFree(title);
-	CKFree(r);
 
 	if (this->GetVisible()) {
 		this->Show();

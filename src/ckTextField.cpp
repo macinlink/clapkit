@@ -12,6 +12,7 @@
  */
 
 #include "ckTextField.h"
+#include <Appearance.h>
 
 CKTextField::CKTextField(const CKControlInitParams& params)
 	: CKLabel(params) {
@@ -25,16 +26,16 @@ void CKTextField::Redraw() {
 	// Draw the outline.
 	// TODO: Use AppearanceManager in MacOS 8+ to make this pretty.
 
-	Rect* r = this->GetRect()->ToOSPtr();
-	ForeColor(blackColor);
-	FillRect(r, &qd.white);
-	BackColor(whiteColor);
-	ForeColor(blackColor);
-	FrameRect(r);
-	CKFree(r);
+	if (CKHasAppearanceManager()) {
+		// TODO: Use DrawThemeEditTextFrame() to draw it.
+	}
 
+	Rect r = this->GetRect()->ToOS();
+	ForeColor(blackColor);
+	FillRect(&r, &qd.white);
 	BackColor(whiteColor);
 	ForeColor(blackColor);
+	FrameRect(&r);
 
 	CKLabel::Redraw();
 }

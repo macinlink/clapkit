@@ -46,11 +46,12 @@ class CKException : public std::exception {
  */
 enum class CKControlType {
 	Unknown = 0,
-	PushButton = 1,
-	Label = 2,
-	Checkbox = 3,
-	Canvas = 4,
-	TextField = 5,
+	PushButton,
+	Label,
+	Checkbox,
+	RadioButton,
+	Canvas,
+	TextField,
 };
 
 /**
@@ -154,7 +155,7 @@ struct CKRect {
 		/**
 		 * Convert our Rect to what the OS expects.
 		 */
-		Rect ToOS() {
+		Rect ToOS() const {
 			Rect r;
 			r.left = x;
 			r.right = x + width;
@@ -166,7 +167,7 @@ struct CKRect {
 		/**
 		 * Same as ToOS but returns a Ptr.
 		 */
-		Rect* ToOSPtr() {
+		Rect* ToOSCopy() {
 			Rect* toReturn = (Rect*)CKMalloc((sizeof(*toReturn)));
 			toReturn->left = x;
 			toReturn->right = x + width;

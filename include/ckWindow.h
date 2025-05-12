@@ -62,7 +62,6 @@ class CKWindow : public CKObject {
 
 		bool HandleEvent(CKControlEvent evt);
 		void AddHandler(CKControlEventType type, std::function<void(CKWindow*, CKControlEvent)> callback);
-		// void AddGenericHandler(std::function<void(CKWindow*, CKControlEvent)> callback);
 		void RemoveHandler(CKControlEventType type);
 		CKHandlerContainer* HasHandler(CKControlEventType type);
 
@@ -84,11 +83,6 @@ class CKWindow : public CKObject {
 		 * We are storing this as a hack to speed things up as HasHandler is pretty slow.
 		 */
 		bool shouldReceiveMouseMoveEvents;
-
-		// /**
-		//  * Generic event handler.
-		// */
-		// std::function<void(CKWindow*, CKControlEvent)> genericEventHandler;
 
 	private:
 		CKRect* __rect;

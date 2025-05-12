@@ -146,7 +146,7 @@ void CKApp::Quit() {
 		this->CKRemoveWindow(this->__windows.at(0));
 	}
 
-#ifdef CKAPPDEBUG
+#ifdef kCKAPPDEBUG
 	// We don't really need Garbage Collection here at this point
 	// but we should or we'll report a lot of leaks.
 	if (this->__gc_windows.size() > 0) {

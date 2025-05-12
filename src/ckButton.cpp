@@ -33,7 +33,7 @@ void CKButton::Redraw() {
 		return;
 	}
 
-	Rect* r = this->GetRect()->ToOSPtr();
+	Rect* r = this->GetRect()->ToOSCopy();
 	PenSize(3, 3);
 	InsetRect(r, -4, -4);
 	FrameRoundRect(r, 16, 16);
