@@ -14,10 +14,20 @@
 #pragma once
 
 #include "ckApp.h"
+#include <unordered_map>
+
+using HandlerFunc = std::function<void(const CKEvent&)>;
 
 class CKObject {
 
 	public:
 		CKObject();
 		~CKObject();
+		virtual void AddHandler(CKEventType type, HandlerFunc cb);
+		virtual void RemoveHandler(CKEventType type);
+		virtual bool HasHandler(CKEventType type) const;
+		virtual bool HandleEvent(const CKEvent& evt);
+
+	protected:
+		std::unordered_map<CKEventType, HandlerFunc> __handlers;
 };

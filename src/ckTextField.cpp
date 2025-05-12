@@ -96,11 +96,11 @@ void CKTextField::PrepareForDraw() {
 	HUnlock((Handle)this->__teHandle);
 }
 
-bool CKTextField::HandleEvent(CKControlEvent evt) {
+bool CKTextField::HandleEvent(const CKEvent& evt) {
 
-	if (evt.type == CKControlEventType::keyDown) {
+	if (evt.type == CKEventType::keyDown) {
 		TEKey(evt.key, this->__teHandle);
-		CKControlEvent e = CKControlEvent(CKControlEventType::changed);
+		CKEvent e = CKEvent(CKEventType::changed);
 		this->HandleEvent(e);
 	}
 

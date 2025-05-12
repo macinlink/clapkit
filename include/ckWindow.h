@@ -60,10 +60,7 @@ class CKWindow : public CKObject {
 
 		void SetIsActive(bool active);
 
-		bool HandleEvent(CKControlEvent evt);
-		void AddHandler(CKControlEventType type, std::function<void(CKWindow*, CKControlEvent)> callback);
-		void RemoveHandler(CKControlEventType type);
-		CKHandlerContainer* HasHandler(CKControlEventType type);
+		virtual bool HandleEvent(const CKEvent& evt);
 
 	public:
 		CKWindowPtr __windowPtr;
@@ -90,5 +87,4 @@ class CKWindow : public CKObject {
 		CKApp* __owner;
 		bool __visible = false;
 		bool __dead = false;
-		std::vector<CKHandlerContainer*> __handlers;
 };

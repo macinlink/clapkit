@@ -26,7 +26,6 @@ CKControlToolbox::CKControlToolbox(const CKControlInitParams& params, CKControlT
 	this->__ptr = 0;
 	this->__type = type;
 
-	this->toggleValue = false;
 	this->SetText(params.title);
 }
 
@@ -134,14 +133,14 @@ void CKControlToolbox::SetEnabled(bool enabled) {
 	this->MarkAsDirty();
 }
 
-bool CKControlToolbox::HandleEvent(CKControlEvent evt) {
+bool CKControlToolbox::HandleEvent(const CKEvent& evt) {
 
 	if (CKControl::HandleEvent(evt)) {
 		// Already handled, stop here.
 		return true;
 	}
 
-	if (evt.type == CKControlEventType::mouseDown) {
+	if (evt.type == CKEventType::mouseDown) {
 		bool didClick = false;
 		if (TrackControl(this->__ptr, evt.point.ToOS(), 0)) {
 			didClick = true;
@@ -150,7 +149,7 @@ bool CKControlToolbox::HandleEvent(CKControlEvent evt) {
 			// TODO: The line below is kind of stupid and should be moved somewhere else.
 			this->SetToggleValue(!this->GetToggleValue()); // For radio & checkboxes..
 			this->MarkAsDirty();
-			this->HandleEvent(CKControlEvent(CKControlEventType::click));
+			this->HandleEvent(CKEvent(CKEventType::click));
 		}
 		return true;
 	}
@@ -185,22 +184,13 @@ void CKControlToolbox::SetText(const char* text) {
 }
 
 void CKControlToolbox::SetToggleValue(bool value) {
-
-	this->toggleValue = value;
-
-	if (!this->__ptr) {
+	if (!__ptr) {
 		return;
 	}
-
-	if (this->__type == CKControlType::Checkbox) {
-		SetControlValue(this->__ptr, value);
-	}
-
-	CKControlEvent e = CKControlEvent(CKControlEventType::changed);
-	this->HandleEvent(e);
+	SetControlValue(__ptr, value ? 1 : 0); // update the OS control
+	HandleEvent(CKEventType::changed);	   // notify your framework
 }
 
-bool CKControlToolbox::GetToggleValue() {
-
-	return this->toggleValue;
+bool CKControlToolbox::GetToggleValue() const {
+	return __ptr && (GetControlValue(__ptr) != 0);
 }

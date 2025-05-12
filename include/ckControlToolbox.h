@@ -29,11 +29,10 @@ class CKControlToolbox : public CKControl, public CKTextableControl {
 		virtual void Hide();
 		virtual void Redraw();
 		virtual void SetEnabled(bool enabled);
-		virtual bool HandleEvent(CKControlEvent evt);
+		virtual bool HandleEvent(const CKEvent& evt);
 		virtual void SetRect(CKRect* rect);
 		void SetToggleValue(bool value);
-		bool GetToggleValue();
-
+		bool GetToggleValue() const;
 		void SetText(const char* text);
 
 	private:
@@ -41,5 +40,4 @@ class CKControlToolbox : public CKControl, public CKTextableControl {
 	protected:
 		CKControlPtr __ptr;
 		CKControlType __type;
-		bool toggleValue;
 };

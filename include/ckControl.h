@@ -45,13 +45,7 @@ class CKControl : public CKObject {
 		virtual void SetRect(CKRect* rect);
 		virtual void SetEnabled(bool enabled);
 		virtual bool GetEnabled();
-		virtual bool HandleEvent(CKControlEvent evt);
 		virtual bool GetVisible();
-
-		virtual void AddHandler(CKControlEventType type, std::function<void(CKControl*, CKControlEvent)> callback);
-		virtual void RemoveHandler(CKControlEventType type);
-		virtual CKHandlerContainer* HasHandler(CKControlEventType type);
-
 		virtual void SetIsFocused(bool focused);
 
 	private:
@@ -63,5 +57,4 @@ class CKControl : public CKObject {
 		bool __enabled;
 		bool __visible;
 		bool __focused;
-		std::vector<CKHandlerContainer*> __handlers;
 };

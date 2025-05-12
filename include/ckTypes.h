@@ -108,7 +108,7 @@ struct CKPoint {
 		/**
 		 * Convert our Rect to what the OS expects.
 		 */
-		Point ToOS() {
+		Point ToOS() const {
 			Point p;
 			p.h = x;
 			p.v = y;
@@ -213,7 +213,7 @@ struct CKRect {
 /**
  * Defines an event type for controls (and windows.)
  */
-enum class CKControlEventType {
+enum class CKEventType {
 	/**
 	 * @brief Nothing.
 	 */
@@ -284,17 +284,22 @@ enum class CKControlEventType {
 /**
  * Defines an event, handled internally.
  */
-struct CKControlEvent {
+class CKWindow;
+class CKControl;
+struct CKEvent {
 
-		CKControlEventType type;
+		CKEventType type;
 		CKPoint point;
 		CKMouseButton mouseButton;
 		char key;
 		char character;
 
-		CKControlEvent(CKControlEventType type)
+		CKWindow* window = nullptr;	  // always set
+		CKControl* control = nullptr; // can be nullptr for window-only events
+
+		CKEvent(CKEventType type)
 			: type(type) {}
-		CKControlEvent(CKControlEventType type, CKPoint point)
+		CKEvent(CKEventType type, CKPoint point)
 			: type(type), point(point) {}
 
 		/**
@@ -305,16 +310,4 @@ struct CKControlEvent {
 		 * @brief Reserved.
 		 */
 		void* secondaryValue;
-};
-
-/**
- * Event Callback container definition
- */
-class CKControl;
-class CKWindow;
-class CKHandlerContainer {
-	public:
-		CKControlEventType type;
-		std::function<void(CKControl*, CKControlEvent)> callback;
-		std::function<void(CKWindow*, CKControlEvent)> callback_window;
 };

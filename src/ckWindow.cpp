@@ -47,7 +47,7 @@ CKWindow::~CKWindow() {
 
 	CKLog("Destroying window %x", this);
 
-	CKControlEvent evt = CKControlEvent(CKControlEventType::deleted);
+	CKEvent evt = CKEvent(CKEventType::deleted);
 	this->HandleEvent(evt);
 
 	if (this->__rect) {
@@ -56,10 +56,6 @@ CKWindow::~CKWindow() {
 
 	while (this->__controls.size() > 0) {
 		this->RemoveControl(this->__controls.at(0), true);
-	}
-
-	while (this->__handlers.size() > 0) {
-		this->RemoveHandler(this->__handlers.at(0)->type);
 	}
 }
 
@@ -162,7 +158,7 @@ void CKWindow::Move(int x, int y) {
 	MoveWindow(this->__windowPtr, x, y, false);
 
 	CKPoint p = CKPoint(x, y);
-	CKControlEvent evt = CKControlEvent(CKControlEventType::moved, p);
+	CKEvent evt = CKEvent(CKEventType::moved, p);
 	this->HandleEvent(evt);
 }
 
@@ -205,7 +201,7 @@ void CKWindow::Close() {
 
 	this->Hide();
 
-	CKControlEvent evt = CKControlEvent(CKControlEventType::removed);
+	CKEvent evt = CKEvent(CKEventType::removed);
 	this->HandleEvent(evt);
 
 	this->__owner->CKRemoveWindow(this);
@@ -413,7 +409,7 @@ void CKWindow::SetIsActive(bool active) {
  *
  * Returns true if handled.
  */
-bool CKWindow::HandleEvent(CKControlEvent evt) {
+bool CKWindow::HandleEvent(const CKEvent& evt) {
 
 	CKPROFILE
 
@@ -421,11 +417,11 @@ bool CKWindow::HandleEvent(CKControlEvent evt) {
 		return true;
 	}
 
-	if (evt.type == CKControlEventType::keyDown && evt.key == 13) {
+	if (evt.type == CKEventType::keyDown && evt.key == 13) {
 		for (auto it = this->__controls.begin(); it != this->__controls.end(); ++it) {
 			CKButton* button = dynamic_cast<CKButton*>(*it);
 			if (button && button->GetDefault()) {
-				CKControlEvent clickEvt = CKControlEvent(CKControlEventType::click);
+				CKEvent clickEvt = CKEvent(CKEventType::click);
 				button->HandleEvent(clickEvt);
 			}
 		}
@@ -436,92 +432,5 @@ bool CKWindow::HandleEvent(CKControlEvent evt) {
 		this->activeTextInputControl->HandleEvent(evt);
 	}
 
-	// if (this->genericEventHandler) {
-	//     this->genericEventHandler(this, evt);
-	//     return true;
-	// }
-
-	CKHandlerContainer* handler = this->HasHandler(evt.type);
-	if (handler) {
-		CKLog("Found handler, calling.");
-		handler->callback_window(this, evt);
-		return true;
-	}
-
-	return false;
-}
-
-/**
- * Add/replace a handler for an event type.
- */
-void CKWindow::AddHandler(CKControlEventType type, std::function<void(CKWindow*, CKControlEvent)> callback) {
-
-	CKPROFILE
-
-	CKHandlerContainer* cbc = CKNew CKHandlerContainer();
-	cbc->type = type;
-	cbc->callback_window = callback;
-
-	if (this->HasHandler(type)) {
-		CKLog("Found a handler for type %d, replacing it.", type);
-		this->RemoveHandler(type);
-	}
-
-	if (type == CKControlEventType::mouseMove) {
-		this->shouldReceiveMouseMoveEvents = true;
-	}
-
-	this->__handlers.push_back(cbc);
-}
-
-/**
- * @brief Add a generic handler for ALL types of events. This disables individual event handlers.
- * @param callback
- */
-// void CKWindow::AddGenericHandler(std::function<void(CKWindow*, CKControlEvent)> callback) {
-
-//     this->genericEventHandler = callback;
-
-// }
-
-/**
- * Remove - if it's there - an event handler.
- */
-void CKWindow::RemoveHandler(CKControlEventType type) {
-
-	CKPROFILE
-
-	if (type == CKControlEventType::mouseMove) {
-		this->shouldReceiveMouseMoveEvents = false;
-	}
-
-	bool found = false;
-	for (auto it = this->__handlers.begin(); it != this->__handlers.end(); ++it) {
-		if ((*it)->type == type) {
-			CKDelete(*it);
-			it = this->__handlers.erase(it);
-			found = true;
-			break;
-		}
-	}
-
-	if (!found) {
-		CKLog("Can't find handler (%x) to remove on window %x", type, this);
-	}
-}
-
-/**
- * Returns if we have a handler for this type.
- */
-CKHandlerContainer* CKWindow::HasHandler(CKControlEventType type) {
-
-	CKPROFILE
-
-	for (auto& h : this->__handlers) {
-		if (h->type == type) {
-			return h;
-		}
-	}
-
-	return nil;
+	return CKObject::HandleEvent(evt);
 }

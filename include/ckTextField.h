@@ -26,7 +26,7 @@ class CKTextField : public CKLabel, public CKFocusableControl {
 		virtual void Blurred();
 		virtual void Focused();
 		virtual void PrepareForDraw();
-		virtual bool HandleEvent(CKControlEvent evt);
+		virtual bool HandleEvent(const CKEvent& evt);
 		virtual const char* GetText();
 
 	protected:

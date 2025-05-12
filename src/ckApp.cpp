@@ -283,7 +283,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 		int cancelButtonLeft = okButtonLeft;
 		CKButton* cancelButton = CKNew CKButton({btnCancel, cancelButtonLeft, buttonTop, okButtonWidth, 20});
 		toReturn->AddControl(cancelButton);
-		cancelButton->AddHandler(CKControlEventType::click, [callback, toReturn](CKControl* c, CKControlEvent e) {
+		cancelButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 			toReturn->Close();
 			callback(false);
 		});
@@ -292,7 +292,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 
 	CKButton* okButton = CKNew CKButton({title ? title : "OK", okButtonLeft, buttonTop, okButtonWidth, 20});
 	toReturn->AddControl(okButton);
-	okButton->AddHandler(CKControlEventType::click, [callback, toReturn](CKControl* c, CKControlEvent e) {
+	okButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 		toReturn->Close();
 		callback(true);
 	});
@@ -402,7 +402,7 @@ void CKApp::HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 		return;
 	}
 
-	CKControlEvent evt = CKControlEvent(isKeyUp ? CKControlEventType::keyUp : CKControlEventType::keyDown);
+	CKEvent evt = CKEvent(isKeyUp ? CKEventType::keyUp : CKEventType::keyDown);
 	evt.character = theChar;
 	evt.key = theKey;
 	activeWindow->HandleEvent(evt);
@@ -492,7 +492,7 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 					if (ckFoundWindow->latestDownControl) {
 						if (ckFoundWindow->latestDownControl != control) {
 							CKPoint p = CKPoint().FromOS(event.where);
-							CKControlEvent evt = CKControlEvent(CKControlEventType::mouseUp, p);
+							CKEvent evt = CKEvent(CKEventType::mouseUp, p);
 							CKLog("Will call control %x to handle up event", ckFoundWindow->latestDownControl);
 							ckFoundWindow->latestDownControl->HandleEvent(evt);
 							ckFoundWindow->latestDownControl = 0;
@@ -501,14 +501,14 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 					ckFoundWindow->latestDownControl = control;
 
 					CKPoint p = CKPoint().FromOS(event.where);
-					CKControlEvent evt = CKControlEvent(CKControlEventType::mouseDown, p);
+					CKEvent evt = CKEvent(CKEventType::mouseDown, p);
 					if (control) {
 						CKLog("Will call control %x to handle down event", control);
 						control->HandleEvent(evt);
 					}
 					if (this->lastMouseDownWindow == ckFoundWindow) {
 						// Send mouseMove instead.
-						evt.type = CKControlEventType::mouseMove;
+						evt.type = CKEventType::mouseMove;
 						evt.mouseButton = CKMouseButton::Left;
 					} else {
 						// Let the window know to switch the active control.
@@ -554,13 +554,13 @@ void CKApp::HandleEvtMouseUp(EventRecord event) {
 					CKControl* control = ckFoundWindow->FindControl(CKPoint::FromOS(event.where));
 					if (ckFoundWindow->latestDownControl) {
 						CKPoint p = CKPoint().FromOS(event.where);
-						CKControlEvent evt = CKControlEvent(CKControlEventType::mouseUp, p);
+						CKEvent evt = CKEvent(CKEventType::mouseUp, p);
 						ckFoundWindow->latestDownControl->HandleEvent(evt);
 						ckFoundWindow->latestDownControl = 0;
 					}
 					ckFoundWindow->latestDownControl = 0;
 					CKPoint p = CKPoint().FromOS(event.where);
-					CKControlEvent evt = CKControlEvent(CKControlEventType::mouseUp, p);
+					CKEvent evt = CKEvent(CKEventType::mouseUp, p);
 					if (control) {
 						control->HandleEvent(evt);
 					}
@@ -604,7 +604,7 @@ void CKApp::HandleEvtMouseMove(EventRecord event) {
 			GlobalToLocal(&(event.where));
 			SetPort(oldPort);
 			CKPoint p = CKPoint().FromOS(event.where);
-			CKControlEvent evt = CKControlEvent(CKControlEventType::mouseMove, p);
+			CKEvent evt = CKEvent(CKEventType::mouseMove, p);
 			// TODO: We shouldn't need the second check here. Find out why lastMouseDownWindow gets 'stuck'
 			if (this->lastMouseDownWindow && this->lastMouseDownWindow == ckFoundWindow) {
 				evt.mouseButton = CKMouseButton::Left;

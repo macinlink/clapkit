@@ -20,7 +20,6 @@ CKControl::CKControl(const CKControlInitParams& params, CKControlType type)
 	this->owner = nil;
 	this->__enabled = true;
 	this->__visible = true;
-	this->__handlers = std::vector<CKHandlerContainer*>();
 	this->__rect = 0;
 
 	CKRect* r = CKNew CKRect(params.x, params.y, params.width, params.height);
@@ -30,16 +29,12 @@ CKControl::CKControl(const CKControlInitParams& params, CKControlType type)
 
 CKControl::~CKControl() {
 
-	CKControlEvent evt = CKControlEvent(CKControlEventType::deleted);
+	CKEvent evt = CKEvent(CKEventType::deleted);
 	this->HandleEvent(evt);
 
 	if (this->__rect) {
 		CKDelete(this->__rect);
 		this->__rect = nullptr;
-	}
-
-	while (this->__handlers.size() > 0) {
-		this->RemoveHandler(this->__handlers.at(0)->type);
 	}
 }
 
@@ -77,7 +72,7 @@ void CKControl::AddedToWindow(CKWindow* window) {
  */
 void CKControl::RemovedFromWindow() {
 
-	CKControlEvent evt = CKControlEvent(CKControlEventType::removed);
+	CKEvent evt = CKEvent(CKEventType::removed);
 	this->HandleEvent(evt);
 }
 
@@ -163,79 +158,12 @@ bool CKControl::GetEnabled() {
 }
 
 /**
- * Called by CKApp when the user interacts with
- * our control. Override for custom controls.
- *
- * Returns true if handled.
- */
-bool CKControl::HandleEvent(CKControlEvent evt) {
-
-	CKHandlerContainer* handler = this->HasHandler(evt.type);
-	if (handler) {
-		handler->callback(this, evt);
-	}
-
-	return false;
-}
-
-/**
  * @brief Is this control visible?
  * @return True if visible.
  */
 bool CKControl::GetVisible() {
 
 	return this->__visible;
-}
-
-/**
- * Add/replace a handler for an event type.
- */
-void CKControl::AddHandler(CKControlEventType type, std::function<void(CKControl*, CKControlEvent)> callback) {
-
-	CKPROFILE
-
-	CKHandlerContainer* cbc = CKNew CKHandlerContainer();
-	cbc->type = type;
-	cbc->callback = callback;
-
-	if (this->HasHandler(type)) {
-		CKLog("Found a handler for type %d, replacing it.", type);
-		this->RemoveHandler(type);
-	}
-
-	this->__handlers.push_back(cbc);
-}
-
-/**
- * Remove - if it's there - an event handler.
- */
-void CKControl::RemoveHandler(CKControlEventType type) {
-
-	CKPROFILE
-
-	for (auto it = this->__handlers.begin(); it != this->__handlers.end(); ++it) {
-		if ((*it)->type == type) {
-			CKDelete(*it);
-			this->__handlers.erase(it);
-			break;
-		}
-	}
-}
-
-/**
- * Returns if we have a handler for this type.
- */
-CKHandlerContainer* CKControl::HasHandler(CKControlEventType type) {
-
-	CKPROFILE
-
-	for (auto& h : this->__handlers) {
-		if (h->type == type) {
-			return h;
-		}
-	}
-
-	return nil;
 }
 
 /**
