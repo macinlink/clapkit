@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.24)
 # Ensure Retro68 toolchain is set BEFORE defining project
 set(CMAKE_TOOLCHAIN_FILE "~/Retro68-build/toolchain/m68k-apple-macos/cmake/retro68.toolchain.cmake")
 
-project(clapkit VERSION 1.0)
+project(clapkit VERSION 1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define Retro68 path properly
 set(RETRO68_PATH ~/Retro68-build/toolchain/m68k-apple-macos)
@@ -34,24 +34,26 @@ add_library(clapkit
     src/ckTextField.cpp
 )
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    message(STATUS "Clapkit: Configuring Debug Build")
-    target_compile_definitions(clapkit PRIVATE kCKAPPDEBUG=1)
-    target_compile_definitions(clapkit PRIVATE kCKDEBUGMEMORY=1)
+target_include_directories(clapkit
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 
-    set_target_properties(clapkit PROPERTIES 
-        COMPILE_FLAGS "-O0 -Wall -g -fdata-sections -ffunction-sections"
-        LINK_FLAGS "-Wl,--mac-single"
-    )
+target_compile_definitions(clapkit
+  PRIVATE
+    $<$<CONFIG:Debug>:kCKAPPDEBUG=1;kCKDEBUGMEMORY=1>
+    $<$<CONFIG:Release>:NDEBUG>
+)
 
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    message(STATUS "Clapkit: Configuring Release Build")
-    target_compile_definitions(clapkit PRIVATE NDEBUG)
+target_compile_options(clapkit
+  PRIVATE
+    $<$<CONFIG:Debug>:-O0;-g;-Wall;-fdata-sections;-ffunction-sections>
+    $<$<CONFIG:Release>:-s;-O1;-Wall;-fmerge-all-constants;-fmerge-constants;-fstrict-aliasing;-fomit-frame-pointer;-fdata-sections;-ffunction-sections;-finline-functions>
+)
 
-    set_target_properties(clapkit PROPERTIES 
-        COMPILE_FLAGS "-s -O1 -Wall -fmerge-all-constants -fmerge-constants -fstrict-aliasing -fomit-frame-pointer -fdata-sections -ffunction-sections -finline-functions"
-        LINK_FLAGS "-Wl,--mac-single -Wl,--mac-strip-macsbug"
-    )
-endif()
-
-target_include_directories(clapkit PUBLIC include)
+target_link_options(clapkit
+  PRIVATE
+    $<$<CONFIG:Debug>:-Wl,--mac-single>
+    $<$<CONFIG:Release>:-Wl,--mac-single;-Wl,--mac-strip-macsbug>
+)

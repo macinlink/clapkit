@@ -106,9 +106,3 @@ bool CKTextField::HandleEvent(const CKEvent& evt) {
 
 	return CKLabel::HandleEvent(evt);
 }
-
-const char* CKTextField::GetText() {
-
-	CKLog("GetText for CKTextField called.");
-	return "yarrak";
-}
