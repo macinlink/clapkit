@@ -16,17 +16,25 @@
 #include "ckApp.h"
 #include "ckControl.h"
 #include "ckObject.h"
-
+#include <cstring>
 #include <vector>
 
 struct CKWindowInitParams {
+		/** Initial size of the window */
+		CKSize size = CKSize(0, 0);
+		/** Provide a title for your window (optional) */
 		const char* title = 0;
-		int x = 0;
-		int y = 0;
-		int width = 100;
-		int height = 50;
+		/** Provide an initial position for your window (optional - if null, will be centered) */
+		CKPoint* point = nullptr;
+		/** Allows window to be closed by the user. */
 		bool closable = true;
+		/** True if modal dialog */
 		bool modal = false;
+
+		CKWindowInitParams(int w, int h, const char* title = nullptr, bool closable = true, bool modal = false) {
+			this->size = CKSize(w, h);
+			CKSafeCopyString((char**)&this->title, title);
+		}
 };
 
 class CKWindow : public CKObject {

@@ -188,7 +188,7 @@ void CKLabel::AutoHeight(int maxHeight) {
 	Rect textRect;
 	textRect.left = 0;
 	textRect.top = 0;
-	textRect.right = std::max(1, this->GetRect()->width);
+	textRect.right = std::max(1, this->GetRect()->size.width);
 	textRect.bottom = std::min(maxHeight, 500);
 
 	TEHandle tempTE = TEStyleNew(&textRect, &textRect);
@@ -229,7 +229,7 @@ void CKLabel::AutoHeight(int maxHeight) {
 
 	// Update label's rect
 	CKRect* rect = this->GetRect();
-	rect->height = totalHeight;
+	rect->size.height = totalHeight;
 	this->SetRect(rect);
 }
 

@@ -112,7 +112,7 @@ void CKControl::MarkAsDirty() {
 CKRect* CKControl::GetRect(bool getCopy) {
 
 	if (getCopy) {
-		CKRect* r = CKNew CKRect(this->__rect->x, this->__rect->y, this->__rect->width, this->__rect->height);
+		CKRect* r = CKNew CKRect(*this->__rect);
 		return r;
 	} else {
 		return this->__rect;
@@ -133,7 +133,7 @@ void CKControl::SetRect(CKRect* rect) {
 			this->__rect = 0;
 		}
 		if (rect) {
-			this->__rect = CKNew CKRect(rect->x, rect->y, rect->width, rect->height);
+			this->__rect = CKNew CKRect(*rect);
 			this->MarkAsDirty();
 		}
 	} else {

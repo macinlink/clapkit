@@ -165,8 +165,8 @@ void CKControlToolbox::SetRect(CKRect* rect) {
 		return;
 	}
 
-	SizeControl(this->__ptr, rect->width, rect->height);
-	MoveControl(this->__ptr, rect->x, rect->y);
+	SizeControl(this->__ptr, rect->size.width, rect->size.height);
+	MoveControl(this->__ptr, rect->origin.x, rect->origin.y);
 	this->MarkAsDirty();
 }
 

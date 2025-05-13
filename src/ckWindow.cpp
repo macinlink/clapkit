@@ -28,7 +28,14 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	this->__visible = false;
 
 	// this->__rect = (CKRect*)CKMalloc(sizeof(*this->__rect));
-	this->__rect = CKNew CKRect(params.x, params.y, params.width, params.height);
+	this->__rect = CKNew CKRect();
+	this->__rect->size = params.size;
+	if (params.point) {
+		this->__rect->origin = CKPoint(params.point->x, params.point->y);
+	} else {
+		// TODO: This is pretty ugly.
+		this->__rect->origin = CKPoint(-1, -1);
+	}
 
 	Rect r = this->__rect->ToOS();
 	this->__windowPtr = NewCWindow(nil, &r, "\p", false, 0, 0, params.closable, 0);
@@ -93,6 +100,11 @@ void CKWindow::Show() {
 
 	CKPROFILE
 
+	// TODO: This is pretty ugly..
+	if (this->__rect->origin.x == -1 && this->__rect->origin.y == -1) {
+		this->Center();
+	}
+
 	ShowWindow(this->__windowPtr);
 	this->__visible = true;
 }
@@ -137,7 +149,7 @@ CKRect* CKWindow::GetRect(bool getCopy) {
 	CKPROFILE
 
 	if (getCopy) {
-		CKRect* r = CKNew CKRect(this->__rect->x, this->__rect->y, this->__rect->width, this->__rect->height);
+		CKRect* r = CKNew CKRect(*this->__rect);
 		return r;
 	} else {
 		return this->__rect;
@@ -151,10 +163,10 @@ void CKWindow::Move(int x, int y) {
 
 	CKPROFILE
 
-	this->__rect->x = x;
-	this->__rect->y = y;
+	this->__rect->origin.y = x;
+	this->__rect->origin.y = y;
 
-	CKLog("Moving window %x to %d,%d (size: %dx%d)", this->__windowPtr, x, y, this->GetRect()->width, this->GetRect()->height);
+	CKLog("Moving window %x to %d,%d (size: %dx%d)", this->__windowPtr, x, y, this->GetRect()->size.width, this->GetRect()->size.height);
 	MoveWindow(this->__windowPtr, x, y, false);
 
 	CKPoint p = CKPoint(x, y);
@@ -169,10 +181,10 @@ void CKWindow::Resize(int width, int height) {
 
 	CKPROFILE
 
-	this->__rect->width = width;
-	this->__rect->height = height;
+	this->__rect->size.width = width;
+	this->__rect->size.height = height;
 
-	SizeWindow(this->__windowPtr, this->__rect->width, this->__rect->height, true);
+	SizeWindow(this->__windowPtr, this->__rect->size.width, this->__rect->size.height, true);
 }
 
 /**
@@ -185,8 +197,8 @@ void CKWindow::Center() {
 	GrafPtr globalPort;
 	GetPort(&globalPort);
 
-	int x = ((globalPort->portRect.right - globalPort->portRect.left) - this->__rect->width) / 2;
-	int y = ((globalPort->portRect.bottom - globalPort->portRect.top) - this->__rect->height) / 2;
+	int x = ((globalPort->portRect.right - globalPort->portRect.left) - this->__rect->size.width) / 2;
+	int y = ((globalPort->portRect.bottom - globalPort->portRect.top) - this->__rect->size.height) / 2;
 	this->Move(x, y);
 }
 
@@ -300,8 +312,8 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	Rect r;
 	r.top = 0;
 	r.left = 0;
-	r.right = this->__rect->width;
-	r.bottom = this->__rect->height;
+	r.right = this->__rect->size.width;
+	r.bottom = this->__rect->size.height;
 
 	EraseRect(&r); // Clear the window
 

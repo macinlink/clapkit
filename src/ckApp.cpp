@@ -256,22 +256,17 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 
 	int padding = 13;
 
-	CKWindowInitParams params;
-	params.width = 300;
-	params.height = 0;
-	params.title = title ? title : "Alert";
-	params.closable = false;
-	params.modal = true;
+	CKWindowInitParams params = CKWindowInitParams(300, 0, title ? title : "Alert", false, true);
 	CKWindow* toReturn = this->CKNewWindow(params);
 
-	CKLabel* label = CKNew CKLabel({message, padding, padding, params.width - (padding * 2), 0});
+	CKLabel* label = CKNew CKLabel({message, padding, padding, params.size.width - (padding * 2), 0});
 	label->AutoHeight(300);
 	toReturn->AddControl(label);
 
-	int windowHeight = label->GetRect()->height + (padding * 3) + 20;
+	int windowHeight = label->GetRect()->size.height + (padding * 3) + 20;
 
 	int okButtonWidth = 80;
-	int okButtonLeft = params.width - padding - okButtonWidth;
+	int okButtonLeft = params.size.width - padding - okButtonWidth;
 
 	int buttonTop = windowHeight - (padding * 2) - 5;
 
@@ -290,7 +285,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 		okButtonLeft -= okButtonWidth + padding;
 	}
 
-	CKButton* okButton = CKNew CKButton({title ? title : "OK", okButtonLeft, buttonTop, okButtonWidth, 20});
+	CKButton* okButton = CKNew CKButton({btnOk ? btnOk : "OK", okButtonLeft, buttonTop, okButtonWidth, 20});
 	toReturn->AddControl(okButton);
 	okButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 		toReturn->Close();
@@ -298,8 +293,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	});
 	okButton->SetDefault(true);
 
-	toReturn->Resize(params.width, windowHeight);
-	toReturn->Center();
+	toReturn->Resize(params.size.width, windowHeight);
 	toReturn->Show();
 	return toReturn;
 }

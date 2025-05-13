@@ -135,32 +135,80 @@ struct CKPoint {
 };
 
 /**
- * Defines a Rectangular area.
+ * @brief Defines a rectangular area.
+ */
+struct CKSize {
+
+		int width;
+		int height;
+
+		CKSize(int w, int h)
+			: width(w), height(h) {};
+
+		CKSize()
+			: width(0), height(0) {};
+
+		Point ToOS() const {
+			Point p;
+			p.h = width;
+			p.v = height;
+			return p;
+		}
+
+		/**
+		 * Convert OS-rect to what we use.
+		 */
+		static CKSize FromOS(Point p) {
+			CKSize toReturn;
+			toReturn.width = p.h;
+			toReturn.height = p.v;
+			return toReturn;
+		}
+};
+
+/**
+ * @brief Defines a rectangular area at a specific location.
  * Use ToOS/FromOS to interact with native version(s) of this.
  */
 struct CKRect {
 
-		int x;
-		int y;
-		int width;
-		int height;
+		CKPoint origin;
+		CKSize size;
 
-		CKRect(int x, int y, int w, int h)
-			: x(x), y(y), width(w), height(h) {};
-		CKRect(int w, int h)
-			: x(0), y(0), width(w), height(h) {};
-		CKRect()
-			: x(0), y(0), width(0), height(0) {};
+		CKRect(const CKRect& f) {
+			this->origin = f.origin;
+			this->size = f.size;
+		}
+
+		CKRect(CKPoint o, CKSize s) {
+			this->origin = o;
+			this->size = s;
+		}
+
+		CKRect(int x, int y, int w, int h) {
+			this->origin = CKPoint(x, y);
+			this->size = CKSize(w, h);
+		}
+
+		CKRect(int w, int h) {
+			this->origin = CKPoint();
+			this->size = CKSize(w, h);
+		}
+
+		CKRect() {
+			this->origin = CKPoint();
+			this->size = CKSize();
+		}
 
 		/**
 		 * Convert our Rect to what the OS expects.
 		 */
 		Rect ToOS() const {
 			Rect r;
-			r.left = x;
-			r.right = x + width;
-			r.top = y;
-			r.bottom = y + height;
+			r.left = this->origin.x;
+			r.right = this->origin.x + this->size.width;
+			r.top = this->origin.y;
+			r.bottom = this->origin.y + this->size.height;
 			return r;
 		}
 
@@ -169,10 +217,10 @@ struct CKRect {
 		 */
 		Rect* ToOSCopy() {
 			Rect* toReturn = (Rect*)CKMalloc((sizeof(*toReturn)));
-			toReturn->left = x;
-			toReturn->right = x + width;
-			toReturn->top = y;
-			toReturn->bottom = y + height;
+			toReturn->left = this->origin.x;
+			toReturn->right = this->origin.x + this->size.width;
+			toReturn->top = this->origin.y;
+			toReturn->bottom = this->origin.y + this->size.height;
 			return toReturn;
 		}
 
@@ -181,19 +229,8 @@ struct CKRect {
 		 */
 		static CKRect FromOS(Rect r) {
 			CKRect toReturn;
-			toReturn.x = r.left;
-			toReturn.y = r.top;
-			toReturn.width = r.right - r.left;
-			toReturn.height = r.bottom - r.top;
-			return toReturn;
-		}
-
-		static CKRect copy(CKRect r) {
-			CKRect toReturn;
-			toReturn.x = r.x;
-			toReturn.y = r.y;
-			toReturn.width = r.width;
-			toReturn.height = r.height;
+			toReturn.origin = CKPoint(r.left, r.top);
+			toReturn.size = CKSize(r.right - r.left, r.bottom - r.top);
 			return toReturn;
 		}
 
@@ -201,8 +238,8 @@ struct CKRect {
 		 * Is the CKPoint inside us?
 		 */
 		bool intersectsPoint(CKPoint p) {
-			if (p.x >= this->x && p.x <= this->x + this->width) {
-				if (p.y >= this->y && p.y <= this->y + this->height) {
+			if (p.x >= this->origin.x && p.x <= this->origin.x + this->size.width) {
+				if (p.y >= this->origin.y && p.y <= this->origin.y + this->size.height) {
 					return true;
 				}
 			}
