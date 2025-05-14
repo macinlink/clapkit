@@ -126,3 +126,4 @@ void __CKWriteToExitFile(const char* s, ...);
 #endif
 
 bool CKHasAppearanceManager();
+UInt32 CKMillis();

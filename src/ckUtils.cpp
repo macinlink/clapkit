@@ -12,9 +12,9 @@
  */
 
 #include "ckUtils.h"
-#include "ckApp.h"
 #include <Appearance.h>
 #include <Gestalt.h>
+#include <Timer.h>
 
 #ifdef kCKAPPDEBUG
 std::vector<CKProfilerData*> _profilerData;
@@ -255,4 +255,14 @@ void CKPrintProfileData() {
 bool CKHasAppearanceManager() {
 	long result;
 	return (Gestalt(gestaltAppearanceAttr, &result) == noErr) && (result & (1 << gestaltAppearanceExists));
+}
+
+/**
+ * @brief Return the number of milliseconds since computer booted up.
+ * @return
+ */
+UInt32 CKMillis() {
+	UnsignedWide usec;
+	Microseconds(&usec);
+	return usec.lo / 1000;
 }

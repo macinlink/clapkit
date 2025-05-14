@@ -13,10 +13,6 @@
     ],
     "cmake.configureOnOpen": true,
     "files.associations": {
-        "*.embeddedhtml": "html",
-        "*.ejs": "html",
-        "*.mod": "javascript",
-        "BOOT": "javascript",
         "charconv": "cpp",
         "array": "cpp",
         "atomic": "cpp",

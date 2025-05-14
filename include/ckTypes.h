@@ -13,20 +13,19 @@
 
 #pragma once
 
-#include "ckApp.h"
 #include "ckMacros.h"
 #include "ckUtils.h"
 
-#define CKError		 int
+#define CKError			uint32_t
+#define CKPass			1
 
-#define CKWindowPtr	 WindowPtr
-#define CKControlPtr ControlRef
-#define CKRGBColor	 RGBColor
+#define QD_BOLD			1
+#define QD_ITALIC		2
+#define QD_UNDERLINE	4
 
-#define QD_BOLD		 1
-#define QD_ITALIC	 2
-#define QD_UNDERLINE 4
-#define QD_OUTLINE	 8
+#define CKTextBold		QD_BOLD
+#define CKTextItalic	QD_ITALIC
+#define CKTextUnderline QD_UNDERLINE
 
 /**
  * We throw this and subclasses of this when we fail.
@@ -82,12 +81,26 @@ struct CKColor {
 		u_int8_t b = 0;
 		u_int8_t a = 255;
 
+		CKColor(u_int8_t red, u_int8_t green, u_int8_t blue)
+			: r(red), g(green), b(blue) {};
+
+		CKColor()
+			: r(0), g(0), b() {};
+
 		RGBColor ToOS() {
-			RGBColor c;
-			c.blue = b;
-			c.green = g;
-			c.red = r;
-			return c;
+			RGBColor toReturn;
+			toReturn.red = r * 255;
+			toReturn.green = g * 255;
+			toReturn.blue = b * 255;
+			return toReturn;
+		}
+
+		bool operator==(const CKColor& other) const {
+			return r == other.r && g == other.g && b == other.b;
+		}
+
+		bool operator!=(const CKColor& other) const {
+			return !(*this == other);
 		}
 };
 

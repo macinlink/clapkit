@@ -20,9 +20,10 @@
 // #define TARGET_API_MAC_CARBON   false
 #endif
 
-#define LOWORD(l) ((((DWORD_PTR)(l)) & 0xffff))
-#define HIWORD(l) (((((DWORD_PTR)(l)) >> 16) & 0xffff))
-
+#include "ckMacros.h"
+#include "ckPlatform.h"
+#include "ckTypes.h"
+#include "ckUtils.h"
 #include <Dialogs.h>
 #include <Events.h>
 #include <Fonts.h>
@@ -35,10 +36,6 @@
 #include <stdlib.h>
 #include <vector>
 
-#include "ckMacros.h"
-#include "ckTypes.h"
-#include "ckUtils.h"
-
 class CKWindow;
 struct CKWindowInitParams;
 
@@ -48,7 +45,7 @@ class CKApp {
 		CKApp();
 		~CKApp();
 
-		int Loop(int waitTime = 10000);
+		int Loop(int waitTime = 6000);
 		void Quit();
 
 		CKWindow* CKNewWindow(const CKWindowInitParams& params);
@@ -72,6 +69,7 @@ class CKApp {
 		inline void HandleEvtMouseMove(EventRecord event);
 		inline void HandleEvtUpdate(EventRecord event);
 		inline void HandleEvtActivate(EventRecord event);
+		inline void HandleEvtOS(EventRecord event);
 
 	public:
 	protected:

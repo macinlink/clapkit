@@ -28,6 +28,8 @@ struct CKControlInitParams {
 		int y = 0;
 		int width = 100;
 		int height = 50;
+		CKControlInitParams(const char* t, int xx, int yy, int w, int h)
+			: title(t), x(xx), y(yy), width(w), height(h) {}
 };
 
 class CKControl : public CKObject {

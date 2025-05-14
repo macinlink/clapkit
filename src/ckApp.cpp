@@ -14,6 +14,7 @@
 #include "ckApp.h"
 #include "ckButton.h"
 #include "ckLabel.h"
+#include "ckNetworking.h"
 #include "ckUtils.h"
 #include "ckWindow.h"
 
@@ -120,6 +121,7 @@ int CKApp::Loop(int waitTime) {
 			this->HandleEvtActivate(e);
 			break;
 		case osEvt:
+			this->HandleEvtOS(e);
 			break;
 		case kHighLevelEvent:
 			break;
@@ -633,10 +635,6 @@ void CKApp::HandleEvtUpdate(EventRecord event) {
 		CKLog("HandleEvtUpdate called, but ckFoundWindow is nil");
 	}
 
-	// DrawControls((WindowRef)event.message);
-	// SetPort(GetWindowPort(foundWindow));
-	// updateRect = qd.thePort->portRect;
-
 	EndUpdate((WindowRef)event.message);
 	SetPort(oldPort);
 }
@@ -650,12 +648,20 @@ void CKApp::HandleEvtActivate(EventRecord event) {
 		return;
 	}
 
-	bool isActivating = (event.modifiers & activeFlag) != 0;
+	bool isActivating = (event.modifiers & activeFlag) == activeFlag;
 	CKWindow* ckFoundWindow = this->CKFindWindow(window);
 	if (ckFoundWindow) {
 		ckFoundWindow->SetIsActive(isActivating);
 	} else {
 		CKLog("HandleEvtActivate called, but ckFoundWindow is nil");
+	}
+}
+
+void CKApp::HandleEvtOS(EventRecord event) {
+	bool resuming = (event.message & suspendResumeMessage) == resumeFlag;
+	CKWindow* top = this->TopMostWindow();
+	if (top) {
+		top->SetIsActive(resuming);
 	}
 }
 

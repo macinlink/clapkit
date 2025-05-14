@@ -13,6 +13,8 @@
 
 #include "ckLabel.h"
 #include "ckWindow.h"
+#include <Appearance.h>
+#include <TextEdit.h>
 
 CKLabel::CKLabel(const CKControlInitParams& params)
 	: CKControl(params, CKControlType::Label) {
@@ -82,48 +84,74 @@ void CKLabel::PrepareForDraw() {
 	// But this is probably the quickest way of doing this for now.
 
 	HLock((Handle)this->__teHandle);
-	TEPtr trecord = *(this->__teHandle);
 
-	trecord->txSize = this->fontSize;
+	if (this->__teHandle) {
+		if (this->__text) {
+			TESetText(this->__text, strlen(this->__text), this->__teHandle);
 
-	trecord->lineHeight = this->fontSize + 3;
-	trecord->fontAscent = this->fontSize;
+			// Select all text
+			(*this->__teHandle)->selStart = 0;
+			(*this->__teHandle)->selEnd = strlen(this->__text);
+			TEPtr trecord = *(this->__teHandle);
 
-	switch (this->justification) {
-		case CKTextJustification::Center:
-			trecord->just = 1;
-			break;
-		case CKTextJustification::Right:
-			trecord->just = -1;
-			break;
-		default:
-			trecord->just = 0;
-			break;
+			switch (this->justification) {
+				case CKTextJustification::Center:
+					trecord->just = 1;
+					break;
+				case CKTextJustification::Right:
+					trecord->just = -1;
+					break;
+				default:
+					trecord->just = 0;
+					break;
+			}
+
+			TextStyle style;
+
+			style.tsFont = this->__fontNumber;
+			style.tsSize = this->fontSize;
+			style.tsFace = 0;
+
+			if (this->bold) {
+				style.tsFace = style.tsFace | QD_BOLD;
+			} else {
+				style.tsFace = style.tsFace & ~QD_BOLD;
+			}
+
+			if (this->italic) {
+				style.tsFace = style.tsFace | QD_ITALIC;
+			} else {
+				style.tsFace = style.tsFace & ~QD_ITALIC;
+			}
+
+			if (this->underline) {
+				style.tsFace = style.tsFace | QD_UNDERLINE;
+			} else {
+				style.tsFace = style.tsFace & ~QD_UNDERLINE;
+			}
+
+			CKColor black = {0, 0, 0};
+			if (this->color != black || !CKHasAppearanceManager()) {
+				style.tsColor = this->color.ToOS();
+			} else {
+				if (this->color == black && CKHasAppearanceManager()) {
+					RGBColor color;
+					GDHandle deviceHdl = LMGetMainDevice();
+					SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
+					ThemeBrush brush = kThemeInactiveDialogTextColor;
+					if (this->owner && this->owner->GetIsActive()) {
+						brush = kThemeActiveDialogTextColor;
+					}
+					SetThemeTextColor(brush, gPixelDepth, true); // TODO: Maybe not hardcode 'isColorDevice'?
+					style.tsColor = color;
+				}
+			}
+
+			TESetStyle(doAll, &style, true, this->__teHandle);
+		} else {
+			TESetText("", 0, this->__teHandle);
+		}
 	}
-
-	trecord->txFont = this->__fontNumber;
-	trecord->txFace = 0;
-
-	if (this->bold) {
-		trecord->txFace = trecord->txFace | QD_BOLD;
-	} else {
-		trecord->txFace = trecord->txFace & ~QD_BOLD;
-	}
-
-	if (this->italic) {
-		trecord->txFace = trecord->txFace | QD_ITALIC;
-	} else {
-		trecord->txFace = trecord->txFace & ~QD_ITALIC;
-	}
-
-	if (this->underline) {
-		trecord->txFace = trecord->txFace | QD_UNDERLINE;
-	} else {
-		trecord->txFace = trecord->txFace & ~QD_UNDERLINE;
-	}
-
-	RGBColor color = this->color.ToOS();
-	RGBForeColor(&color);
 
 	HUnlock((Handle)this->__teHandle);
 }
@@ -208,7 +236,6 @@ void CKLabel::AutoHeight(int maxHeight) {
 	(*tempTE)->txFace = (this->bold ? QD_BOLD : 0) |
 						(this->italic ? QD_ITALIC : 0) |
 						(this->underline ? QD_UNDERLINE : 0);
-	(*tempTE)->txSize = this->fontSize;
 	(*tempTE)->lineHeight = this->fontSize + 3;
 	(*tempTE)->fontAscent = this->fontSize;
 

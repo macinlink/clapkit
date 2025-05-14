@@ -14,6 +14,8 @@
 #include "ckWindow.h"
 #include "ckButton.h"
 #include "ck_pFocusableControl.h"
+#include <Appearance.h>
+#include <MacWindows.h>
 
 /**
  * Create a new window with the parameters passed.
@@ -27,7 +29,6 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	this->__controls = std::vector<CKControl*>();
 	this->__visible = false;
 
-	// this->__rect = (CKRect*)CKMalloc(sizeof(*this->__rect));
 	this->__rect = CKNew CKRect();
 	this->__rect->size = params.size;
 	if (params.point) {
@@ -39,6 +40,15 @@ CKWindow::CKWindow(CKWindowInitParams params)
 
 	Rect r = this->__rect->ToOS();
 	this->__windowPtr = NewCWindow(nil, &r, "\p", false, 0, 0, params.closable, 0);
+	if (CKHasAppearanceManager()) {
+		SetThemeWindowBackground(this->__windowPtr, kThemeBrushDialogBackgroundActive, true);
+	} else {
+		// System 7 or Appearance not available
+		// Fill with white
+		SetPort(this->__windowPtr);
+		BackColor(whiteColor);
+	}
+
 	this->SetTitle(params.title);
 
 	this->latestDownControl = 0;
@@ -106,6 +116,7 @@ void CKWindow::Show() {
 	}
 
 	ShowWindow(this->__windowPtr);
+	SelectWindow(this->__windowPtr);
 	this->__visible = true;
 }
 
@@ -315,7 +326,18 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	r.right = this->__rect->size.width;
 	r.bottom = this->__rect->size.height;
 
-	EraseRect(&r); // Clear the window
+	if (this->__hasCustomBackgroundColor) {
+		RGBColor c = this->__backgroundColor.ToOS();
+		RGBBackColor(&c);
+		EraseRect(&r);
+	} else if (CKHasAppearanceManager()) {
+		SetThemeWindowBackground(this->__windowPtr, this->__isCurrentlyActive ? kThemeBrushDialogBackgroundActive : kThemeBrushDialogBackgroundInactive, false);
+		// TODO: Do we need EraseRect here?
+	} else {
+		// System 7 or below: default white
+		BackColor(whiteColor);
+		EraseRect(&r);
+	}
 
 	// Redraw all controls
 	for (auto& c : this->__controls) {
@@ -413,6 +435,25 @@ void CKWindow::SetActiveControl(CKControl* control) {
 void CKWindow::SetIsActive(bool active) {
 
 	// TODO: Handle scrollbars, etc.
+	bool doRefresh = false;
+	if (this->__isCurrentlyActive != active) {
+		doRefresh = true;
+	}
+	this->__isCurrentlyActive = active;
+	CKLog("Setting window %x as %s - %s refresh", this, active ? "active" : "inactive", doRefresh ? "will" : "won't");
+	if (doRefresh) {
+		if (active) {
+			this->__InvalidateEntireWindow();
+		} else {
+			// We should not call this->__InvalidateEntireWindow() here
+			// as if we've arrived here from an OSEvt, we won't get any update requests.
+			this->Redraw(CKRect(this->GetRect()->size.width, this->GetRect()->size.height));
+		}
+	}
+}
+
+bool CKWindow::GetIsActive() {
+	return this->__isCurrentlyActive;
 }
 
 /**
@@ -445,4 +486,33 @@ bool CKWindow::HandleEvent(const CKEvent& evt) {
 	}
 
 	return CKObject::HandleEvent(evt);
+}
+
+/**
+ * @brief Call to set a custom background color that overrides the
+ * white on MacOS <= 7 and theme color on MacOS >= 8.
+ * @param color
+ */
+void CKWindow::SetBackgroundColor(CKColor color) {
+	this->__backgroundColor = color;
+	this->__hasCustomBackgroundColor = true;
+	this->__InvalidateEntireWindow();
+}
+
+/**
+ * @brief Removes custom background color set by `SetBackgroundColor`
+ */
+void CKWindow::UnsetBackgroundColor() {
+	this->__hasCustomBackgroundColor = false;
+	Rect r = this->__rect->ToOS();
+	this->__InvalidateEntireWindow();
+}
+
+void CKWindow::__InvalidateEntireWindow() {
+	Rect r;
+	r.top = 0;
+	r.left = 0;
+	r.right = this->__rect->size.width;
+	r.bottom = this->__rect->size.height;
+	InvalRect(&r);
 }

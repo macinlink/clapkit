@@ -39,9 +39,10 @@ class CKLabel : public CKControl, public CKTextableControl {
 		virtual void TECreated();
 
 	public:
-		bool bold;
-		bool italic;
-		bool underline;
+		bool bold = false;
+		bool italic = false;
+		bool underline = false;
+		bool multiline = false;
 		CKColor color;
 		int fontSize;
 		CKTextJustification justification;

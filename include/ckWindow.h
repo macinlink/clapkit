@@ -16,6 +16,7 @@
 #include "ckApp.h"
 #include "ckControl.h"
 #include "ckObject.h"
+#include <MacWindows.h>
 #include <cstring>
 #include <vector>
 
@@ -67,8 +68,15 @@ class CKWindow : public CKObject {
 		void SetActiveControl(CKControl* control);
 
 		void SetIsActive(bool active);
+		bool GetIsActive();
 
 		virtual bool HandleEvent(const CKEvent& evt);
+
+		void SetBackgroundColor(CKColor color);
+		void UnsetBackgroundColor();
+
+	private:
+		void __InvalidateEntireWindow();
 
 	public:
 		CKWindowPtr __windowPtr;
@@ -95,4 +103,7 @@ class CKWindow : public CKObject {
 		CKApp* __owner;
 		bool __visible = false;
 		bool __dead = false;
+		CKColor __backgroundColor;
+		bool __hasCustomBackgroundColor = false;
+		bool __isCurrentlyActive = false;
 };

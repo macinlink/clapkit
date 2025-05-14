@@ -13,6 +13,7 @@
 
 #include "ckControlToolbox.h"
 #include "ckWindow.h"
+#include <Appearance.h>
 #include <Controls.h>
 
 #define kControlProcIDButton   0
@@ -112,7 +113,36 @@ void CKControlToolbox::Redraw() {
 		return;
 	}
 
-	Draw1Control(this->__ptr);
+	// if (CKHasAppearanceManager()) {
+	if (false) { // TODO: Not working right now.
+
+		// If we have Apperance Manager, controls should be disabled
+		// when the window is not active.
+
+		// TODO: This is a hack, we should definitely move to ThemeDraw[...]
+		// API calls and stop using Draw1Control entirely in Mac OS 8+.
+
+		short oldHilite = (**(this->__ptr)).contrlHilite;
+
+		// Set temporary hilite based on window active state
+		if (this->owner && this->owner->GetIsActive()) {
+			(**(this->__ptr)).contrlHilite = this->__enabled ? 0 : 255;
+		} else {
+			(**(this->__ptr)).contrlHilite = 255; // draw as disabled
+		}
+
+		CKLog("oldHilite = %x, (**(this->__ptr)).contrlHilite = %x", oldHilite, (**(this->__ptr)).contrlHilite);
+
+		// Draw with temporary hilite state
+		Draw1Control(this->__ptr);
+
+		// Restore previous state (without causing another redraw)
+		(**(this->__ptr)).contrlHilite = oldHilite;
+
+	} else {
+		Draw1Control(this->__ptr);
+	}
+
 	CKControl::Redraw();
 }
 
