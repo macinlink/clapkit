@@ -19,7 +19,7 @@ class CKTextableControl {
 
 	public:
 		CKTextableControl();
-		~CKTextableControl();
+		virtual ~CKTextableControl();
 		virtual void SetText(const char* text);
 		virtual const char* GetText();
 

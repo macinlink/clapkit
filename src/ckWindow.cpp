@@ -500,7 +500,6 @@ void CKWindow::SetBackgroundColor(CKColor color) {
  */
 void CKWindow::UnsetBackgroundColor() {
 	this->__hasCustomBackgroundColor = false;
-	Rect r = this->__rect->ToOS();
 	this->__InvalidateEntireWindow();
 }
 

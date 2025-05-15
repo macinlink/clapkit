@@ -20,7 +20,7 @@ CKObject::~CKObject() {
 	__handlers.clear();
 }
 
-void CKObject::AddHandler(CKEventType type, HandlerFunc cb) {
+void CKObject::AddHandler(CKEventType type, CKEventHandlerFunc cb) {
 	__handlers[type] = std::move(cb);
 }
 

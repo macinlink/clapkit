@@ -19,7 +19,7 @@ class CKFocusableControl {
 
 	public:
 		CKFocusableControl();
-		~CKFocusableControl();
+		virtual ~CKFocusableControl();
 		virtual void Focused();
 		virtual void Blurred();
 };

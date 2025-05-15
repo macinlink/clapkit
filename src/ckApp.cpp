@@ -14,6 +14,7 @@
 #include "ckApp.h"
 #include "ckButton.h"
 #include "ckLabel.h"
+#include "ckTimer.h"
 #include "ckUtils.h"
 #include "ckWindow.h"
 
@@ -79,7 +80,32 @@ int CKApp::Loop(int waitTime) {
 		}
 	}
 
-	if (!WaitNextEvent(everyEvent, &e, waitTime, nil)) {
+	UInt32 now = CKMillis();
+	UInt32 soonestDue = UINT32_MAX;
+
+	for (CKTimer* timer : this->__timers) {
+		if (timer->enabled) {
+			if (timer->nextRun <= now) {
+				soonestDue = 0;
+				break;
+			}
+			UInt32 wait = timer->nextRun - now;
+			if (wait < soonestDue)
+				soonestDue = wait;
+		}
+	}
+
+	// Convert to ticks (~16.67ms per tick)
+	UInt16 sleepTicks = (soonestDue == UINT32_MAX) ? waitTime : soonestDue / 17;
+	if (sleepTicks < 1) {
+		sleepTicks = 1;
+	} else {
+		if (sleepTicks > waitTime) {
+			sleepTicks = waitTime;
+		}
+	}
+
+	if (!WaitNextEvent(everyEvent, &e, sleepTicks, nil)) {
 
 		static int lastMousePosX = 0;
 		static int lastMousePosY = 0;
@@ -93,7 +119,7 @@ int CKApp::Loop(int waitTime) {
 			lastMousePosY = e.where.v;
 		}
 
-		return 0;
+		goto doTimers;
 	}
 
 	switch (e.what) {
@@ -129,6 +155,17 @@ int CKApp::Loop(int waitTime) {
 			// conditions but let's cover our asses.
 			CKDebugLog(3, "Unknown event type (%d) received.", e.what);
 			break;
+	}
+
+doTimers:
+
+	now = CKMillis(); // refresh timestamp
+	for (auto it = this->__timers.begin(); it != this->__timers.end(); /* no ++ */) {
+		if (!(*it)->Update()) {
+			it = this->__timers.erase(it); // remove one-shot timer
+		} else {
+			++it;
+		}
 	}
 
 	return 0;
@@ -683,4 +720,13 @@ short CKApp::FontToId(const char* font) {
 	CKFree(fn);
 
 	return toReturn;
+}
+
+/**
+ * @brief Add a new timer to the app, enabling (via `Start`) as you add it.
+ * @param timer
+ */
+void CKApp::AddTimer(CKTimer* timer) {
+	this->__timers.push_back(timer);
+	timer->Start();
 }

@@ -37,6 +37,7 @@
 #include <vector>
 
 class CKWindow;
+class CKTimer;
 struct CKWindowInitParams;
 
 class CKApp {
@@ -45,7 +46,7 @@ class CKApp {
 		CKApp();
 		~CKApp();
 
-		int Loop(int waitTime = 6000);
+		int Loop(int waitTime = 60);
 		void Quit();
 
 		CKWindow* CKNewWindow(const CKWindowInitParams& params);
@@ -62,6 +63,8 @@ class CKApp {
 
 		short FontToId(const char* font);
 
+		void AddTimer(CKTimer* timer);
+
 	private:
 		inline void HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey);
 		inline void HandleEvtMouseDown(EventRecord event);
@@ -74,6 +77,7 @@ class CKApp {
 	public:
 	protected:
 		std::vector<CKWindow*> __windows;
+		std::vector<CKTimer*> __timers;
 
 	private:
 		int workCount;

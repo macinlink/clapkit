@@ -44,7 +44,7 @@ class CKWindow : public CKObject {
 
 	public:
 		CKWindow(CKWindowInitParams params);
-		~CKWindow();
+		virtual ~CKWindow();
 
 		void SetTitle(const char* title);
 		char* GetTitle();

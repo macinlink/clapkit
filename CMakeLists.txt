@@ -32,6 +32,7 @@ add_library(clapkit
     src/ckCheckbox.cpp
     src/ckCanvas.cpp
     src/ckTextField.cpp
+    src/ckTimer.cpp
 )
 
 target_include_directories(clapkit

@@ -15,6 +15,7 @@
 
 #include "ckMacros.h"
 #include "ckUtils.h"
+#include <exception>
 
 #define CKError			uint32_t
 #define CKPass			1
