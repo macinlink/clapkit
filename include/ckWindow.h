@@ -32,9 +32,11 @@ struct CKWindowInitParams {
 		/** True if modal dialog */
 		bool modal = false;
 
-		CKWindowInitParams(int w, int h, const char* title = nullptr, bool closable = true, bool modal = false) {
+		CKWindowInitParams(int w, int h, const char* _title = nullptr, bool _closable = true, bool _modal = false) {
 			this->size = CKSize(w, h);
-			CKSafeCopyString((char**)&this->title, title);
+			this->closable = _closable;
+			this->modal = _modal;
+			CKSafeCopyString((char**)&this->title, _title);
 		}
 };
 
@@ -79,17 +81,17 @@ class CKWindow : public CKObject {
 		void __InvalidateEntireWindow();
 
 	public:
-		CKWindowPtr __windowPtr;
+		CKWindowPtr __windowPtr = nullptr;
 
 		/**
 		 * @brief Contains the last control the user has been pushing down on.
 		 */
-		CKControl* latestDownControl;
+		CKControl* latestDownControl = nullptr;
 
 		/**
 		 * @brief Contains the active text input (textarea, textbox, etc..) control.
 		 */
-		CKControl* activeTextInputControl;
+		CKControl* activeTextInputControl = nullptr;
 
 		/**
 		 * @brief True if we should receive mouseMove events.
@@ -103,7 +105,7 @@ class CKWindow : public CKObject {
 		CKApp* __owner;
 		bool __visible = false;
 		bool __dead = false;
-		CKColor __backgroundColor;
+		CKColor __backgroundColor = {255, 255, 255};
 		bool __hasCustomBackgroundColor = false;
 		bool __isCurrentlyActive = false;
 };

@@ -295,6 +295,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	okButton->SetDefault(true);
 
 	toReturn->Resize(params.size.width, windowHeight);
+	toReturn->Center();
 	toReturn->Show();
 	return toReturn;
 }

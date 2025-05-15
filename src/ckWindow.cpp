@@ -34,8 +34,10 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	if (params.point) {
 		this->__rect->origin = CKPoint(params.point->x, params.point->y);
 	} else {
-		// TODO: This is pretty ugly.
-		this->__rect->origin = CKPoint(-1, -1);
+		Rect screen = qd.screenBits.bounds;
+		this->__rect->origin.x = (screen.right + screen.left - this->__rect->size.width) / 2;
+		this->__rect->origin.y = (screen.bottom + screen.top - this->__rect->size.height) / 2;
+		CKLog("From constructor, moving window to the center. x = %d, y = %d (screen is %dx%d)", this->__rect->origin.x, this->__rect->origin.y, (screen.right - screen.left), (screen.bottom - screen.top));
 	}
 
 	Rect r = this->__rect->ToOS();
@@ -109,11 +111,6 @@ char* CKWindow::GetTitle() {
 void CKWindow::Show() {
 
 	CKPROFILE
-
-	// TODO: This is pretty ugly..
-	if (this->__rect->origin.x == -1 && this->__rect->origin.y == -1) {
-		this->Center();
-	}
 
 	ShowWindow(this->__windowPtr);
 	SelectWindow(this->__windowPtr);
@@ -205,11 +202,10 @@ void CKWindow::Center() {
 
 	CKPROFILE
 
-	GrafPtr globalPort;
-	GetPort(&globalPort);
+	Rect screen = qd.screenBits.bounds;
+	int x = (screen.right + screen.left - this->__rect->size.width) / 2;
+	int y = (screen.bottom + screen.top - this->__rect->size.height) / 2;
 
-	int x = ((globalPort->portRect.right - globalPort->portRect.left) - this->__rect->size.width) / 2;
-	int y = ((globalPort->portRect.bottom - globalPort->portRect.top) - this->__rect->size.height) / 2;
 	this->Move(x, y);
 }
 
