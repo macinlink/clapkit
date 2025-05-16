@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <vector>
 
+class CKObject;
 class CKWindow;
 class CKTimer;
 struct CKWindowInitParams;
@@ -63,7 +64,9 @@ class CKApp {
 
 		short FontToId(const char* font);
 
-		void AddTimer(CKTimer* timer);
+		void AddTimer(CKTimer* timer, CKObject* owner = nullptr);
+		void RemoveTimer(CKTimer* timer);
+		void RemoveTimersOfOwner(CKObject* owner);
 
 	private:
 		inline void HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey);

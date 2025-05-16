@@ -12,11 +12,16 @@
  */
 
 #include "ckTimer.h"
+#include "ckApp.h"
 
 CKTimer::CKTimer() {
 }
 
 CKTimer::~CKTimer() {
+	if (this->owner && this->app) {
+		CKLog("Timer %x has an owner/app, calling RemoveTimersOfOwner.", this);
+		this->app->RemoveTimersOfOwner(this->owner);
+	}
 }
 
 /**

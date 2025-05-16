@@ -69,6 +69,10 @@ CKWindow::~CKWindow() {
 	CKEvent evt = CKEvent(CKEventType::deleted);
 	this->HandleEvent(evt);
 
+	if (this->__owner) {
+		this->__owner->RemoveTimersOfOwner(this);
+	}
+
 	if (this->__rect) {
 		CKDelete(this->__rect);
 	}
@@ -350,6 +354,14 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 void CKWindow::SetOwner(CKApp* owner) {
 
 	this->__owner = owner;
+}
+
+/**
+ * @brief Return the app this window is a part of.
+ */
+CKApp* CKWindow::GetOwner() {
+
+	return this->__owner;
 }
 
 /**

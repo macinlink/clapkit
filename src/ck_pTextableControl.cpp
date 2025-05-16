@@ -22,11 +22,12 @@ CKTextableControl::CKTextableControl() {
 }
 
 CKTextableControl::~CKTextableControl() {
-	CKSafeCopyString(&this->__text, 0);
+	CKLog("~CKTextableControl called, clearing text (%x, %s)", this->__text, this->__text);
+	CKSafeCopyString(this->__text, 0);
 }
 
 void CKTextableControl::SetText(const char* text) {
-	CKSafeCopyString(&this->__text, text);
+	CKSafeCopyString(this->__text, text);
 }
 
 const char* CKTextableControl::GetText() {

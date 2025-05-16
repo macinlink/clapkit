@@ -24,7 +24,7 @@ struct CKWindowInitParams {
 		/** Initial size of the window */
 		CKSize size = CKSize(0, 0);
 		/** Provide a title for your window (optional) */
-		const char* title = 0;
+		char* title = 0;
 		/** Provide an initial position for your window (optional - if null, will be centered) */
 		CKPoint* point = nullptr;
 		/** Allows window to be closed by the user. */
@@ -36,7 +36,7 @@ struct CKWindowInitParams {
 			this->size = CKSize(w, h);
 			this->closable = _closable;
 			this->modal = _modal;
-			CKSafeCopyString((char**)&this->title, _title);
+			CKSafeCopyString(this->title, _title);
 		}
 };
 
@@ -65,6 +65,8 @@ class CKWindow : public CKObject {
 		void Redraw(CKRect rectToRedraw);
 
 		void SetOwner(CKApp* owner);
+		CKApp* GetOwner();
+
 		CKControl* FindControl(CKPoint point);
 		bool ContainsControl(CKControl* control);
 		void SetActiveControl(CKControl* control);

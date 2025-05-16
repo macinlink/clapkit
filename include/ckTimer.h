@@ -13,10 +13,11 @@
 
 #pragma once
 
-#include "ckApp.h"
 #include "ckObject.h"
 
 using CKTimerCallbackFunc = std::function<void(void*)>;
+
+class CKApp;
 
 class CKTimer : public CKObject {
 
@@ -34,4 +35,6 @@ class CKTimer : public CKObject {
 		UInt32 nextRun;				  // When will it run next time?
 		CKTimerCallbackFunc callback; // Callback function
 		void* userData = nullptr;	  // Optional context pointer
+		CKObject* owner = nullptr;	  // Used to stop the timer when the owner is out of scope
+		CKApp* app = nullptr;		  // Used to stop the timer when the owner is out of scope
 };

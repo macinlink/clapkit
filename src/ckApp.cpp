@@ -724,9 +724,47 @@ short CKApp::FontToId(const char* font) {
 
 /**
  * @brief Add a new timer to the app, enabling (via `Start`) as you add it.
- * @param timer
+ * @param timer Timer to add and start
+ * @param owner Adding this to a window or anything else that might go away? Make sure to set `owner`!
  */
-void CKApp::AddTimer(CKTimer* timer) {
+void CKApp::AddTimer(CKTimer* timer, CKObject* owner) {
 	this->__timers.push_back(timer);
+	timer->owner = owner;
 	timer->Start();
+}
+
+/**
+ * @brief Stop and remove timer.
+ * @param timer Timer to stop and remove
+ */
+void CKApp::RemoveTimer(CKTimer* timer) {
+	for (auto it = __timers.begin(); it != __timers.end(); ++it) {
+		if (*it == timer) {
+			CKLog("Deleting timer %x...", *it);
+			CKDelete(*it);
+			__timers.erase(it);
+			return;
+		}
+	}
+	CKLog("Warning! Can't find and remove timer %x!");
+}
+
+/**
+ * @brief Remove all timers of a specific owner.
+ * @param owner
+ */
+void CKApp::RemoveTimersOfOwner(CKObject* owner) {
+	std::vector<CKTimer*> toRemove;
+	for (auto* timer : __timers) {
+		if (timer->owner == owner) {
+			toRemove.push_back(timer);
+		}
+	}
+	CKLog("RemoveTimersOfOwner is looking for timers with owner %x, found %d", owner, toRemove.size());
+	for (auto* timer : toRemove) {
+		// We need this to avoid a loop as Timer's destructor also calls RemoveTimersOfOwner.
+		timer->app = nullptr;
+		timer->owner = nullptr;
+		this->RemoveTimer(timer);
+	}
 }

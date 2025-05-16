@@ -29,8 +29,13 @@ CKControl::CKControl(const CKControlInitParams& params, CKControlType type)
 
 CKControl::~CKControl() {
 
+	CKLog("~CKControl called");
 	CKEvent evt = CKEvent(CKEventType::deleted);
 	this->HandleEvent(evt);
+
+	if (this->owner && this->owner->GetOwner()) {
+		this->owner->GetOwner()->RemoveTimersOfOwner(this);
+	}
 
 	if (this->__rect) {
 		CKDelete(this->__rect);

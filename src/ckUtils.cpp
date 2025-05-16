@@ -76,7 +76,7 @@ char* __CKP2C(const unsigned char* src, const char* func, int line, const char* 
  */
 void __CKDebugLog(int level, const char* s, ...) {
 	// Allocate a larger buffer to avoid overflows
-	char* buffer = (char*)CKMalloc(250);
+	char* buffer = (char*)dlmalloc(250);
 	if (!buffer) {
 		DebugStr("\pCant Allocate Mem to Print Debug Str! (1)");
 		ExitToShell();
@@ -90,7 +90,7 @@ void __CKDebugLog(int level, const char* s, ...) {
 
 	if (ret < 0 || ret >= 250) { // Check if vsprintf overflowed
 		DebugStr("\pCant do vsprintf to Print Debug Str!");
-		CKFree(buffer);
+		dlfree(buffer);
 		return;
 	}
 
@@ -109,10 +109,10 @@ void __CKDebugLog(int level, const char* s, ...) {
 	}
 
 	// Create a new buffer for the prefixed log
-	char* finalBuffer = (char*)CKMalloc(300);
+	char* finalBuffer = (char*)dlmalloc(300);
 	if (!finalBuffer) {
 		DebugStr("\pCant Allocate Mem to Print Debug Str! (2)");
-		CKFree(buffer);
+		dlfree(buffer);
 		ExitToShell();
 		return;
 	}
@@ -132,8 +132,8 @@ void __CKDebugLog(int level, const char* s, ...) {
 
 	CKConsolePrint(finalBuffer);
 
-	CKFree(buffer);
-	CKFree(finalBuffer);
+	dlfree(buffer);
+	dlfree(finalBuffer);
 }
 
 /**
@@ -264,5 +264,5 @@ bool CKHasAppearanceManager() {
 UInt32 CKMillis() {
 	UnsignedWide usec;
 	Microseconds(&usec);
-	return usec.lo / 1000;
+	return (usec.hi << (32 - 10)) | (usec.lo >> 10);
 }

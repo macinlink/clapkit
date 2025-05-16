@@ -78,11 +78,12 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 void CKControlToolbox::Show() {
 
 	if (this->__ptr == 0) {
-		throw CKNew CKException("Show called on control with no ptr!");
+		CKLog("Show called on control (%x) with no ptr!", this);
+		return;
 	}
 
 	if ((**(this->__ptr)).contrlOwner == 0) {
-		CKLog("Show called on control but contrlOwner is nil");
+		CKLog("Show called on control (%x) but contrlOwner is nil", this);
 		return;
 	}
 
@@ -95,7 +96,8 @@ void CKControlToolbox::Hide() {
 	CKControl::Hide();
 
 	if (this->__ptr == 0) {
-		throw CKNew CKException("Hide called on control with no ptr!");
+		CKLog("Hide called on control with no ptr!");
+		return;
 	}
 
 	HideControl(this->__ptr);
