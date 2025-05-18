@@ -76,6 +76,7 @@ class CKWindow : public CKObject {
 
 		virtual bool HandleEvent(const CKEvent& evt);
 
+		bool HasBackgroundColor();
 		void SetBackgroundColor(CKColor color);
 		void UnsetBackgroundColor();
 

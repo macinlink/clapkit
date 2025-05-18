@@ -175,8 +175,7 @@ void CKWindow::Move(int x, int y) {
 
 	CKPROFILE
 
-	this->__rect->origin.y = x;
-	this->__rect->origin.y = y;
+	this->__rect->origin = CKPoint(x, y);
 
 	CKLog("Moving window %x to %d,%d (size: %dx%d)", this->__windowPtr, x, y, this->GetRect()->size.width, this->GetRect()->size.height);
 	MoveWindow(this->__windowPtr, x, y, false);
@@ -494,6 +493,15 @@ bool CKWindow::HandleEvent(const CKEvent& evt) {
 	}
 
 	return CKObject::HandleEvent(evt);
+}
+
+/**
+ * @brief Check if this window has a custom background color set/unset
+ * via SetBackgroundColor and UnsetBackgroundColor functions.
+ * @return
+ */
+bool CKWindow::HasBackgroundColor() {
+	return this->__hasCustomBackgroundColor;
 }
 
 /**

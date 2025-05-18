@@ -69,6 +69,8 @@ class CKApp {
 		void RemoveTimersOfOwner(CKObject* owner);
 
 	private:
+		void DoHousekeepingTasks();
+		void DispatchEvent(EventRecord event);
 		inline void HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey);
 		inline void HandleEvtMouseDown(EventRecord event);
 		inline void HandleEvtMouseUp(EventRecord event);

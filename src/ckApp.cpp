@@ -73,13 +73,6 @@ int CKApp::Loop(int waitTime) {
 		}
 	}
 
-	CKWindow* tmw = this->TopMostWindow();
-	if (tmw && tmw->activeTextInputControl) {
-		if (auto c = dynamic_cast<CKLabel*>(tmw->activeTextInputControl)) {
-			TEIdle(c->__teHandle);
-		}
-	}
-
 	UInt32 now = CKMillis();
 	UInt32 soonestDue = UINT32_MAX;
 
@@ -122,52 +115,10 @@ int CKApp::Loop(int waitTime) {
 		goto doTimers;
 	}
 
-	switch (e.what) {
-		case nullEvent:
-			/* Nada. */
-			break;
-		case mouseDown:
-			this->HandleEvtMouseDown(e);
-			break;
-		case mouseUp:
-			this->HandleEvtMouseUp(e);
-			break;
-		case keyDown:
-		case keyUp:
-		case autoKey:
-			this->HandleEvtKey(e, e.what == keyUp, e.what == autoKey);
-			break;
-		case updateEvt:
-			this->HandleEvtUpdate(e);
-			break;
-		case diskEvt:
-			break;
-		case activateEvt:
-			this->HandleEvtActivate(e);
-			break;
-		case osEvt:
-			this->HandleEvtOS(e);
-			break;
-		case kHighLevelEvent:
-			break;
-		default:
-			// Probably would not happen under normal
-			// conditions but let's cover our asses.
-			CKDebugLog(3, "Unknown event type (%d) received.", e.what);
-			break;
-	}
+	this->DispatchEvent(e);
 
 doTimers:
-
-	now = CKMillis(); // refresh timestamp
-	for (auto it = this->__timers.begin(); it != this->__timers.end(); /* no ++ */) {
-		if (!(*it)->Update()) {
-			it = this->__timers.erase(it); // remove one-shot timer
-		} else {
-			++it;
-		}
-	}
-
+	this->DoHousekeepingTasks();
 	return 0;
 }
 
@@ -401,6 +352,62 @@ CKWindow* CKApp::TopMostWindow() {
  * Private Event Handlers
  * ----------------------------------------------------------------------
  */
+
+void CKApp::DoHousekeepingTasks() {
+
+	CKWindow* tmw = this->TopMostWindow();
+	if (tmw && tmw->activeTextInputControl) {
+		if (auto c = dynamic_cast<CKLabel*>(tmw->activeTextInputControl)) {
+			TEIdle(c->__teHandle);
+		}
+	}
+
+	for (auto it = this->__timers.begin(); it != this->__timers.end(); /* no ++ */) {
+		if (!(*it)->Update()) {
+			it = this->__timers.erase(it); // remove one-shot timer
+		} else {
+			++it;
+		}
+	}
+}
+
+void CKApp::DispatchEvent(EventRecord e) {
+
+	switch (e.what) {
+		case nullEvent:
+			/* Nada. */
+			break;
+		case mouseDown:
+			this->HandleEvtMouseDown(e);
+			break;
+		case mouseUp:
+			this->HandleEvtMouseUp(e);
+			break;
+		case keyDown:
+		case keyUp:
+		case autoKey:
+			this->HandleEvtKey(e, e.what == keyUp, e.what == autoKey);
+			break;
+		case updateEvt:
+			this->HandleEvtUpdate(e);
+			break;
+		case diskEvt:
+			break;
+		case activateEvt:
+			this->HandleEvtActivate(e);
+			break;
+		case osEvt:
+			this->HandleEvtOS(e);
+			break;
+		case kHighLevelEvent:
+			break;
+		default:
+			// Probably would not happen under normal
+			// conditions but let's cover our asses.
+			CKDebugLog(3, "Unknown event type (%d) received.", e.what);
+			break;
+	}
+}
 
 void CKApp::HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 
