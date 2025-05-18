@@ -17,6 +17,7 @@
 #include "ckTimer.h"
 #include "ckUtils.h"
 #include "ckWindow.h"
+#include <Appearance.h>
 
 /**
  * Initialize the app, set up menus, etc.
@@ -37,6 +38,10 @@ CKApp::CKApp() {
 	MaxApplZone();
 	for (int i = 0; i < 10; i++) {
 		MoreMasters();
+	}
+
+	if (CKHasAppearanceManager()) {
+		RegisterAppearanceClient();
 	}
 
 	this->workCount = 0;

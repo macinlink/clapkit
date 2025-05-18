@@ -523,6 +523,9 @@ void CKWindow::SetBackgroundColor(CKColor color) {
  */
 void CKWindow::UnsetBackgroundColor() {
 	this->__hasCustomBackgroundColor = false;
+	if (CKHasAppearanceManager()) {
+		SetThemeWindowBackground(this->__windowPtr, this->__isCurrentlyActive ? kThemeBrushDialogBackgroundActive : kThemeBrushDialogBackgroundInactive, true);
+	}
 	this->__InvalidateEntireWindow();
 }
 
