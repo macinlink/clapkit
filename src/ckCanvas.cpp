@@ -202,11 +202,15 @@ void CKCanvas::Redraw() {
 	}
 
 	long t_start = TickCount();
+
+	GrafPtr oldPort;
+	GetPort(&oldPort);
 	SetPort(this->owner->__windowPtr);
 
 	PixMapHandle offscreenPixMap = GetGWorldPixMap(this->__gworldptr);
 	if (!LockPixels(offscreenPixMap)) {
 		CKLog("Can't lock GWorldPixMap.. Purged, maybe?");
+		SetPort(oldPort);
 		return;
 	}
 
@@ -219,34 +223,5 @@ void CKCanvas::Redraw() {
 	UnlockPixels(offscreenPixMap);
 
 	CKLog("Redraw took %lu ticks.", (TickCount() - t_start));
-
-	// if (this->owner == nil) {
-	//     return;
-	// }
-
-	// long t_start = TickCount();
-	// SetPort(this->owner->__windowPtr);
-
-	// PixMapHandle offscreenPixMap = GetGWorldPixMap(this->__gworldptr);
-	// if (!LockPixels(offscreenPixMap)) {
-	//     CKLog("Can't lock GWorldPixMap.. Purged, maybe?");
-	//     return;
-	// }
-
-	// // Now you can copy from the GWorld to your window
-	// // CGrafPtr oldPort;
-	// // GDHandle oldGD;
-	// // GetGWorld(&oldPort, &oldGD);
-	// // SetGWorld(this->__gworldptr, NULL);
-
-	// Rect destRect = {0, 0, this->__height, this->__width};
-
-	// // SetGWorld(oldPort, oldGD);
-
-	// CopyDeepMask((BitMap*)&(**offscreenPixMap), (BitMap*)&(**offscreenPixMap),
-	//             &(this->owner->__windowPtr->portBits), &destRect, &destRect, &destRect, srcCopy, 0);
-
-	// UnlockPixels(offscreenPixMap);
-
-	// CKLog("Redraw took %lu ticks.", (TickCount() - t_start));
+	SetPort(oldPort);
 }

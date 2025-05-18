@@ -47,8 +47,11 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	} else {
 		// System 7 or Appearance not available
 		// Fill with white
+		GrafPtr oldPort;
+		GetPort(&oldPort);
 		SetPort(this->__windowPtr);
 		BackColor(whiteColor);
+		SetPort(oldPort);
 	}
 
 	this->SetTitle(params.title);
@@ -529,5 +532,9 @@ void CKWindow::__InvalidateEntireWindow() {
 	r.left = 0;
 	r.right = this->__rect->size.width;
 	r.bottom = this->__rect->size.height;
+	GrafPtr oldPort;
+	GetPort(&oldPort);
+	SetPort(this->__windowPtr);
 	InvalRect(&r);
+	SetPort(oldPort);
 }
