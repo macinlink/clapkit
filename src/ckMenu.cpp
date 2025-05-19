@@ -5,19 +5,11 @@
  * A wrapper for creating a 'generalized' app for Classic MacOS
  * that (hopefully) can be ported easily to other platforms.
  *
- * CKPlatform
+ * CKMenuBar & CKMenuBarItem
  * ----------------------------------------------------------------------
- * OS-specific aliases, macros and definitions.
+ * Defines a menu and its items.
  *
  */
 
-#pragma once
-#include <Controls.h>
-#include <MacWindows.h>
-#include <Quickdraw.h>
-
-#define kCKAppleMenuID	   128
-#define kCKUserMenuStartID 200
-
-using CKWindowPtr = WindowPtr;
-using CKControlPtr = ControlRef;
+#include "ckMenu.h"
+#include "ckApp.h"

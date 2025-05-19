@@ -14,10 +14,12 @@
 #include "ckApp.h"
 #include "ckButton.h"
 #include "ckLabel.h"
+#include "ckMenu.h"
 #include "ckTimer.h"
 #include "ckUtils.h"
 #include "ckWindow.h"
 #include <Appearance.h>
+#include <Devices.h>
 
 /**
  * Initialize the app, set up menus, etc.
@@ -274,7 +276,9 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 		toReturn->AddControl(cancelButton);
 		cancelButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 			toReturn->Close();
-			callback(false);
+			if (callback) {
+				callback(false);
+			}
 		});
 		okButtonLeft -= okButtonWidth + padding;
 	}
@@ -283,7 +287,9 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	toReturn->AddControl(okButton);
 	okButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 		toReturn->Close();
-		callback(true);
+		if (callback) {
+			callback(true);
+		}
 	});
 	okButton->SetDefault(true);
 
@@ -497,25 +503,71 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 			short menuId = choice >> 16;
 			short menuItem = choice & 0xFFFF;
 			CKLog("Got menu item %d on menu %d", menuItem, menuId);
-			// TODO: Actually make this make sense.
-			if (menuId == 2 && menuItem == 1) {
-				this->Quit();
+
+			if (menuId == kCKAppleMenuID) {
+				bool launchDeskAcc = false;
+				if (!this->__menubar) {
+					launchDeskAcc = true;
+				} else {
+					if (menuItem > this->__menubar->appleMenuItems.size()) {
+						launchDeskAcc = true;
+					}
+				}
+				if (launchDeskAcc) {
+					Str255 str;
+					GetMenuItemText(GetMenuHandle(kCKAppleMenuID), menuItem, str);
+					OpenDeskAcc(str);
+					goto cleanMenuActionUp;
+				}
 			}
-			// if (menuId == kMenuApple) {
-			//     if (menuItem == kMiAppleAbout) {
-			//         DebugStr("\pabout here");
-			//     } else {
-			//         Str255 str;
-			//         GetMenuItemText(MacGetMenu(128), menuItem, str);
-			//         OpenDeskAcc(str);
-			//     }
-			// }
-			// if (menuId == kMenuFile) {
-			//     if (menuItem == kMiFileQuit) {
-			//         quit = true;
-			//     }
-			// }
+
+			if (!this->__menubar) {
+				// This really should not happen but just in case..
+				goto cleanMenuActionUp;
+			}
+
+			if (menuId == kCKAppleMenuID) {
+
+				int actualItemId = menuItem - 1;
+
+				if (actualItemId >= this->__menubar->appleMenuItems.size()) {
+					// Should not happen but, just in case.
+					CKLog("actualItemId = %d but size = %d", actualItemId, this->__menubar->appleMenuItems.size());
+					goto cleanMenuActionUp;
+				}
+
+				auto& mi = this->__menubar->appleMenuItems[actualItemId];
+				if (mi.callback) {
+					mi.callback(CKEvent(CKEventType::click));
+				}
+
+			} else {
+
+				int actualMenuId = menuId - kCKUserMenuStartID;
+				int actualItemId = menuItem - 1;
+
+				if (actualItemId > this->__menubar->items.size()) {
+					// Should not happen but, just in case.
+					CKLog("actualItemId = %d but size = %d", actualItemId, this->__menubar->items.size());
+					goto cleanMenuActionUp;
+				}
+
+				auto& mbi = this->__menubar->items[actualMenuId];
+
+				if (actualItemId > mbi.items.size()) {
+					// Again, hould not happen but, just in case.
+					CKLog("actualItemId = %d, but size = %d.. (text = %s)", actualItemId, mbi.items.size(), mbi.text);
+					goto cleanMenuActionUp;
+				}
+
+				auto& mi = mbi.items[actualItemId];
+				if (mi.callback) {
+					mi.callback(CKEvent(CKEventType::click));
+				}
+			}
 		}
+
+	cleanMenuActionUp:
 		HiliteMenu(0);
 		return;
 	}
@@ -779,4 +831,84 @@ void CKApp::RemoveTimersOfOwner(CKObject* owner) {
 		timer->owner = nullptr;
 		this->RemoveTimer(timer);
 	}
+}
+
+/**
+ * @brief Set the application's menu bar.
+ * @param
+ * @return CKPass on success.
+ */
+CKError CKApp::SetMenu(CKMenuBar* menu) {
+
+	if (this->__menubar) {
+		// TODO: Remove all previously added/created menus
+		// so we can start all over here.
+		CKDelete(this->__menubar);
+		this->__menubar = nullptr;
+	}
+
+	// Do the Apple Menu, always.
+
+	MenuHandle appleMh = NewMenu(kCKAppleMenuID, "\p\024");
+
+	if (menu && menu->appleMenuItems.size() > 0) {
+		short menuIdx = kCKAppleMenuID + 1;
+		short submenuIdx = 1;
+		for (auto& m : menu->appleMenuItems) {
+			AppendMenu(appleMh, CKC2P(m.text));
+			if (m.shortcut) {
+				SetItemCmd(appleMh, submenuIdx, m.shortcut);
+			}
+			m.__osMenuHandle = appleMh;
+			m.__osMenuItemID = submenuIdx;
+			submenuIdx++;
+		}
+		AppendMenu(appleMh, "\p(-");
+	}
+
+	AppendResMenu(appleMh, 'DRVR');
+	InsertMenu(appleMh, 0);
+
+	if (menu == nullptr) {
+		// User wants an empty menu, fine!
+		DrawMenuBar();
+		return CKPass;
+	}
+
+	// Now the user menus.
+
+	short menuIdx = kCKUserMenuStartID;
+
+	for (auto& m : menu->items) {
+		MenuHandle mh = NewMenu(menuIdx, CKC2P(m.text));
+		m.__osMenuID = menuIdx;
+		short submenuIdx = 1;
+		for (auto& sm : m.items) {
+			AppendMenu(mh, CKC2P(sm.text));
+			if (sm.shortcut) {
+				SetItemCmd(mh, submenuIdx, sm.shortcut);
+			}
+			sm.__osMenuHandle = mh;
+			sm.__osMenuItemID = submenuIdx;
+			submenuIdx++;
+		}
+		InsertMenu(mh, 0);
+		menuIdx++;
+	}
+
+	DrawMenuBar();
+	this->__menubar = menu;
+	return CKPass;
+}
+
+/**
+ * @brief If hidden, bring the menu bar back.
+ */
+void CKApp::ShowMenuBar() {
+}
+
+/**
+ * @brief If shown, hide the menu bar.
+ */
+void CKApp::HideMenuBar() {
 }

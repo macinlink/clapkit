@@ -40,6 +40,9 @@ class CKObject;
 class CKWindow;
 class CKTimer;
 struct CKWindowInitParams;
+struct CKMenuBar;
+struct CKMenuBarItem;
+struct CKMenuItem;
 
 class CKApp {
 
@@ -68,6 +71,10 @@ class CKApp {
 		void RemoveTimer(CKTimer* timer);
 		void RemoveTimersOfOwner(CKObject* owner);
 
+		CKError SetMenu(CKMenuBar* menu);
+		void ShowMenuBar();
+		void HideMenuBar();
+
 	private:
 		void DoHousekeepingTasks();
 		void DispatchEvent(EventRecord event);
@@ -83,6 +90,7 @@ class CKApp {
 	protected:
 		std::vector<CKWindow*> __windows;
 		std::vector<CKTimer*> __timers;
+		CKMenuBar* __menubar = nullptr;
 
 	private:
 		int workCount;

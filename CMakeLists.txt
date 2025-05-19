@@ -33,6 +33,7 @@ add_library(clapkit
     src/ckCanvas.cpp
     src/ckTextField.cpp
     src/ckTimer.cpp
+    src/ckMenu.cpp
 )
 
 target_include_directories(clapkit
