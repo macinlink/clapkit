@@ -14,55 +14,60 @@
 #pragma once
 
 #include "ckObject.h"
+#include "ckProperty.h"
 #include <vector>
 
 class CKApp;
-struct CKMenuBarItem;
-struct CKMenuItem;
+class CKMenuBarItem;
+class CKMenuItem;
 
-struct CKMenuBar {
-		std::vector<CKMenuItem> appleMenuItems;
-		std::vector<CKMenuBarItem> items;
-};
-
-struct CKMenuBarItem {
+class CKMenuBar : public CKObject {
 	public:
-		CKMenuBarItem(const char* text) {
-			CKSafeCopyString(this->text, text);
-		}
-		char* text = nullptr;
-		bool enabled = true;
-		std::vector<CKMenuItem> items;
+		CKMenuBar();
+		virtual ~CKMenuBar();
+		void AddMenuItem(CKMenuBarItem* item);
+		void AddSystemMenuItem(CKMenuBarItem* item);
+		void RemoveMenuItem(CKMenuBarItem* item);
+		bool HasMenu(CKMenuBarItem* item);
+		bool HasMenuItem(CKMenuItem* item);
 
 	protected:
 		friend class CKApp;
+		std::vector<CKMenuItem*> appleMenuItems;
+		std::vector<CKMenuBarItem*> items;
+};
+
+class CKMenuBarItem : public CKObject {
+	public:
+		CKMenuBarItem(const char* text);
+		virtual ~CKMenuBarItem();
+		CKProperty<bool> enabled = true;
+		CKProperty<std::vector<CKMenuItem*>> items;
+		void SetText(const char* text);
+
+	protected:
+		friend class CKApp;
+		char* text = nullptr;
 		short __osMenuID;
 };
 
-struct CKMenuItem {
+class CKMenuItem : public CKObject {
 	public:
-		CKMenuItem(const char* text, char shortcut, CKEventHandlerFunc callback) {
-			CKSafeCopyString(this->text, text);
-			this->shortcut = shortcut;
-			this->callback = callback;
-		}
-		CKMenuItem(const char* text, CKEventHandlerFunc callback) {
-			CKSafeCopyString(this->text, text);
-			this->shortcut = 0;
-			this->callback = callback;
-		}
-		CKMenuItem(const char* text) {
-			CKSafeCopyString(this->text, text);
-		}
-		char* text = nullptr;
-		bool enabled = true;
-		char shortcut = 0;
-		bool modifierAlt = false;
-		bool modifierCtrl = false;
-		CKEventHandlerFunc callback;
+		CKMenuItem(const char* text, char shortcut, CKEventHandlerFunc callback);
+		virtual ~CKMenuItem();
+		void SetText(const char* text);
+		void ReflectToOS();
+
+	public:
+		CKProperty<bool> enabled = true;
+		CKProperty<char> shortcut = 0;
+		CKProperty<bool> modifierAlt = false;
+		CKProperty<bool> modifierCtrl = false;
+		CKEventHandlerFunc callback = nullptr;
 
 	protected:
 		friend class CKApp;
+		char* text = nullptr;
 		MenuHandle __osMenuHandle;
 		short __osMenuItemID;
 };

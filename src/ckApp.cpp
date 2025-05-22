@@ -20,6 +20,7 @@
 #include "ckWindow.h"
 #include <Appearance.h>
 #include <Devices.h>
+#include <Quickdraw.h>
 
 /**
  * Initialize the app, set up menus, etc.
@@ -509,7 +510,7 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 				if (!this->__menubar) {
 					launchDeskAcc = true;
 				} else {
-					if (menuItem > this->__menubar->appleMenuItems.size()) {
+					if (menuItem > (short)this->__menubar->appleMenuItems.size()) {
 						launchDeskAcc = true;
 					}
 				}
@@ -530,15 +531,15 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 
 				int actualItemId = menuItem - 1;
 
-				if (actualItemId >= this->__menubar->appleMenuItems.size()) {
+				if (actualItemId >= (short)this->__menubar->appleMenuItems.size()) {
 					// Should not happen but, just in case.
 					CKLog("actualItemId = %d but size = %d", actualItemId, this->__menubar->appleMenuItems.size());
 					goto cleanMenuActionUp;
 				}
 
 				auto& mi = this->__menubar->appleMenuItems[actualItemId];
-				if (mi.callback) {
-					mi.callback(CKEvent(CKEventType::click));
+				if (mi->callback) {
+					mi->callback(CKEvent(CKEventType::click));
 				}
 
 			} else {
@@ -546,7 +547,7 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 				int actualMenuId = menuId - kCKUserMenuStartID;
 				int actualItemId = menuItem - 1;
 
-				if (actualItemId > this->__menubar->items.size()) {
+				if (actualItemId > (short)this->__menubar->items.size()) {
 					// Should not happen but, just in case.
 					CKLog("actualItemId = %d but size = %d", actualItemId, this->__menubar->items.size());
 					goto cleanMenuActionUp;
@@ -554,15 +555,16 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 
 				auto& mbi = this->__menubar->items[actualMenuId];
 
-				if (actualItemId > mbi.items.size()) {
+				auto& vec = mbi->items.get();
+				if (actualItemId > (short)vec.size()) {
 					// Again, hould not happen but, just in case.
-					CKLog("actualItemId = %d, but size = %d.. (text = %s)", actualItemId, mbi.items.size(), mbi.text);
+					CKLog("actualItemId = %d, but size = %d.. (text = %s)", actualItemId, vec.size(), mbi->text);
 					goto cleanMenuActionUp;
 				}
 
-				auto& mi = mbi.items[actualItemId];
-				if (mi.callback) {
-					mi.callback(CKEvent(CKEventType::click));
+				auto& mi = vec[actualItemId];
+				if (mi->callback) {
+					mi->callback(CKEvent(CKEventType::click));
 				}
 			}
 		}
@@ -852,15 +854,13 @@ CKError CKApp::SetMenu(CKMenuBar* menu) {
 	MenuHandle appleMh = NewMenu(kCKAppleMenuID, "\p\024");
 
 	if (menu && menu->appleMenuItems.size() > 0) {
-		short menuIdx = kCKAppleMenuID + 1;
 		short submenuIdx = 1;
 		for (auto& m : menu->appleMenuItems) {
-			AppendMenu(appleMh, CKC2P(m.text));
-			if (m.shortcut) {
-				SetItemCmd(appleMh, submenuIdx, m.shortcut);
-			}
-			m.__osMenuHandle = appleMh;
-			m.__osMenuItemID = submenuIdx;
+			AppendMenu(appleMh, CKC2P(m->text));
+			m->__osMenuHandle = appleMh;
+			m->__osMenuItemID = submenuIdx;
+			m->ReflectToOS(); // Shortcuts, enable/disable, etc.
+			m->SetPropertyObserver(std::bind(&CKApp::HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 			submenuIdx++;
 		}
 		AppendMenu(appleMh, "\p(-");
@@ -880,20 +880,22 @@ CKError CKApp::SetMenu(CKMenuBar* menu) {
 	short menuIdx = kCKUserMenuStartID;
 
 	for (auto& m : menu->items) {
-		MenuHandle mh = NewMenu(menuIdx, CKC2P(m.text));
-		m.__osMenuID = menuIdx;
+		MenuHandle mh = NewMenu(menuIdx, CKC2P(m->text));
+		m->__osMenuID = menuIdx;
 		short submenuIdx = 1;
-		for (auto& sm : m.items) {
-			AppendMenu(mh, CKC2P(sm.text));
-			if (sm.shortcut) {
-				SetItemCmd(mh, submenuIdx, sm.shortcut);
-			}
-			sm.__osMenuHandle = mh;
-			sm.__osMenuItemID = submenuIdx;
+		auto& vec = m->items.get();
+		for (auto& sm : vec) {
+			AppendMenu(mh, CKC2P(sm->text));
+			sm->__osMenuHandle = mh;
+			sm->__osMenuItemID = submenuIdx;
+			sm->ReflectToOS(); // Shortcuts, enable/disable, etc.
 			submenuIdx++;
+			sm->SetPropertyObserver(std::bind(&CKApp::HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 		}
 		InsertMenu(mh, 0);
 		menuIdx++;
+		// Just to make sure we are tied.
+		m->SetPropertyObserver(std::bind(&CKApp::HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	DrawMenuBar();
@@ -911,4 +913,18 @@ void CKApp::ShowMenuBar() {
  * @brief If shown, hide the menu bar.
  */
 void CKApp::HideMenuBar() {
+}
+
+void CKApp::HandleMenuPropertyChange(const CKObject* obj, const char* propName) {
+	CKLog("Menu bar property '%s' of %x has changed!", propName, obj);
+	const CKMenuItem* item = dynamic_cast<const CKMenuItem*>(obj);
+	if (item) {
+		const_cast<CKMenuItem*>(item)->ReflectToOS();
+	} else {
+		const CKMenuBarItem* menubarItem = dynamic_cast<const CKMenuBarItem*>(obj);
+		if (!strcmp(propName, "enabled")) {
+			// TODO: Gray out all child items on disable
+			// -- but need to store the previous
+		}
+	}
 }

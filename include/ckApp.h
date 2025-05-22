@@ -85,6 +85,7 @@ class CKApp {
 		inline void HandleEvtUpdate(EventRecord event);
 		inline void HandleEvtActivate(EventRecord event);
 		inline void HandleEvtOS(EventRecord event);
+		void HandleMenuPropertyChange(const CKObject* obj, const char* propName);
 
 	public:
 	protected:
