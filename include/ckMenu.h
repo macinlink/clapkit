@@ -44,6 +44,9 @@ class CKMenuBarItem : public CKObject {
 		CKProperty<bool> enabled = true;
 		CKProperty<std::vector<CKMenuItem*>> items;
 		void SetText(const char* text);
+		void AddItem(CKMenuItem* item) {
+			this->items.get().push_back(item);
+		}
 
 	protected:
 		friend class CKApp;

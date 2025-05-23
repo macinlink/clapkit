@@ -71,17 +71,20 @@ class CKWindow : public CKObject {
 		bool ContainsControl(CKControl* control);
 		void SetActiveControl(CKControl* control);
 
-		void SetIsActive(bool active);
-		bool GetIsActive();
-
 		virtual bool HandleEvent(const CKEvent& evt);
 
 		bool HasBackgroundColor();
 		void SetBackgroundColor(CKColor color);
 		void UnsetBackgroundColor();
 
+		bool GetIsActive();
+
 	private:
 		void __InvalidateEntireWindow();
+
+	protected:
+		friend class CKApp;
+		void SetIsActive(bool active);
 
 	public:
 		CKWindowPtr __windowPtr = nullptr;
