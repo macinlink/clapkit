@@ -294,7 +294,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	});
 	okButton->SetDefault(true);
 
-	toReturn->Resize(params.size.width, windowHeight);
+	toReturn->rect->size.height = windowHeight;
 	toReturn->Center();
 	toReturn->Show();
 	return toReturn;
@@ -368,10 +368,8 @@ CKWindow* CKApp::TopMostWindow() {
 void CKApp::DoHousekeepingTasks() {
 
 	CKWindow* tmw = this->TopMostWindow();
-	if (tmw && tmw->activeTextInputControl) {
-		if (auto c = dynamic_cast<CKLabel*>(tmw->activeTextInputControl)) {
-			c->DoTEIdle();
-		}
+	if (tmw) {
+		tmw->Loop();
 	}
 
 	for (auto it = this->__timers.begin(); it != this->__timers.end(); /* no ++ */) {
@@ -481,7 +479,7 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 			RgnHandle strucRgn = ckFoundWindowPeek->contRgn;
 			HLock((Handle)strucRgn);
 			Rect r = (**strucRgn).rgnBBox;
-			ckFoundWindow->Move(r.left, r.top);
+			ckFoundWindow->rect->origin = CKPoint(r.left, r.top);
 			HUnlock((Handle)strucRgn);
 		}
 		return;
@@ -588,16 +586,16 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 					GlobalToLocal(&(event.where));
 					SetPort(oldPort);
 					CKControl* control = ckFoundWindow->FindControl(CKPoint::FromOS(event.where));
-					if (ckFoundWindow->latestDownControl) {
-						if (ckFoundWindow->latestDownControl != control) {
+					CKControl* lastControl = ckFoundWindow->GetLastControl();
+					if (lastControl) {
+						if (lastControl != control) {
 							CKPoint p = CKPoint().FromOS(event.where);
 							CKEvent evt = CKEvent(CKEventType::mouseUp, p);
-							CKLog("Will call control %x to handle up event", ckFoundWindow->latestDownControl);
-							ckFoundWindow->latestDownControl->HandleEvent(evt);
-							ckFoundWindow->latestDownControl = 0;
+							lastControl->HandleEvent(evt);
+							ckFoundWindow->SetLastControl(nullptr);
 						}
 					}
-					ckFoundWindow->latestDownControl = control;
+					ckFoundWindow->SetLastControl(control);
 
 					CKPoint p = CKPoint().FromOS(event.where);
 					CKEvent evt = CKEvent(CKEventType::mouseDown, p);
@@ -651,13 +649,13 @@ void CKApp::HandleEvtMouseUp(EventRecord event) {
 					GlobalToLocal(&(event.where));
 					SetPort(oldPort);
 					CKControl* control = ckFoundWindow->FindControl(CKPoint::FromOS(event.where));
-					if (ckFoundWindow->latestDownControl) {
+					CKControl* lastControl = ckFoundWindow->GetLastControl();
+					if (lastControl) {
 						CKPoint p = CKPoint().FromOS(event.where);
 						CKEvent evt = CKEvent(CKEventType::mouseUp, p);
-						ckFoundWindow->latestDownControl->HandleEvent(evt);
-						ckFoundWindow->latestDownControl = 0;
+						lastControl->HandleEvent(evt);
+						ckFoundWindow->SetLastControl(nullptr);
 					}
-					ckFoundWindow->latestDownControl = 0;
 					CKPoint p = CKPoint().FromOS(event.where);
 					CKEvent evt = CKEvent(CKEventType::mouseUp, p);
 					if (control) {

@@ -45,18 +45,14 @@ class CKWindow : public CKObject {
 	public:
 		CKWindow(CKWindowInitParams params);
 		virtual ~CKWindow();
+		void Loop();
 
 		void SetTitle(const char* title);
 		char* GetTitle();
 
 		void Show();
 		void Hide();
-		bool IsVisible();
 		void Focus();
-
-		CKRect* GetRect(bool getCopy = false);
-		void Move(int x, int y);
-		void Resize(int width, int height);
 		void Center();
 		void Close();
 
@@ -73,9 +69,12 @@ class CKWindow : public CKObject {
 
 		virtual bool HandleEvent(const CKEvent& evt);
 
-		bool HasBackgroundColor();
-		void SetBackgroundColor(CKColor color);
-		void UnsetBackgroundColor();
+		CKControl* GetLastControl() const;
+		void SetLastControl(CKControl* control);
+
+		const CKWindowPtr GetWindowPtr() const;
+
+		void DirtyArea(const CKRect r);
 
 		bool GetIsActive();
 
@@ -85,19 +84,14 @@ class CKWindow : public CKObject {
 	protected:
 		friend class CKApp;
 		void SetIsActive(bool active);
+		void __ReflectToOS();
+		virtual void RaisePropertyChange(const char* propertyName);
 
 	public:
-		CKWindowPtr __windowPtr = nullptr;
-
-		/**
-		 * @brief Contains the last control the user has been pushing down on.
-		 */
-		CKControl* latestDownControl = nullptr;
-
-		/**
-		 * @brief Contains the active text input (textarea, textbox, etc..) control.
-		 */
-		CKControl* activeTextInputControl = nullptr;
+		CKProperty<CKRect> rect;
+		CKProperty<bool> visible;
+		CKProperty<bool> hasCustomBackgroundColor;
+		CKProperty<CKColor> backgroundColor = CKColor(255, 255, 255);
 
 		/**
 		 * @brief True if we should receive mouseMove events.
@@ -106,12 +100,11 @@ class CKWindow : public CKObject {
 		bool shouldReceiveMouseMoveEvents;
 
 	private:
-		CKRect* __rect;
-		std::vector<CKControl*> __controls;
 		CKApp* __owner;
-		bool __visible = false;
+		std::vector<CKControl*> __controls;
+		CKWindowPtr __windowPtr = nullptr;
+		CKControl* __activeTextInputControl = nullptr;
+		CKControl* __lastDownControl = nullptr;
 		bool __dead = false;
-		CKColor __backgroundColor = {255, 255, 255};
-		bool __hasCustomBackgroundColor = false;
 		bool __isCurrentlyActive = false;
 };

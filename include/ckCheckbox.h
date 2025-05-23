@@ -23,5 +23,5 @@ class CKCheckbox : public CKControlToolbox, public CKValueContainingControl {
 		CKCheckbox(const CKControlInitParams& params);
 		virtual ~CKCheckbox();
 		virtual bool HandleEvent(const CKEvent& evt);
-		virtual void ReflectToOS();
+		virtual void __ReflectToOS();
 };

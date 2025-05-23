@@ -56,7 +56,7 @@ void CKLabel::AddedToWindow(CKWindow* window) {
 
 	GrafPtr oldPort;
 	GetPort(&oldPort);
-	SetPort(window->__windowPtr);
+	SetPort(window->GetWindowPtr());
 
 	Rect r = this->rect->ToOS();
 	this->__teHandle = TEStyleNew(&r, &r);
@@ -172,7 +172,7 @@ void CKLabel::Redraw() {
 
 	GrafPtr oldPort;
 	GetPort(&oldPort);
-	SetPort(this->owner->__windowPtr);
+	SetPort(this->owner->GetWindowPtr());
 
 	TECalText(this->__teHandle);
 	TEUpdate(&(trecord->viewRect), this->__teHandle);

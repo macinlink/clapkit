@@ -27,8 +27,10 @@ class CKControlToolbox : public CKControl, public CKTextableControl {
 		virtual void AddedToWindow(CKWindow* window);
 		virtual void Redraw();
 		virtual bool HandleEvent(const CKEvent& evt);
-		virtual void ReflectToOS();
 		virtual void RaisePropertyChange(const char* propertyName);
+
+	protected:
+		virtual void __ReflectToOS();
 
 	protected:
 		CKControlPtr __ptr;

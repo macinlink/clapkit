@@ -83,12 +83,7 @@ void CKControl::MarkAsDirty() {
 		return;
 	}
 
-	GrafPtr oldPort;
-	GetPort(&oldPort);
-	SetPort(this->owner.get()->__windowPtr);
-	Rect r = this->rect->ToOS();
-	InvalRect(&r);
-	SetPort(oldPort);
+	this->owner.get()->DirtyArea(this->rect);
 }
 
 void CKControl::RaisePropertyChange(const char* propertyName) {

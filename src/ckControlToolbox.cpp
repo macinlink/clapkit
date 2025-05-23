@@ -40,7 +40,7 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 
 	CKControl::AddedToWindow(window);
 
-	if (this->owner == nil || this->owner->__windowPtr == 0) {
+	if (this->owner == nil || this->owner->GetWindowPtr() == 0) {
 		CKLog("CKControlToolbox added to window but owner or it's ptr is missing!");
 		return;
 	}
@@ -48,15 +48,17 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 	Rect r = this->rect->ToOS();
 	unsigned char* title = CKC2P(this->__text);
 
+	const CKWindowPtr windowPtr = this->owner->GetWindowPtr();
+
 	switch (this->__type) {
 		case CKControlType::PushButton:
-			this->__ptr = NewControl(this->owner->__windowPtr, &r, title, false, 0, 0, 0, kControlProcIDButton, 0);
+			this->__ptr = NewControl(windowPtr, &r, title, false, 0, 0, 0, kControlProcIDButton, 0);
 			break;
 		case CKControlType::Checkbox:
-			this->__ptr = NewControl(this->owner->__windowPtr, &r, title, false, 0, 0, 1, kControlProcIDCheckbox, 0);
+			this->__ptr = NewControl(windowPtr, &r, title, false, 0, 0, 1, kControlProcIDCheckbox, 0);
 			break;
 		case CKControlType::RadioButton:
-			this->__ptr = NewControl(this->owner->__windowPtr, &r, title, false, 0, 0, 1, kControlProcIDRadio, 0);
+			this->__ptr = NewControl(windowPtr, &r, title, false, 0, 0, 1, kControlProcIDRadio, 0);
 			break;
 		default:
 			throw CKNew CKException("Unknown/unhandled type passed to Toolbox control initializer!");
@@ -65,7 +67,7 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 
 	CKFree(title);
 
-	this->ReflectToOS();
+	this->__ReflectToOS();
 }
 
 void CKControlToolbox::Redraw() {
@@ -106,7 +108,7 @@ bool CKControlToolbox::HandleEvent(const CKEvent& evt) {
 	return false;
 }
 
-void CKControlToolbox::ReflectToOS() {
+void CKControlToolbox::__ReflectToOS() {
 	if (!this->__ptr) {
 		return;
 	}
@@ -130,6 +132,6 @@ void CKControlToolbox::ReflectToOS() {
 
 void CKControlToolbox::RaisePropertyChange(const char* propertyName) {
 	CKLog("[CKControlToolbox] Property '%s' of %x has changed, calling ReflectToOS...", propertyName, this);
-	this->ReflectToOS();
+	this->__ReflectToOS();
 	CKControl::RaisePropertyChange(propertyName);
 }

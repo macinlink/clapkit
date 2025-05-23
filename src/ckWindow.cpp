@@ -13,6 +13,7 @@
 
 #include "ckWindow.h"
 #include "ckButton.h"
+#include "ckLabel.h"
 #include "ck_pFocusableControl.h"
 #include <Appearance.h>
 #include <MacWindows.h>
@@ -27,20 +28,20 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	CKPROFILE
 
 	this->__controls = std::vector<CKControl*>();
-	this->__visible = false;
+	this->visible = false;
+	this->hasCustomBackgroundColor = false;
+	this->backgroundColor = CKColor(255, 255, 255);
 
-	this->__rect = CKNew CKRect();
-	this->__rect->size = params.size;
 	if (params.point) {
-		this->__rect->origin = CKPoint(params.point->x, params.point->y);
+		this->rect = CKRect(params.point->x, params.point->y, params.size.width, params.size.height);
 	} else {
+		this->rect = CKRect(params.size.width, params.size.height);
 		Rect screen = qd.screenBits.bounds;
-		this->__rect->origin.x = (screen.right + screen.left - this->__rect->size.width) / 2;
-		this->__rect->origin.y = (screen.bottom + screen.top - this->__rect->size.height) / 2;
-		CKLog("From constructor, moving window to the center. x = %d, y = %d (screen is %dx%d)", this->__rect->origin.x, this->__rect->origin.y, (screen.right - screen.left), (screen.bottom - screen.top));
+		this->rect->origin.x = (screen.right + screen.left - this->rect->size.width) / 2;
+		this->rect->origin.y = (screen.bottom + screen.top - this->rect->size.height) / 2;
 	}
 
-	Rect r = this->__rect->ToOS();
+	Rect r = this->rect->ToOS();
 	this->__windowPtr = NewCWindow(nil, &r, "\p", false, 0, 0, params.closable, 0);
 	if (CKHasAppearanceManager()) {
 		SetThemeWindowBackground(this->__windowPtr, kThemeBrushDialogBackgroundActive, true);
@@ -56,9 +57,14 @@ CKWindow::CKWindow(CKWindowInitParams params)
 
 	this->SetTitle(params.title);
 
-	this->latestDownControl = 0;
-	this->activeTextInputControl = 0;
+	this->__lastDownControl = 0;
+	this->__activeTextInputControl = 0;
 	this->shouldReceiveMouseMoveEvents = false;
+
+	this->visible.onChange = CKOBSERVEVALUE("visible");
+	this->rect.onChange = CKOBSERVEVALUE("rect");
+	this->backgroundColor.onChange = CKOBSERVEVALUE("backgroundColor");
+	this->hasCustomBackgroundColor.onChange = CKOBSERVEVALUE("hasCustomBackgroundColor");
 
 	CKLog("Created window %x", this);
 }
@@ -76,12 +82,20 @@ CKWindow::~CKWindow() {
 		this->__owner->RemoveTimersOfOwner(this);
 	}
 
-	if (this->__rect) {
-		CKDelete(this->__rect);
-	}
-
 	while (this->__controls.size() > 0) {
 		this->RemoveControl(this->__controls.at(0), true);
+	}
+}
+
+/**
+ * @brief Called from CKApp to do stuff like blinking the caret, etc.
+ *
+ */
+void CKWindow::Loop() {
+	if (this->__activeTextInputControl) {
+		if (auto c = dynamic_cast<CKLabel*>(this->__activeTextInputControl)) {
+			c->DoTEIdle();
+		}
 	}
 }
 
@@ -112,16 +126,16 @@ char* CKWindow::GetTitle() {
 	return result;
 }
 
-/**
- * Show the window.
- */
+// /**
+//  * Show the window.
+//  */
 void CKWindow::Show() {
 
 	CKPROFILE
+	this->visible = true;
+	this->__ReflectToOS();
 
-	ShowWindow(this->__windowPtr);
 	SelectWindow(this->__windowPtr);
-	this->__visible = true;
 }
 
 /**
@@ -130,18 +144,8 @@ void CKWindow::Show() {
 void CKWindow::Hide() {
 
 	CKPROFILE
-
-	HideWindow(this->__windowPtr);
-	this->__visible = false;
-}
-
-/**
- * @brief Is this window visible currently?
- * @return True if visible.
- */
-bool CKWindow::IsVisible() {
-
-	return this->__visible;
+	this->visible = false;
+	this->__ReflectToOS();
 }
 
 /**
@@ -149,55 +153,10 @@ bool CKWindow::IsVisible() {
  */
 void CKWindow::Focus() {
 
-	if (!this->IsVisible()) {
-		this->Show();
-	}
-
+	CKPROFILE
+	this->visible = true;
+	this->__ReflectToOS();
 	SelectWindow(this->__windowPtr);
-}
-
-/**
- * pwnd lol ya
- */
-CKRect* CKWindow::GetRect(bool getCopy) {
-
-	CKPROFILE
-
-	if (getCopy) {
-		CKRect* r = CKNew CKRect(*this->__rect);
-		return r;
-	} else {
-		return this->__rect;
-	}
-}
-
-/**
- * Move window to a specific location.
- */
-void CKWindow::Move(int x, int y) {
-
-	CKPROFILE
-
-	this->__rect->origin = CKPoint(x, y);
-
-	MoveWindow(this->__windowPtr, x, y, false);
-
-	CKPoint p = CKPoint(x, y);
-	CKEvent evt = CKEvent(CKEventType::moved, p);
-	this->HandleEvent(evt);
-}
-
-/**
- * Change the size of the window..
- */
-void CKWindow::Resize(int width, int height) {
-
-	CKPROFILE
-
-	this->__rect->size.width = width;
-	this->__rect->size.height = height;
-
-	SizeWindow(this->__windowPtr, this->__rect->size.width, this->__rect->size.height, true);
 }
 
 /**
@@ -208,10 +167,8 @@ void CKWindow::Center() {
 	CKPROFILE
 
 	Rect screen = qd.screenBits.bounds;
-	int x = (screen.right + screen.left - this->__rect->size.width) / 2;
-	int y = (screen.bottom + screen.top - this->__rect->size.height) / 2;
-
-	this->Move(x, y);
+	this->rect->origin.x = (screen.right + screen.left - this->rect->size.width) / 2;
+	this->rect->origin.y = (screen.bottom + screen.top - this->rect->size.height) / 2;
 }
 
 /**
@@ -282,8 +239,8 @@ void CKWindow::RemoveControl(CKControl* control, bool free) {
 
 	// If we don't do this, we'll surely explode in a crash
 	// later on when we get a mouseDown event.
-	if (this->latestDownControl == control) {
-		this->latestDownControl = 0;
+	if (this->__lastDownControl == control) {
+		this->__lastDownControl = 0;
 	}
 
 	control->owner = nil;
@@ -324,11 +281,11 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	Rect r;
 	r.top = 0;
 	r.left = 0;
-	r.right = this->__rect->size.width;
-	r.bottom = this->__rect->size.height;
+	r.right = this->rect->size.width;
+	r.bottom = this->rect->size.height;
 
-	if (this->__hasCustomBackgroundColor) {
-		RGBColor c = this->__backgroundColor.ToOS();
+	if (this->hasCustomBackgroundColor) {
+		RGBColor c = this->backgroundColor->ToOS();
 		RGBBackColor(&c);
 		EraseRect(&r);
 	} else if (CKHasAppearanceManager()) {
@@ -419,21 +376,21 @@ void CKWindow::SetActiveControl(CKControl* control) {
 		return;
 	}
 
-	if (this->activeTextInputControl) {
-		if (control && this->activeTextInputControl == control) {
+	if (this->__activeTextInputControl) {
+		if (control && this->__activeTextInputControl == control) {
 			return;
 		}
-		if (auto c = dynamic_cast<CKFocusableControl*>(this->activeTextInputControl)) {
+		if (auto c = dynamic_cast<CKFocusableControl*>(this->__activeTextInputControl)) {
 			c->Blurred();
 		}
 	}
 
-	this->activeTextInputControl = nil;
+	this->__activeTextInputControl = nil;
 
 	if (control) {
 		if (auto c = dynamic_cast<CKFocusableControl*>(control)) {
 			c->Focused();
-			this->activeTextInputControl = control;
+			this->__activeTextInputControl = control;
 		}
 	}
 }
@@ -456,13 +413,34 @@ void CKWindow::SetIsActive(bool active) {
 		} else {
 			// We should not call this->__InvalidateEntireWindow() here
 			// as if we've arrived here from an OSEvt, we won't get any update requests.
-			this->Redraw(CKRect(this->GetRect()->size.width, this->GetRect()->size.height));
+			this->Redraw(CKRect(this->rect->size.width, this->rect->size.height));
 		}
 	}
 }
 
+CKControl* CKWindow::GetLastControl() const {
+	return this->__lastDownControl;
+}
+
+void CKWindow::SetLastControl(CKControl* control) {
+	this->__lastDownControl = control;
+}
+
+const CKWindowPtr CKWindow::GetWindowPtr() const {
+	return this->__windowPtr;
+}
+
 bool CKWindow::GetIsActive() {
 	return this->__isCurrentlyActive;
+}
+
+void CKWindow::DirtyArea(const CKRect rect) {
+	GrafPtr oldPort;
+	GetPort(&oldPort);
+	SetPort(this->__windowPtr);
+	Rect r = rect.ToOS();
+	InvalRect(&r);
+	SetPort(oldPort);
 }
 
 /**
@@ -489,54 +467,51 @@ bool CKWindow::HandleEvent(const CKEvent& evt) {
 		}
 	}
 
-	if (this->activeTextInputControl) {
+	if (this->__activeTextInputControl) {
 		// TODO: Text-editable controls need to handle this, of course.
-		this->activeTextInputControl->HandleEvent(evt);
+		this->__activeTextInputControl->HandleEvent(evt);
 	}
 
 	return CKObject::HandleEvent(evt);
-}
-
-/**
- * @brief Check if this window has a custom background color set/unset
- * via SetBackgroundColor and UnsetBackgroundColor functions.
- * @return
- */
-bool CKWindow::HasBackgroundColor() {
-	return this->__hasCustomBackgroundColor;
-}
-
-/**
- * @brief Call to set a custom background color that overrides the
- * white on MacOS <= 7 and theme color on MacOS >= 8.
- * @param color
- */
-void CKWindow::SetBackgroundColor(CKColor color) {
-	this->__backgroundColor = color;
-	this->__hasCustomBackgroundColor = true;
-	this->__InvalidateEntireWindow();
-}
-
-/**
- * @brief Removes custom background color set by `SetBackgroundColor`
- */
-void CKWindow::UnsetBackgroundColor() {
-	this->__hasCustomBackgroundColor = false;
-	if (CKHasAppearanceManager()) {
-		SetThemeWindowBackground(this->__windowPtr, this->__isCurrentlyActive ? kThemeBrushDialogBackgroundActive : kThemeBrushDialogBackgroundInactive, true);
-	}
-	this->__InvalidateEntireWindow();
 }
 
 void CKWindow::__InvalidateEntireWindow() {
 	Rect r;
 	r.top = 0;
 	r.left = 0;
-	r.right = this->__rect->size.width;
-	r.bottom = this->__rect->size.height;
+	r.right = this->rect->size.width;
+	r.bottom = this->rect->size.height;
 	GrafPtr oldPort;
 	GetPort(&oldPort);
 	SetPort(this->__windowPtr);
 	InvalRect(&r);
 	SetPort(oldPort);
+}
+
+void CKWindow::__ReflectToOS() {
+
+	if (this->visible) {
+		ShowWindow(this->__windowPtr);
+	} else {
+		HideWindow(this->__windowPtr);
+		return;
+	}
+
+	GrafPtr oldPort;
+	GetPort(&oldPort);
+	SetPort(this->__windowPtr);
+
+	MoveWindow(this->__windowPtr, this->rect->origin.x, this->rect->origin.y, false);
+	SizeWindow(this->__windowPtr, this->rect->size.width, this->rect->size.height, true);
+
+	SetPort(oldPort);
+}
+
+void CKWindow::RaisePropertyChange(const char* propertyName) {
+	CKLog("Window %x's property '%s' has changed!", this, propertyName);
+	this->__ReflectToOS();
+	if (!strcmp(propertyName, "hasCustomBackgroundColor") || !strcmp(propertyName, "backgroundColor")) {
+		this->__InvalidateEntireWindow();
+	}
+	CKObject::RaisePropertyChange(propertyName);
 }

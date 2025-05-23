@@ -205,7 +205,7 @@ void CKCanvas::Redraw() {
 
 	GrafPtr oldPort;
 	GetPort(&oldPort);
-	SetPort(this->owner->__windowPtr);
+	SetPort(this->owner->GetWindowPtr());
 
 	PixMapHandle offscreenPixMap = GetGWorldPixMap(this->__gworldptr);
 	if (!LockPixels(offscreenPixMap)) {
@@ -217,7 +217,7 @@ void CKCanvas::Redraw() {
 	Rect destRect = {0, 0, (short)this->__height, (short)this->__width};
 
 	CopyBits((BitMap*)&(**offscreenPixMap),
-			 &(this->owner->__windowPtr->portBits),
+			 &(this->owner->GetWindowPtr()->portBits),
 			 &destRect, &destRect, srcCopy, NULL);
 
 	UnlockPixels(offscreenPixMap);
