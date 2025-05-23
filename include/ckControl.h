@@ -15,6 +15,7 @@
 
 #include "ckApp.h"
 #include "ckObject.h"
+#include "ckProperty.h"
 #include <functional>
 
 class CKWindow;
@@ -23,6 +24,7 @@ class CKWindow;
  * Initialization parameters for a CKControl.
  */
 struct CKControlInitParams {
+	public:
 		const char* title = 0;
 		int x = 0;
 		int y = 0;
@@ -37,26 +39,15 @@ class CKControl : public CKObject {
 	public:
 		CKControl(const CKControlInitParams& params, CKControlType type = CKControlType::Unknown);
 		virtual ~CKControl();
-		virtual void Show();
-		virtual void Hide();
 		virtual void AddedToWindow(CKWindow* window);
 		virtual void RemovedFromWindow();
 		virtual void Redraw();
 		virtual void MarkAsDirty();
-		virtual CKRect* GetRect(bool getCopy = false);
-		virtual void SetRect(CKRect* rect);
-		virtual void SetEnabled(bool enabled);
-		virtual bool GetEnabled();
-		virtual bool GetVisible();
-		virtual void SetIsFocused(bool focused);
+		virtual void RaisePropertyChange(const char* propertyName);
 
-	private:
 	public:
-		CKWindow* owner;
-
-	protected:
-		CKRect* __rect;
-		bool __enabled;
-		bool __visible;
-		bool __focused;
+		CKProperty<CKWindow*> owner = nullptr;
+		CKProperty<CKRect> rect;
+		CKProperty<bool> enabled = true;
+		CKProperty<bool> visible;
 };

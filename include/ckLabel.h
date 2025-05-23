@@ -34,20 +34,24 @@ class CKLabel : public CKControl, public CKTextableControl {
 		void SetFont(short fontId);
 		short GetFont();
 
+		void DoTEIdle() {
+			TEIdle(this->__teHandle);
+		}
+
 	protected:
 		// Called once TE is created so you can override things in your class.
 		virtual void TECreated();
 
 	public:
-		bool bold = false;
-		bool italic = false;
-		bool underline = false;
-		bool multiline = false;
-		CKColor color;
-		int fontSize;
-		CKTextJustification justification;
-		TEHandle __teHandle;
+		CKProperty<bool> bold = false;
+		CKProperty<bool> italic = false;
+		CKProperty<bool> underline = false;
+		CKProperty<bool> multiline = false;
+		CKProperty<CKColor> color;
+		CKProperty<int> fontSize;
+		CKProperty<CKTextJustification> justification;
 
 	protected:
 		short __fontNumber;
+		TEHandle __teHandle;
 };

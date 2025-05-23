@@ -14,6 +14,7 @@
  */
 
 #pragma once
+#include "ckProperty.h"
 
 class CKFocusableControl {
 
@@ -22,4 +23,7 @@ class CKFocusableControl {
 		virtual ~CKFocusableControl();
 		virtual void Focused();
 		virtual void Blurred();
+
+	public:
+		CKProperty<bool> focused;
 };

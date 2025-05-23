@@ -14,20 +14,22 @@
  */
 
 #include "ck_pTextableControl.h"
+#include "ckControl.h"
 #include "ckMacros.h"
 
 CKTextableControl::CKTextableControl() {
-
 	this->__text = 0;
 }
 
 CKTextableControl::~CKTextableControl() {
-	CKLog("~CKTextableControl called, clearing text (%x, %s)", this->__text, this->__text);
 	CKSafeCopyString(this->__text, 0);
 }
 
 void CKTextableControl::SetText(const char* text) {
 	CKSafeCopyString(this->__text, text);
+	if (auto c = dynamic_cast<CKControl*>(this)) {
+		c->RaisePropertyChange("text");
+	}
 }
 
 const char* CKTextableControl::GetText() {

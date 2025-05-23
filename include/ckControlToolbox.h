@@ -25,18 +25,11 @@ class CKControlToolbox : public CKControl, public CKTextableControl {
 		CKControlToolbox(const CKControlInitParams& params, CKControlType type = CKControlType::Unknown);
 		virtual ~CKControlToolbox();
 		virtual void AddedToWindow(CKWindow* window);
-		virtual void Show();
-		virtual void Hide();
 		virtual void Redraw();
-		virtual void SetEnabled(bool enabled);
 		virtual bool HandleEvent(const CKEvent& evt);
-		virtual void SetRect(CKRect* rect);
-		void SetToggleValue(bool value);
-		bool GetToggleValue() const;
-		void SetText(const char* text);
+		virtual void ReflectToOS();
+		virtual void RaisePropertyChange(const char* propertyName);
 
-	private:
-	public:
 	protected:
 		CKControlPtr __ptr;
 		CKControlType __type;

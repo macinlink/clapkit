@@ -15,10 +15,13 @@
 
 #include "ckApp.h"
 #include "ckControlToolbox.h"
+#include "ck_pValueContainingControl.h"
 
-class CKCheckbox : public CKControlToolbox {
+class CKCheckbox : public CKControlToolbox, public CKValueContainingControl {
 
 	public:
 		CKCheckbox(const CKControlInitParams& params);
 		virtual ~CKCheckbox();
+		virtual bool HandleEvent(const CKEvent& evt);
+		virtual void ReflectToOS();
 };

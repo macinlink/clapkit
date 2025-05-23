@@ -58,7 +58,7 @@ void CKLabel::AddedToWindow(CKWindow* window) {
 	GetPort(&oldPort);
 	SetPort(window->__windowPtr);
 
-	Rect r = this->GetRect()->ToOS();
+	Rect r = this->rect->ToOS();
 	this->__teHandle = TEStyleNew(&r, &r);
 	(*this->__teHandle)->txMode = srcCopy;
 
@@ -132,10 +132,10 @@ void CKLabel::PrepareForDraw() {
 			}
 
 			CKColor black = {0, 0, 0};
-			if (this->color != black || !CKHasAppearanceManager()) {
-				style.tsColor = this->color.ToOS();
+			if (this->color.get() != black || !CKHasAppearanceManager()) {
+				style.tsColor = this->color.get().ToOS();
 			} else {
-				if (this->color == black && CKHasAppearanceManager()) {
+				if (this->color.get() == black && CKHasAppearanceManager()) {
 					RGBColor color;
 					GDHandle deviceHdl = LMGetMainDevice();
 					SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
@@ -217,7 +217,7 @@ void CKLabel::AutoHeight(int maxHeight) {
 	Rect textRect;
 	textRect.left = 0;
 	textRect.top = 0;
-	textRect.right = std::max(1, this->GetRect()->size.width);
+	textRect.right = std::max(1, this->rect->size.width);
 	textRect.bottom = std::min(maxHeight, 500);
 
 	TEHandle tempTE = TEStyleNew(&textRect, &textRect);
@@ -256,9 +256,7 @@ void CKLabel::AutoHeight(int maxHeight) {
 	SetPort(oldPort);
 
 	// Update label's rect
-	CKRect* rect = this->GetRect();
-	rect->size.height = totalHeight;
-	this->SetRect(rect);
+	this->rect->size.height = totalHeight;
 }
 
 void CKLabel::SetFont(short fontId) {

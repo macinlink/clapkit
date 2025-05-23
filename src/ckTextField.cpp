@@ -30,7 +30,7 @@ void CKTextField::Redraw() {
 		// TODO: Use DrawThemeEditTextFrame() to draw it.
 	}
 
-	Rect r = this->GetRect()->ToOS();
+	Rect r = this->rect->ToOS();
 	ForeColor(blackColor);
 	FillRect(&r, &qd.white);
 	BackColor(whiteColor);
@@ -81,10 +81,10 @@ void CKTextField::PrepareForDraw() {
 	trecord->lineHeight = this->fontSize + 3;
 	trecord->fontAscent = this->fontSize;
 
-	RGBColor color = this->color.ToOS();
+	RGBColor color = this->color.get().ToOS();
 	RGBForeColor(&color);
 
-	Rect r = this->GetRect()->ToOS();
+	Rect r = this->rect->ToOS();
 	r.top += 2;
 	r.left += 2;
 	r.right -= 4;

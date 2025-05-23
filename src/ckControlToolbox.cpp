@@ -13,6 +13,7 @@
 
 #include "ckControlToolbox.h"
 #include "ckWindow.h"
+#include "ck_pValueContainingControl.h"
 #include <Appearance.h>
 #include <Controls.h>
 
@@ -44,7 +45,7 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 		return;
 	}
 
-	Rect r = this->__rect->ToOS();
+	Rect r = this->rect->ToOS();
 	unsigned char* title = CKC2P(this->__text);
 
 	switch (this->__type) {
@@ -62,45 +63,9 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 			break;
 	}
 
-	// These might've been set before they were added to the window..
-	// TODO: A better solution for this?
-
-	this->SetEnabled(this->GetEnabled());
-	this->SetToggleValue(this->GetToggleValue());
-
 	CKFree(title);
 
-	if (this->GetVisible()) {
-		this->Show();
-	}
-}
-
-void CKControlToolbox::Show() {
-
-	if (this->__ptr == 0) {
-		CKLog("Show called on control (%x) with no ptr!", this);
-		return;
-	}
-
-	if ((**(this->__ptr)).contrlOwner == 0) {
-		CKLog("Show called on control (%x) but contrlOwner is nil", this);
-		return;
-	}
-
-	CKControl::Show();
-	ShowControl(this->__ptr);
-}
-
-void CKControlToolbox::Hide() {
-
-	CKControl::Hide();
-
-	if (this->__ptr == 0) {
-		CKLog("Hide called on control with no ptr!");
-		return;
-	}
-
-	HideControl(this->__ptr);
+	this->ReflectToOS();
 }
 
 void CKControlToolbox::Redraw() {
@@ -119,23 +84,6 @@ void CKControlToolbox::Redraw() {
 	CKControl::Redraw();
 }
 
-void CKControlToolbox::SetEnabled(bool enabled) {
-
-	CKControl::SetEnabled(enabled);
-
-	if (!this->__ptr) {
-		return;
-	}
-
-	if (enabled) {
-		HiliteControl(this->__ptr, 0);
-	} else {
-		HiliteControl(this->__ptr, 255);
-	}
-
-	this->MarkAsDirty();
-}
-
 bool CKControlToolbox::HandleEvent(const CKEvent& evt) {
 
 	if (CKControl::HandleEvent(evt)) {
@@ -149,10 +97,8 @@ bool CKControlToolbox::HandleEvent(const CKEvent& evt) {
 			didClick = true;
 		}
 		if (didClick) {
-			// TODO: The line below is kind of stupid and should be moved somewhere else.
-			this->SetToggleValue(!this->GetToggleValue()); // For radio & checkboxes..
-			this->MarkAsDirty();
 			this->HandleEvent(CKEvent(CKEventType::click));
+			this->MarkAsDirty();
 		}
 		return true;
 	}
@@ -160,40 +106,30 @@ bool CKControlToolbox::HandleEvent(const CKEvent& evt) {
 	return false;
 }
 
-void CKControlToolbox::SetRect(CKRect* rect) {
-
-	CKControl::SetRect(rect);
-
+void CKControlToolbox::ReflectToOS() {
 	if (!this->__ptr) {
 		return;
 	}
 
+	if (!this->visible) {
+		HideControl(this->__ptr);
+		return;
+	} else {
+		ShowControl(this->__ptr);
+	}
+
+	unsigned char* title = CKC2P(this->__text);
+	SetControlTitle(this->__ptr, title);
+	CKFree(title);
+
 	SizeControl(this->__ptr, rect->size.width, rect->size.height);
 	MoveControl(this->__ptr, rect->origin.x, rect->origin.y);
-	this->MarkAsDirty();
+
+	HiliteControl(this->__ptr, this->enabled ? 0 : 255);
 }
 
-void CKControlToolbox::SetText(const char* text) {
-
-	CKTextableControl::SetText(text);
-
-	if (this->__ptr) {
-		unsigned char* title = CKC2P(this->__text);
-		SetControlTitle(this->__ptr, title);
-		CKFree(title);
-	}
-
-	this->MarkAsDirty();
-}
-
-void CKControlToolbox::SetToggleValue(bool value) {
-	if (!__ptr) {
-		return;
-	}
-	SetControlValue(__ptr, value ? 1 : 0); // update the OS control
-	HandleEvent(CKEventType::changed);	   // notify your framework
-}
-
-bool CKControlToolbox::GetToggleValue() const {
-	return __ptr && (GetControlValue(__ptr) != 0);
+void CKControlToolbox::RaisePropertyChange(const char* propertyName) {
+	CKLog("[CKControlToolbox] Property '%s' of %x has changed, calling ReflectToOS...", propertyName, this);
+	this->ReflectToOS();
+	CKControl::RaisePropertyChange(propertyName);
 }

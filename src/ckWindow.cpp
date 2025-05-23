@@ -180,7 +180,6 @@ void CKWindow::Move(int x, int y) {
 
 	this->__rect->origin = CKPoint(x, y);
 
-	CKLog("Moving window %x to %d,%d (size: %dx%d)", this->__windowPtr, x, y, this->GetRect()->size.width, this->GetRect()->size.height);
 	MoveWindow(this->__windowPtr, x, y, false);
 
 	CKPoint p = CKPoint(x, y);
@@ -379,13 +378,13 @@ CKControl* CKWindow::FindControl(CKPoint point) {
 	CKPROFILE
 
 	for (auto& c : this->__controls) {
-		if (!c->GetEnabled()) {
+		if (!c->enabled) {
 			continue;
 		}
-		if (!c->GetVisible()) {
+		if (!c->visible) {
 			continue;
 		}
-		if (c->GetRect()->intersectsPoint(point)) {
+		if (c->rect->intersectsPoint(point)) {
 			return c;
 		}
 	}

@@ -18,13 +18,14 @@ CKControl::CKControl(const CKControlInitParams& params, CKControlType type)
 	: CKObject() {
 
 	this->owner = nil;
-	this->__enabled = true;
-	this->__visible = true;
-	this->__rect = 0;
+	this->enabled = true;
+	this->enabled.onChange = CKOBSERVEVALUE("enabled");
 
-	CKRect* r = CKNew CKRect(params.x, params.y, params.width, params.height);
-	this->SetRect(r);
-	CKDelete(r);
+	this->visible = true;
+	this->visible.onChange = CKOBSERVEVALUE("visible");
+
+	this->rect = CKRect(params.x, params.y, params.width, params.height);
+	this->rect.onChange = CKOBSERVEVALUE("rect");
 }
 
 CKControl::~CKControl() {
@@ -36,27 +37,6 @@ CKControl::~CKControl() {
 	if (this->owner && this->owner->GetOwner()) {
 		this->owner->GetOwner()->RemoveTimersOfOwner(this);
 	}
-
-	if (this->__rect) {
-		CKDelete(this->__rect);
-		this->__rect = nullptr;
-	}
-}
-
-/**
- * If not shown, show and draw the control.
- */
-void CKControl::Show() {
-
-	this->__visible = true;
-}
-
-/**
- * Make the control invisible.
- */
-void CKControl::Hide() {
-
-	this->__visible = false;
 }
 
 /**
@@ -105,77 +85,13 @@ void CKControl::MarkAsDirty() {
 
 	GrafPtr oldPort;
 	GetPort(&oldPort);
-	SetPort(this->owner->__windowPtr);
-	Rect r = this->GetRect()->ToOS();
+	SetPort(this->owner.get()->__windowPtr);
+	Rect r = this->rect->ToOS();
 	InvalRect(&r);
 	SetPort(oldPort);
 }
 
-/**
- * pwnd lol ya
- */
-CKRect* CKControl::GetRect(bool getCopy) {
-
-	if (getCopy) {
-		CKRect* r = CKNew CKRect(*this->__rect);
-		return r;
-	} else {
-		return this->__rect;
-	}
-}
-
-/**
- * Change the position/size of the control.
- */
-void CKControl::SetRect(CKRect* rect) {
-
-	CKPROFILE
-
-	if (rect != this->__rect) {
-		if (this->__rect) {
-			this->MarkAsDirty();
-			CKDelete(this->__rect);
-			this->__rect = 0;
-		}
-		if (rect) {
-			this->__rect = CKNew CKRect(*rect);
-			this->MarkAsDirty();
-		}
-	} else {
-		this->MarkAsDirty();
-	}
-}
-
-/**
- * Disable/enable control.
- */
-void CKControl::SetEnabled(bool enabled) {
-
-	this->__enabled = enabled;
-}
-
-/**
- * Returns true if control is enabled.
- */
-bool CKControl::GetEnabled() {
-
-	return this->__enabled;
-}
-
-/**
- * @brief Is this control visible?
- * @return True if visible.
- */
-bool CKControl::GetVisible() {
-
-	return this->__visible;
-}
-
-/**
- * @brief Called by the window if this control is the 'focused' one.
- * Used for making a textfield active, etc..
- * @param focused
- */
-void CKControl::SetIsFocused(bool focused) {
-	// Nothing here, override me.
+void CKControl::RaisePropertyChange(const char* propertyName) {
+	this->MarkAsDirty();
+	CKObject::RaisePropertyChange(propertyName);
 }

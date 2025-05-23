@@ -259,6 +259,17 @@ struct CKRect {
 			}
 			return false;
 		}
+
+		inline bool operator==(const CKRect& other) const {
+			return origin.x == other.origin.x &&
+				   origin.y == other.origin.y &&
+				   size.width == other.size.width &&
+				   size.height == other.size.height;
+		}
+
+		inline bool operator!=(const CKRect& other) const {
+			return !(*this == other);
+		}
 };
 
 /**

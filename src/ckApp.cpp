@@ -260,7 +260,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	label->AutoHeight(300);
 	toReturn->AddControl(label);
 
-	int windowHeight = label->GetRect()->size.height + (padding * 3) + 20;
+	int windowHeight = label->rect->size.height + (padding * 3) + 20;
 
 	int okButtonWidth = 80;
 	int okButtonLeft = params.size.width - padding - okButtonWidth;
@@ -370,7 +370,7 @@ void CKApp::DoHousekeepingTasks() {
 	CKWindow* tmw = this->TopMostWindow();
 	if (tmw && tmw->activeTextInputControl) {
 		if (auto c = dynamic_cast<CKLabel*>(tmw->activeTextInputControl)) {
-			TEIdle(c->__teHandle);
+			c->DoTEIdle();
 		}
 	}
 

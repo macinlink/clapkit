@@ -38,6 +38,7 @@ class CKObject {
 			this->propertyObserverCB = nullptr;
 		}
 		virtual void RaisePropertyChange(const char* propertyName) {
+			CKLog("[CKObject] Property '%s' of %x has changed, calling propertyObserverCB...", propertyName, this);
 			if (this->propertyObserverCB) {
 				propertyObserverCB(this, propertyName);
 			}

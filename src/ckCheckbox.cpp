@@ -20,3 +20,20 @@ CKCheckbox::CKCheckbox(const CKControlInitParams& params)
 
 CKCheckbox::~CKCheckbox() {
 }
+
+bool CKCheckbox::HandleEvent(const CKEvent& evt) {
+	CKControlToolbox::HandleEvent(evt);
+	if (evt.type == CKEventType::click) {
+		this->SetValue(!this->GetBoolean());
+		this->ReflectToOS();
+		CKControl::HandleEvent(CKEventType::changed);
+	}
+	return false;
+}
+
+void CKCheckbox::ReflectToOS() {
+	CKControlToolbox::ReflectToOS();
+	if (this->__ptr) {
+		SetControlValue(__ptr, this->GetBoolean() ? 1 : 0);
+	}
+}
