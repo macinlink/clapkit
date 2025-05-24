@@ -15,6 +15,7 @@
 
 #include "ckObject.h"
 #include "ckProperty.h"
+#include <Menus.h>
 #include <vector>
 
 class CKApp;

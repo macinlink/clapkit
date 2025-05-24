@@ -13,11 +13,14 @@
 
 #pragma once
 
-#include "ckApp.h"
 #include "ckProperty.h"
 #include <unordered_map>
 
 #define CKOBSERVEVALUE(name) [this]() { this->RaisePropertyChange(name); };
+
+enum class CKEventType;
+class CKEvent;
+class CKObject;
 
 using CKEventHandlerFunc = std::function<void(const CKEvent&)>;
 using CKPropertyObserverFunc = std::function<void(const CKObject*, const char*)>;
@@ -31,20 +34,11 @@ class CKObject {
 		virtual void RemoveHandler(CKEventType type);
 		virtual bool HasHandler(CKEventType type) const;
 		virtual bool HandleEvent(const CKEvent& evt);
-		virtual void SetPropertyObserver(CKPropertyObserverFunc cb) {
-			this->propertyObserverCB = cb;
-		}
-		virtual void UnsetPropertyObserver() {
-			this->propertyObserverCB = nullptr;
-		}
-		virtual void RaisePropertyChange(const char* propertyName) {
-			CKLog("[CKObject] Property '%s' of %x has changed, calling propertyObserverCB...", propertyName, this);
-			if (this->propertyObserverCB) {
-				propertyObserverCB(this, propertyName);
-			}
-		}
+		virtual void SetPropertyObserver(CKPropertyObserverFunc cb);
+		virtual void UnsetPropertyObserver();
+		virtual void RaisePropertyChange(const char* propertyName);
 
 	protected:
 		std::unordered_map<CKEventType, CKEventHandlerFunc> __handlers;
-		CKPropertyObserverFunc propertyObserverCB;
+		CKPropertyObserverFunc propertyObserverCB = nullptr;
 };

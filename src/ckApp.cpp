@@ -260,7 +260,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	label->AutoHeight(300);
 	toReturn->AddControl(label);
 
-	int windowHeight = label->rect->size.height + (padding * 3) + 20;
+	int windowHeight = label->rect->size->height + (padding * 3) + 20;
 
 	int okButtonWidth = 80;
 	int okButtonLeft = params.size.width - padding - okButtonWidth;
@@ -294,7 +294,7 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	});
 	okButton->SetDefault(true);
 
-	toReturn->rect->size.height = windowHeight;
+	toReturn->rect->size->height = windowHeight;
 	toReturn->Center();
 	toReturn->Show();
 	return toReturn;

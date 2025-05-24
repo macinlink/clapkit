@@ -37,8 +37,8 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	} else {
 		this->rect = CKRect(params.size.width, params.size.height);
 		Rect screen = qd.screenBits.bounds;
-		this->rect->origin.x = (screen.right + screen.left - this->rect->size.width) / 2;
-		this->rect->origin.y = (screen.bottom + screen.top - this->rect->size.height) / 2;
+		this->rect->origin->x = (screen.right + screen.left - this->rect->size->width) / 2;
+		this->rect->origin->y = (screen.bottom + screen.top - this->rect->size->height) / 2;
 	}
 
 	Rect r = this->rect->ToOS();
@@ -62,9 +62,9 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	this->shouldReceiveMouseMoveEvents = false;
 
 	this->visible.onChange = CKOBSERVEVALUE("visible");
-	this->rect.onChange = CKOBSERVEVALUE("rect");
 	this->backgroundColor.onChange = CKOBSERVEVALUE("backgroundColor");
 	this->hasCustomBackgroundColor.onChange = CKOBSERVEVALUE("hasCustomBackgroundColor");
+	this->rect.onChange = CKOBSERVEVALUE("rect");
 
 	CKLog("Created window %x", this);
 }
@@ -167,8 +167,8 @@ void CKWindow::Center() {
 	CKPROFILE
 
 	Rect screen = qd.screenBits.bounds;
-	this->rect->origin.x = (screen.right + screen.left - this->rect->size.width) / 2;
-	this->rect->origin.y = (screen.bottom + screen.top - this->rect->size.height) / 2;
+	this->rect->origin->x = (screen.right + screen.left - this->rect->size->width) / 2;
+	this->rect->origin->y = (screen.bottom + screen.top - this->rect->size->height) / 2;
 }
 
 /**
@@ -281,8 +281,8 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	Rect r;
 	r.top = 0;
 	r.left = 0;
-	r.right = this->rect->size.width;
-	r.bottom = this->rect->size.height;
+	r.right = this->rect->size->width;
+	r.bottom = this->rect->size->height;
 
 	if (this->hasCustomBackgroundColor) {
 		RGBColor c = this->backgroundColor->ToOS();
@@ -413,7 +413,7 @@ void CKWindow::SetIsActive(bool active) {
 		} else {
 			// We should not call this->__InvalidateEntireWindow() here
 			// as if we've arrived here from an OSEvt, we won't get any update requests.
-			this->Redraw(CKRect(this->rect->size.width, this->rect->size.height));
+			this->Redraw(CKRect(this->rect->size->width, this->rect->size->height));
 		}
 	}
 }
@@ -479,8 +479,8 @@ void CKWindow::__InvalidateEntireWindow() {
 	Rect r;
 	r.top = 0;
 	r.left = 0;
-	r.right = this->rect->size.width;
-	r.bottom = this->rect->size.height;
+	r.right = this->rect->size->width;
+	r.bottom = this->rect->size->height;
 	GrafPtr oldPort;
 	GetPort(&oldPort);
 	SetPort(this->__windowPtr);
@@ -501,8 +501,8 @@ void CKWindow::__ReflectToOS() {
 	GetPort(&oldPort);
 	SetPort(this->__windowPtr);
 
-	MoveWindow(this->__windowPtr, this->rect->origin.x, this->rect->origin.y, false);
-	SizeWindow(this->__windowPtr, this->rect->size.width, this->rect->size.height, true);
+	MoveWindow(this->__windowPtr, this->rect->origin->x, this->rect->origin->y, false);
+	SizeWindow(this->__windowPtr, this->rect->size->width, this->rect->size->height, true);
 
 	SetPort(oldPort);
 }

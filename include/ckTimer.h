@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ckObject.h"
+#include <MacTypes.h>
 
 using CKTimerCallbackFunc = std::function<void(void*)>;
 

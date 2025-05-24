@@ -12,6 +12,10 @@
  */
 
 #include "ckObject.h"
+#include "ckApp.h"
+#include "ckProperty.h"
+#include "ckTypes.h"
+#include "ckUtils.h"
 
 CKObject::CKObject() {
 }
@@ -42,4 +46,19 @@ bool CKObject::HandleEvent(const CKEvent& evt) {
 	}
 	it->second(evt);
 	return true;
+}
+
+void CKObject::SetPropertyObserver(CKPropertyObserverFunc cb) {
+	this->propertyObserverCB = cb;
+}
+void CKObject::UnsetPropertyObserver() {
+	this->propertyObserverCB = nullptr;
+}
+void CKObject::RaisePropertyChange(const char* propertyName) {
+	if (this->propertyObserverCB) {
+		CKLog("[CKObject] Property '%s' of %x has changed, calling propertyObserverCB (%x)", propertyName, this, this->propertyObserverCB);
+		propertyObserverCB(this, propertyName);
+	} else {
+		CKLog("[CKObject] Property '%s' of %x has changed, but no observer!", propertyName, this);
+	}
 }

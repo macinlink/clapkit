@@ -14,6 +14,8 @@
 #pragma once
 
 #include "ckMacros.h"
+#include "ckObject.h"
+#include "ckProperty.h"
 #include "ckUtils.h"
 #include <exception>
 
@@ -111,8 +113,8 @@ struct CKColor {
  */
 struct CKPoint {
 
-		int x;
-		int y;
+		CKProperty<int> x = 0;
+		CKProperty<int> y = 0;
 
 		CKPoint(int x, int y)
 			: x(x), y(y) {};
@@ -146,6 +148,20 @@ struct CKPoint {
 			CKPoint toReturn = {p.h, p.v};
 			return toReturn;
 		}
+
+		inline bool operator==(const CKPoint& other) const {
+			return this->x == other.x && this->y == other.y;
+		}
+
+		inline bool operator!=(const CKPoint& other) const {
+			return !(*this == other);
+		}
+
+		/** For change tracking */
+		void subscribe(std::function<void()> cb) {
+			x.onChange = cb;
+			y.onChange = cb;
+		}
 };
 
 /**
@@ -153,8 +169,8 @@ struct CKPoint {
  */
 struct CKSize {
 
-		int width;
-		int height;
+		CKProperty<int> width = 0;
+		CKProperty<int> height = 0;
 
 		CKSize(int w, int h)
 			: width(w), height(h) {};
@@ -178,16 +194,30 @@ struct CKSize {
 			toReturn.height = p.v;
 			return toReturn;
 		}
+
+		inline bool operator==(const CKSize& other) const {
+			return this->width == other.width && this->height == other.height;
+		}
+
+		inline bool operator!=(const CKSize& other) const {
+			return !(*this == other);
+		}
+
+		/** For change tracking */
+		void subscribe(std::function<void()> cb) {
+			width.onChange = cb;
+			height.onChange = cb;
+		}
 };
 
 /**
  * @brief Defines a rectangular area at a specific location.
  * Use ToOS/FromOS to interact with native version(s) of this.
  */
-struct CKRect {
+struct CKRect : public CKObject {
 
-		CKPoint origin;
-		CKSize size;
+		CKProperty<CKPoint> origin;
+		CKProperty<CKSize> size;
 
 		CKRect(const CKRect& f) {
 			this->origin = f.origin;
@@ -219,10 +249,10 @@ struct CKRect {
 		 */
 		Rect ToOS() const {
 			Rect r;
-			r.left = this->origin.x;
-			r.right = this->origin.x + this->size.width;
-			r.top = this->origin.y;
-			r.bottom = this->origin.y + this->size.height;
+			r.left = this->origin->x;
+			r.right = this->origin->x + this->size->width;
+			r.top = this->origin->y;
+			r.bottom = this->origin->y + this->size->height;
 			return r;
 		}
 
@@ -231,10 +261,10 @@ struct CKRect {
 		 */
 		Rect* ToOSCopy() {
 			Rect* toReturn = (Rect*)CKMalloc((sizeof(*toReturn)));
-			toReturn->left = this->origin.x;
-			toReturn->right = this->origin.x + this->size.width;
-			toReturn->top = this->origin.y;
-			toReturn->bottom = this->origin.y + this->size.height;
+			toReturn->left = this->origin->x;
+			toReturn->right = this->origin->x + this->size->width;
+			toReturn->top = this->origin->y;
+			toReturn->bottom = this->origin->y + this->size->height;
 			return toReturn;
 		}
 
@@ -252,8 +282,8 @@ struct CKRect {
 		 * Is the CKPoint inside us?
 		 */
 		bool intersectsPoint(CKPoint p) {
-			if (p.x >= this->origin.x && p.x <= this->origin.x + this->size.width) {
-				if (p.y >= this->origin.y && p.y <= this->origin.y + this->size.height) {
+			if (p.x >= this->origin->x && p.x <= this->origin->x + this->size->width) {
+				if (p.y >= this->origin->y && p.y <= this->origin->y + this->size->height) {
 					return true;
 				}
 			}
@@ -261,14 +291,22 @@ struct CKRect {
 		}
 
 		inline bool operator==(const CKRect& other) const {
-			return origin.x == other.origin.x &&
-				   origin.y == other.origin.y &&
-				   size.width == other.size.width &&
-				   size.height == other.size.height;
+			return origin->x == other.origin->x &&
+				   origin->y == other.origin->y &&
+				   size->width == other.size->width &&
+				   size->height == other.size->height;
 		}
 
 		inline bool operator!=(const CKRect& other) const {
 			return !(*this == other);
+		}
+
+		/** For change tracking */
+		void subscribe(std::function<void()> cb) {
+			origin.onChange = cb;
+			size.onChange = cb;
+			origin.get().subscribe(cb);
+			size.get().subscribe(cb);
 		}
 };
 
@@ -356,8 +394,8 @@ struct CKEvent {
 		char key;
 		char character;
 
-		CKWindow* window = nullptr;	  // always set
-		CKControl* control = nullptr; // can be nullptr for window-only events
+		const CKWindow* window = nullptr;	// always set
+		const CKControl* control = nullptr; // can be nullptr for window-only events
 
 		CKEvent(CKEventType type)
 			: type(type) {}

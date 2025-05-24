@@ -124,8 +124,8 @@ void CKControlToolbox::__ReflectToOS() {
 	SetControlTitle(this->__ptr, title);
 	CKFree(title);
 
-	SizeControl(this->__ptr, rect->size.width, rect->size.height);
-	MoveControl(this->__ptr, rect->origin.x, rect->origin.y);
+	SizeControl(this->__ptr, rect->size->width, rect->size->height);
+	MoveControl(this->__ptr, rect->origin->x, rect->origin->y);
 
 	HiliteControl(this->__ptr, this->enabled ? 0 : 255);
 }
