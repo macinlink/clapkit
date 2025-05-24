@@ -411,3 +411,10 @@ struct CKEvent {
 		 */
 		void* secondaryValue;
 };
+
+enum class CKSystemIcon {
+	noIcon = 0,
+	message = 1,
+	warning = 2,
+	error = 3,
+};

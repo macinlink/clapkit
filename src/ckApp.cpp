@@ -13,6 +13,7 @@
 
 #include "ckApp.h"
 #include "ckButton.h"
+#include "ckCanvas.h"
 #include "ckLabel.h"
 #include "ckMenu.h"
 #include "ckTimer.h"
@@ -47,10 +48,10 @@ CKApp::CKApp() {
 		RegisterAppearanceClient();
 	}
 
-	this->workCount = 0;
+	this->__workCount = 0;
 	this->__windows = std::vector<CKWindow*>();
 	this->__gc_windows = std::vector<CKWindow*>();
-	this->lastMouseDownWindow = nil;
+	this->__lastMouseDownWindow = nil;
 }
 
 /**
@@ -67,7 +68,7 @@ CKApp::~CKApp() {
  *  0   All OK, keep going.
  *  1   App is going to quit, clean up.
  */
-int CKApp::Loop(int waitTime) {
+int CKApp::CKLoop(int waitTime) {
 
 	static EventRecord e;
 
@@ -115,7 +116,7 @@ int CKApp::Loop(int waitTime) {
 			// TODO: We might be overcalling this call.
 			// Maybe check if there has been a few ticks between movements
 			// so we don't hammer this?
-			this->HandleEvtMouseMove(e);
+			this->__HandleEvtMouseMove(e);
 			lastMousePosX = e.where.h;
 			lastMousePosY = e.where.v;
 		}
@@ -123,27 +124,27 @@ int CKApp::Loop(int waitTime) {
 		goto doTimers;
 	}
 
-	this->DispatchEvent(e);
+	this->__DispatchEvent(e);
 
 doTimers:
-	this->DoHousekeepingTasks();
+	this->__DoHousekeepingTasks();
 	return 0;
 }
 
 /**
  * Flush events, clean things up, quit.
  */
-void CKApp::Quit() {
+void CKApp::CKQuit() {
 
 	CKPROFILE
 
-	this->IncreaseWork();
+	this->CKIncreaseWork();
 
 	while (this->__windows.size() > 0) {
 		this->CKRemoveWindow(this->__windows.at(0));
 	}
 
-	this->SetMenu(nullptr);
+	this->CKSetMenu(nullptr);
 
 #ifdef kCKAPPDEBUG
 	// We don't really need Garbage Collection here at this point
@@ -249,7 +250,83 @@ void CKApp::CKRemoveWindow(CKWindow* window) {
  * @param callback
  * @return
  */
-CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+CKWindow* CKApp::CKNewMsgBoxNote(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+	return this->__CreateAlertDialog(title, message, CKSystemIcon::message, btnOk, btnCancel, callback);
+}
+
+/**
+ * @brief Create and show an alert.
+ * Alerts are non-blocking.
+ * btnCancel is optional and only shown if set to a non-null value.
+ * `button` is set to "1" if the user clicks on OK and "0" if
+ * the user clicks on the Cancel button (if one is provided, that is.)
+ * While this function returns a CKWindow, you don't have to call `Show`
+ * on the window as the window will be displayed immediately.
+ * @param title
+ * @param message
+ * @param btnOk 'OK' button text. If set to null, "OK" is used.
+ * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
+ * @param callback
+ * @return
+ */
+CKWindow* CKApp::CKNewMsgBoxPlain(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+	return this->__CreateAlertDialog(title, message, CKSystemIcon::noIcon, btnOk, btnCancel, callback);
+}
+
+/**
+ * @brief Create and show an alert.
+ * Alerts are non-blocking.
+ * btnCancel is optional and only shown if set to a non-null value.
+ * `button` is set to "1" if the user clicks on OK and "0" if
+ * the user clicks on the Cancel button (if one is provided, that is.)
+ * While this function returns a CKWindow, you don't have to call `Show`
+ * on the window as the window will be displayed immediately.
+ * @param title
+ * @param message
+ * @param btnOk 'OK' button text. If set to null, "OK" is used.
+ * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
+ * @param callback
+ * @return
+ */
+CKWindow* CKApp::CKNewMsgBoxWarning(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+	return this->__CreateAlertDialog(title, message, CKSystemIcon::warning, btnOk, btnCancel, callback);
+}
+
+/**
+ * @brief Create and show an alert.
+ * Alerts are non-blocking.
+ * btnCancel is optional and only shown if set to a non-null value.
+ * `button` is set to "1" if the user clicks on OK and "0" if
+ * the user clicks on the Cancel button (if one is provided, that is.)
+ * While this function returns a CKWindow, you don't have to call `Show`
+ * on the window as the window will be displayed immediately.
+ * @param title
+ * @param message
+ * @param btnOk 'OK' button text. If set to null, "OK" is used.
+ * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
+ * @param callback
+ * @return
+ */
+CKWindow* CKApp::CKNewMsgBoxError(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+	return this->__CreateAlertDialog(title, message, CKSystemIcon::error, btnOk, btnCancel, callback);
+}
+
+/**
+ * @brief Create and show an alert.
+ * Alerts are non-blocking.
+ * btnCancel is optional and only shown if set to a non-null value.
+ * `button` is set to "1" if the user clicks on OK and "0" if
+ * the user clicks on the Cancel button (if one is provided, that is.)
+ * While this function returns a CKWindow, you don't have to call `Show`
+ * on the window as the window will be displayed immediately.
+ * @param title
+ * @param message
+ * @param btnOk 'OK' button text. If set to null, "OK" is used.
+ * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
+ * @param callback
+ * @return
+ */
+CKWindow* CKApp::__CreateAlertDialog(const char* title, const char* message, const CKSystemIcon icon, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
 
 	CKPROFILE
 
@@ -258,9 +335,27 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 	CKWindowInitParams params = CKWindowInitParams(300, 0, title ? title : "Alert", false, true);
 	CKWindow* toReturn = this->CKNewWindow(params);
 
-	CKLabel* label = CKNew CKLabel({message, padding, padding, params.size.width - (padding * 2), 0});
-	label->AutoHeight(300);
+	int labelX = padding;
+	if (icon != CKSystemIcon::noIcon) {
+		labelX += 32 + padding;
+	}
+	CKLabel* label = CKNew CKLabel({message, labelX, padding, params.size.width - (padding + labelX), 0});
+	label->AutoHeight(400);
+	if (label->rect->size->height <= 28) {
+		label->rect->size->height = 28;
+	}
 	toReturn->AddControl(label);
+
+	CKCanvas* iconCanvas;
+	if (icon != CKSystemIcon::noIcon) {
+		iconCanvas = CKNew CKCanvas({32, 32});
+		iconCanvas->rect->origin->x = padding;
+		iconCanvas->rect->origin->y = padding;
+		iconCanvas->Fill(CKColor(255, 0, 0));
+		iconCanvas->DrawResource('ICON', 1, {0, 0});
+		// iconCanvas->DrawLine(CKPoint(0, 0), CKPoint(16, 16), CKColor(255, 255, 255));
+		toReturn->AddControl(iconCanvas);
+	}
 
 	int windowHeight = label->rect->size->height + (padding * 3) + 20;
 
@@ -305,30 +400,30 @@ CKWindow* CKApp::CKNewAlert(const char* title, const char* message, const char* 
 /**
  * @brief Show the 'Working' cursor.
  */
-void CKApp::IncreaseWork() {
-	this->workCount++;
-	CKLog("increase work.. count is now %d", this->workCount);
-	this->RestoreCursor();
+void CKApp::CKIncreaseWork() {
+	this->__workCount++;
+	CKLog("increase work.. count is now %d", this->__workCount);
+	this->CKRestoreCursor();
 }
 
 /**
  * @brief Decrease work count by one, if zero, hide the 'Working' cursor.
  */
-void CKApp::DecreaseWork() {
-	this->workCount--;
-	CKLog("decrease work.. count is now %d", this->workCount);
-	if (this->workCount < 0) {
+void CKApp::CKDecreaseWork() {
+	this->__workCount--;
+	CKLog("decrease work.. count is now %d", this->__workCount);
+	if (this->__workCount < 0) {
 		CKLog("Work count is below zero for some reason, fix.");
-		this->workCount = 0;
+		this->__workCount = 0;
 	}
-	this->RestoreCursor();
+	this->CKRestoreCursor();
 }
 
 /**
  * @brief Changed the cursor yourself? Call this to get the default/waiting back.
  */
-void CKApp::RestoreCursor() {
-	if (this->workCount == 0) {
+void CKApp::CKRestoreCursor() {
+	if (this->__workCount == 0) {
 		SetCursor(&qd.arrow);
 	} else {
 		static Cursor c;
@@ -338,7 +433,7 @@ void CKApp::RestoreCursor() {
 			HLock((Handle)ch);
 			c = **ch;
 		}
-		if (this->workCount == 1) {
+		if (this->__workCount == 1) {
 			SetCursor(&c);
 		}
 	}
@@ -348,7 +443,7 @@ void CKApp::RestoreCursor() {
  * @brief Return the top-most window we have.
  * @return Nil if there are no windows open.
  */
-CKWindow* CKApp::TopMostWindow() {
+CKWindow* CKApp::CKTopMostWindow() {
 
 	// TODO: Check if this returns other people's windows as well.
 	// Probably not but the THINK Reference was a bit vague.
@@ -367,9 +462,9 @@ CKWindow* CKApp::TopMostWindow() {
  * ----------------------------------------------------------------------
  */
 
-void CKApp::DoHousekeepingTasks() {
+void CKApp::__DoHousekeepingTasks() {
 
-	CKWindow* tmw = this->TopMostWindow();
+	CKWindow* tmw = this->CKTopMostWindow();
 	if (tmw) {
 		tmw->Loop();
 	}
@@ -383,33 +478,33 @@ void CKApp::DoHousekeepingTasks() {
 	}
 }
 
-void CKApp::DispatchEvent(EventRecord e) {
+void CKApp::__DispatchEvent(EventRecord e) {
 
 	switch (e.what) {
 		case nullEvent:
 			/* Nada. */
 			break;
 		case mouseDown:
-			this->HandleEvtMouseDown(e);
+			this->__HandleEvtMouseDown(e);
 			break;
 		case mouseUp:
-			this->HandleEvtMouseUp(e);
+			this->__HandleEvtMouseUp(e);
 			break;
 		case keyDown:
 		case keyUp:
 		case autoKey:
-			this->HandleEvtKey(e, e.what == keyUp, e.what == autoKey);
+			this->__HandleEvtKey(e, e.what == keyUp, e.what == autoKey);
 			break;
 		case updateEvt:
-			this->HandleEvtUpdate(e);
+			this->__HandleEvtUpdate(e);
 			break;
 		case diskEvt:
 			break;
 		case activateEvt:
-			this->HandleEvtActivate(e);
+			this->__HandleEvtActivate(e);
 			break;
 		case osEvt:
-			this->HandleEvtOS(e);
+			this->__HandleEvtOS(e);
 			break;
 		case kHighLevelEvent:
 			break;
@@ -421,7 +516,7 @@ void CKApp::DispatchEvent(EventRecord e) {
 	}
 }
 
-void CKApp::HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
+void CKApp::__HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 
 	char theChar = event.message & charCodeMask;
 	short theKey = event.message & keyCodeMask >> 8;
@@ -434,12 +529,12 @@ void CKApp::HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 
 		if (theChar == 'q' || theChar == 'Q') {
 			// Close the app!
-			this->Quit();
+			this->CKQuit();
 		}
 
 		if (theChar == 'w' || theChar == 'W') {
 			// Close the window.
-			CKWindow* topmostWindow = this->TopMostWindow();
+			CKWindow* topmostWindow = this->CKTopMostWindow();
 			if (topmostWindow) {
 				topmostWindow->Close();
 			}
@@ -449,7 +544,7 @@ void CKApp::HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 		return;
 	}
 
-	CKWindow* activeWindow = this->TopMostWindow();
+	CKWindow* activeWindow = this->CKTopMostWindow();
 	if (!activeWindow) {
 		return;
 	}
@@ -460,7 +555,7 @@ void CKApp::HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 	activeWindow->HandleEvent(evt);
 }
 
-void CKApp::HandleEvtMouseDown(EventRecord event) {
+void CKApp::__HandleEvtMouseDown(EventRecord event) {
 
 	WindowRef foundWindow;
 	WindowPartCode where = 0;
@@ -605,7 +700,7 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 						CKLog("Will call control %x to handle down event", control);
 						control->HandleEvent(evt);
 					}
-					if (this->lastMouseDownWindow == ckFoundWindow) {
+					if (this->__lastMouseDownWindow == ckFoundWindow) {
 						// Send mouseMove instead.
 						evt.type = CKEventType::mouseMove;
 						evt.mouseButton = CKMouseButton::Left;
@@ -613,7 +708,7 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 						// Let the window know to switch the active control.
 						ckFoundWindow->SetActiveControl(control);
 					}
-					this->lastMouseDownWindow = ckFoundWindow;
+					this->__lastMouseDownWindow = ckFoundWindow;
 					ckFoundWindow->HandleEvent(evt);
 
 				} else {
@@ -630,14 +725,14 @@ void CKApp::HandleEvtMouseDown(EventRecord event) {
 	CKDebugLog(3, "Unhandled part code (%d) in mouseDown event.", where);
 }
 
-void CKApp::HandleEvtMouseUp(EventRecord event) {
+void CKApp::__HandleEvtMouseUp(EventRecord event) {
 
 	WindowRef foundWindow;
 	WindowPartCode where = 0;
 
 	where = FindWindow(event.where, &foundWindow);
 
-	this->lastMouseDownWindow = nil;
+	this->__lastMouseDownWindow = nil;
 
 	if (where == inContent) {
 		if (foundWindow == FrontWindow()) {
@@ -676,7 +771,7 @@ void CKApp::HandleEvtMouseUp(EventRecord event) {
 	}
 }
 
-void CKApp::HandleEvtMouseMove(EventRecord event) {
+void CKApp::__HandleEvtMouseMove(EventRecord event) {
 
 	WindowRef foundWindow;
 	WindowPartCode where = 0;
@@ -705,7 +800,7 @@ void CKApp::HandleEvtMouseMove(EventRecord event) {
 			CKPoint p = CKPoint().FromOS(event.where);
 			CKEvent evt = CKEvent(CKEventType::mouseMove, p);
 			// TODO: We shouldn't need the second check here. Find out why lastMouseDownWindow gets 'stuck'
-			if (this->lastMouseDownWindow && this->lastMouseDownWindow == ckFoundWindow) {
+			if (this->__lastMouseDownWindow && this->__lastMouseDownWindow == ckFoundWindow) {
 				evt.mouseButton = CKMouseButton::Left;
 			} else {
 				evt.mouseButton = CKMouseButton::None;
@@ -715,14 +810,14 @@ void CKApp::HandleEvtMouseMove(EventRecord event) {
 	}
 }
 
-void CKApp::HandleEvtUpdate(EventRecord event) {
+void CKApp::__HandleEvtUpdate(EventRecord event) {
 
 	CKLog("Update event received.");
 
 	WindowPtr window = (WindowPtr)event.message;
 	if (window == nil || ((WindowPeek)window)->windowKind != userKind) {
 		// No window (or it's not ours), so no update.
-		CKLog("HandleEvtUpdate called, but window = %x and windowKind = %d", window, ((WindowPeek)window)->windowKind);
+		CKLog("__HandleEvtUpdate called, but window = %x and windowKind = %d", window, ((WindowPeek)window)->windowKind);
 		return;
 	}
 
@@ -735,14 +830,14 @@ void CKApp::HandleEvtUpdate(EventRecord event) {
 	if (ckFoundWindow) {
 		ckFoundWindow->Redraw(CKRect());
 	} else {
-		CKLog("HandleEvtUpdate called, but ckFoundWindow is nil");
+		CKLog("__HandleEvtUpdate called, but ckFoundWindow is nil");
 	}
 
 	EndUpdate((WindowRef)event.message);
 	SetPort(oldPort);
 }
 
-void CKApp::HandleEvtActivate(EventRecord event) {
+void CKApp::__HandleEvtActivate(EventRecord event) {
 
 	WindowPtr window = (WindowPtr)event.message;
 	if (window == nil || ((WindowPeek)window)->windowKind != userKind) {
@@ -760,9 +855,9 @@ void CKApp::HandleEvtActivate(EventRecord event) {
 	}
 }
 
-void CKApp::HandleEvtOS(EventRecord event) {
+void CKApp::__HandleEvtOS(EventRecord event) {
 	bool resuming = (event.message & suspendResumeMessage) == resumeFlag;
-	CKWindow* top = this->TopMostWindow();
+	CKWindow* top = this->CKTopMostWindow();
 	if (top) {
 		top->SetIsActive(resuming);
 	}
@@ -773,7 +868,7 @@ void CKApp::HandleEvtOS(EventRecord event) {
  * @param font
  * @return Returns 0 if not found or if font name == "System"
  */
-short CKApp::FontToId(const char* font) {
+short CKApp::CKFontToId(const char* font) {
 
 	short toReturn;
 
@@ -793,7 +888,7 @@ short CKApp::FontToId(const char* font) {
  * @param timer Timer to add and start
  * @param owner Adding this to a window or anything else that might go away? Make sure to set `owner`!
  */
-void CKApp::AddTimer(CKTimer* timer, CKObject* owner) {
+void CKApp::CKAddTimer(CKTimer* timer, CKObject* owner) {
 	this->__timers.push_back(timer);
 	timer->owner = owner;
 	timer->Start();
@@ -803,7 +898,7 @@ void CKApp::AddTimer(CKTimer* timer, CKObject* owner) {
  * @brief Stop and remove timer.
  * @param timer Timer to stop and remove
  */
-void CKApp::RemoveTimer(CKTimer* timer) {
+void CKApp::CKRemoveTimer(CKTimer* timer) {
 	for (auto it = __timers.begin(); it != __timers.end(); ++it) {
 		if (*it == timer) {
 			CKLog("Deleting timer %x...", *it);
@@ -819,19 +914,19 @@ void CKApp::RemoveTimer(CKTimer* timer) {
  * @brief Remove all timers of a specific owner.
  * @param owner
  */
-void CKApp::RemoveTimersOfOwner(CKObject* owner) {
+void CKApp::CKRemoveTimersOfOwner(CKObject* owner) {
 	std::vector<CKTimer*> toRemove;
 	for (auto* timer : __timers) {
 		if (timer->owner == owner) {
 			toRemove.push_back(timer);
 		}
 	}
-	CKLog("RemoveTimersOfOwner is looking for timers with owner %x, found %d", owner, toRemove.size());
+	CKLog("CKRemoveTimersOfOwner is looking for timers with owner %x, found %d", owner, toRemove.size());
 	for (auto* timer : toRemove) {
-		// We need this to avoid a loop as Timer's destructor also calls RemoveTimersOfOwner.
+		// We need this to avoid a loop as Timer's destructor also calls CKRemoveTimersOfOwner.
 		timer->app = nullptr;
 		timer->owner = nullptr;
-		this->RemoveTimer(timer);
+		this->CKRemoveTimer(timer);
 	}
 }
 
@@ -840,7 +935,7 @@ void CKApp::RemoveTimersOfOwner(CKObject* owner) {
  * @param
  * @return CKPass on success.
  */
-CKError CKApp::SetMenu(CKMenuBar* menu) {
+CKError CKApp::CKSetMenu(CKMenuBar* menu) {
 
 	if (this->__menubar) {
 		// TODO: Remove all previously added/created menus
@@ -862,7 +957,7 @@ CKError CKApp::SetMenu(CKMenuBar* menu) {
 			m->__osMenuHandle = appleMh;
 			m->__osMenuItemID = submenuIdx;
 			m->ReflectToOS(); // Shortcuts, enable/disable, etc.
-			m->SetPropertyObserver(std::bind(&CKApp::HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
+			m->SetPropertyObserver(std::bind(&CKApp::__HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 			submenuIdx++;
 		}
 		AppendMenu(appleMh, "\p(-");
@@ -896,12 +991,12 @@ CKError CKApp::SetMenu(CKMenuBar* menu) {
 			sm->__osMenuItemID = submenuIdx;
 			sm->ReflectToOS(); // Shortcuts, enable/disable, etc.
 			submenuIdx++;
-			sm->SetPropertyObserver(std::bind(&CKApp::HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
+			sm->SetPropertyObserver(std::bind(&CKApp::__HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 		}
 		InsertMenu(mh, 0);
 		menuIdx++;
 		// Just to make sure we are tied.
-		m->SetPropertyObserver(std::bind(&CKApp::HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
+		m->SetPropertyObserver(std::bind(&CKApp::__HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	DrawMenuBar();
@@ -912,16 +1007,16 @@ CKError CKApp::SetMenu(CKMenuBar* menu) {
 /**
  * @brief If hidden, bring the menu bar back.
  */
-void CKApp::ShowMenuBar() {
+void CKApp::CKShowMenuBar() {
 }
 
 /**
  * @brief If shown, hide the menu bar.
  */
-void CKApp::HideMenuBar() {
+void CKApp::CKHideMenuBar() {
 }
 
-void CKApp::HandleMenuPropertyChange(const CKObject* obj, const char* propName) {
+void CKApp::__HandleMenuPropertyChange(const CKObject* obj, const char* propName) {
 	CKLog("Menu bar property '%s' of %x has changed!", propName, obj);
 	const CKMenuItem* item = dynamic_cast<const CKMenuItem*>(obj);
 	if (item) {

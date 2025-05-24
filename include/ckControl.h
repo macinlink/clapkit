@@ -32,6 +32,8 @@ struct CKControlInitParams {
 		int height = 50;
 		CKControlInitParams(const char* t, int xx, int yy, int w, int h)
 			: title(t), x(xx), y(yy), width(w), height(h) {}
+		CKControlInitParams(int w, int h)
+			: width(w), height(h) {}
 };
 
 class CKControl : public CKObject {

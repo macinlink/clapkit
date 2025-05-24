@@ -19,18 +19,17 @@
 class CKCanvas : public CKControl {
 
 	public:
-		CKCanvas(int width, int height, const CKControlInitParams& params);
+		CKCanvas(const CKControlInitParams& params);
 		virtual ~CKCanvas();
-
 		virtual void Redraw();
+
 		void Clear();
-		void FillRect(CKRect rect, u_int8_t r, u_int8_t g, u_int8_t b);
-		void Fill(u_int8_t r, u_int8_t g, u_int8_t b);
-		void SetPixel(int x, int y, u_int8_t r, u_int8_t g, u_int8_t b);
-		void DrawLine(int x1, int y1, int x2, int y2, u_int8_t r, u_int8_t g, u_int8_t b);
+		void FillRect(CKRect rect, CKColor c);
+		void Fill(CKColor c);
+		void SetPixel(CKPoint p, CKColor c);
+		void DrawLine(CKPoint start, CKPoint end, CKColor c);
+		bool DrawResource(ResType type, short resourceId, CKPoint where);
 
 	private:
-		int __width;
-		int __height;
 		GWorldPtr __gworldptr;
 };

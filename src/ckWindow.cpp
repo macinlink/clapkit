@@ -79,7 +79,7 @@ CKWindow::~CKWindow() {
 	this->HandleEvent(evt);
 
 	if (this->__owner) {
-		this->__owner->RemoveTimersOfOwner(this);
+		this->__owner->CKRemoveTimersOfOwner(this);
 	}
 
 	while (this->__controls.size() > 0) {

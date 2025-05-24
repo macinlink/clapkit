@@ -50,51 +50,52 @@ class CKApp {
 		CKApp();
 		~CKApp();
 
-		int Loop(int waitTime = 60);
-		void Quit();
+		int CKLoop(int waitTime = 60);
+		void CKQuit();
 
 		CKWindow* CKNewWindow(const CKWindowInitParams& params);
 		CKWindow* CKFindWindow(CKWindowPtr ptr);
 		void CKRemoveWindow(CKWindow* window);
 
-		void IncreaseWork();
-		void DecreaseWork();
-		void RestoreCursor();
+		void CKIncreaseWork();
+		void CKDecreaseWork();
+		void CKRestoreCursor();
 
-		CKWindow* CKNewAlert(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = 0, std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxPlain(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = nullptr, std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxNote(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = nullptr, std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxWarning(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = "Cancel", std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxError(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = "Cancel", std::function<void(int button)> callback = 0);
 
-		CKWindow* TopMostWindow();
+		CKWindow* CKTopMostWindow();
 
-		short FontToId(const char* font);
+		short CKFontToId(const char* font);
 
-		void AddTimer(CKTimer* timer, CKObject* owner = nullptr);
-		void RemoveTimer(CKTimer* timer);
-		void RemoveTimersOfOwner(CKObject* owner);
+		void CKAddTimer(CKTimer* timer, CKObject* owner = nullptr);
+		void CKRemoveTimer(CKTimer* timer);
+		void CKRemoveTimersOfOwner(CKObject* owner);
 
-		CKError SetMenu(CKMenuBar* menu);
-		void ShowMenuBar();
-		void HideMenuBar();
+		CKError CKSetMenu(CKMenuBar* menu);
+		void CKShowMenuBar();
+		void CKHideMenuBar();
 
 	private:
-		void DoHousekeepingTasks();
-		void DispatchEvent(EventRecord event);
-		inline void HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey);
-		inline void HandleEvtMouseDown(EventRecord event);
-		inline void HandleEvtMouseUp(EventRecord event);
-		inline void HandleEvtMouseMove(EventRecord event);
-		inline void HandleEvtUpdate(EventRecord event);
-		inline void HandleEvtActivate(EventRecord event);
-		inline void HandleEvtOS(EventRecord event);
-		void HandleMenuPropertyChange(const CKObject* obj, const char* propName);
+		void __DoHousekeepingTasks();
+		void __DispatchEvent(EventRecord event);
+		inline void __HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey);
+		inline void __HandleEvtMouseDown(EventRecord event);
+		inline void __HandleEvtMouseUp(EventRecord event);
+		inline void __HandleEvtMouseMove(EventRecord event);
+		inline void __HandleEvtUpdate(EventRecord event);
+		inline void __HandleEvtActivate(EventRecord event);
+		inline void __HandleEvtOS(EventRecord event);
+		void __HandleMenuPropertyChange(const CKObject* obj, const char* propName);
+		CKWindow* __CreateAlertDialog(const char* title, const char* message, const CKSystemIcon icon, const char* btnOk = "OK", const char* btnCancel = 0, std::function<void(int button)> callback = 0);
 
-	public:
-	protected:
+	private:
+		int __workCount;
+		CKWindow* __lastMouseDownWindow;
 		std::vector<CKWindow*> __windows;
+		std::vector<CKWindow*> __gc_windows;
 		std::vector<CKTimer*> __timers;
 		CKMenuBar* __menubar = nullptr;
-
-	private:
-		int workCount;
-		CKWindow* lastMouseDownWindow;
-		std::vector<CKWindow*> __gc_windows;
 };

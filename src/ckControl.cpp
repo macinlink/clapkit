@@ -35,7 +35,7 @@ CKControl::~CKControl() {
 	this->HandleEvent(evt);
 
 	if (this->owner && this->owner->GetOwner()) {
-		this->owner->GetOwner()->RemoveTimersOfOwner(this);
+		this->owner->GetOwner()->CKRemoveTimersOfOwner(this);
 	}
 }
 
