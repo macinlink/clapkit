@@ -143,6 +143,8 @@ void CKApp::Quit() {
 		this->CKRemoveWindow(this->__windows.at(0));
 	}
 
+	this->SetMenu(nullptr);
+
 #ifdef kCKAPPDEBUG
 	// We don't really need Garbage Collection here at this point
 	// but we should or we'll report a lot of leaks.
@@ -854,7 +856,9 @@ CKError CKApp::SetMenu(CKMenuBar* menu) {
 	if (menu && menu->appleMenuItems.size() > 0) {
 		short submenuIdx = 1;
 		for (auto& m : menu->appleMenuItems) {
-			AppendMenu(appleMh, CKC2P(m->text));
+			unsigned char* t = CKC2P(m->text);
+			AppendMenu(appleMh, t);
+			CKFree(t);
 			m->__osMenuHandle = appleMh;
 			m->__osMenuItemID = submenuIdx;
 			m->ReflectToOS(); // Shortcuts, enable/disable, etc.
@@ -878,12 +882,16 @@ CKError CKApp::SetMenu(CKMenuBar* menu) {
 	short menuIdx = kCKUserMenuStartID;
 
 	for (auto& m : menu->items) {
-		MenuHandle mh = NewMenu(menuIdx, CKC2P(m->text));
+		unsigned char* t = CKC2P(m->text);
+		MenuHandle mh = NewMenu(menuIdx, t);
+		CKFree(t);
 		m->__osMenuID = menuIdx;
 		short submenuIdx = 1;
 		auto& vec = m->items.get();
 		for (auto& sm : vec) {
-			AppendMenu(mh, CKC2P(sm->text));
+			t = CKC2P(sm->text);
+			AppendMenu(mh, t);
+			CKFree(t);
 			sm->__osMenuHandle = mh;
 			sm->__osMenuItemID = submenuIdx;
 			sm->ReflectToOS(); // Shortcuts, enable/disable, etc.

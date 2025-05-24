@@ -22,6 +22,12 @@ CKMenuBar::CKMenuBar() {
 }
 
 CKMenuBar::~CKMenuBar() {
+	for (auto* m : appleMenuItems) {
+		CKDelete(m);
+	}
+	for (auto* m : items) {
+		CKDelete(m);
+	}
 }
 
 /**
@@ -90,6 +96,10 @@ CKMenuBarItem::CKMenuBarItem(const char* text) {
 }
 
 CKMenuBarItem::~CKMenuBarItem() {
+	CKSafeCopyString(this->text, nullptr);
+	for (auto* m : this->items.get()) {
+		delete m;
+	}
 }
 
 void CKMenuBarItem::SetText(const char* text) {
@@ -113,6 +123,7 @@ CKMenuItem::CKMenuItem(const char* text, char shortcut, CKEventHandlerFunc callb
 }
 
 CKMenuItem::~CKMenuItem() {
+	CKSafeCopyString(this->text, nullptr);
 }
 
 void CKMenuItem::SetText(const char* text) {
@@ -124,7 +135,9 @@ void CKMenuItem::ReflectToOS() {
 	if (!this->__osMenuHandle || this->__osMenuItemID == 0) {
 		return;
 	}
-	SetMenuItemText(this->__osMenuHandle, this->__osMenuItemID, CKC2P(this->text));
+	unsigned char* t = CKC2P(this->text);
+	SetMenuItemText(this->__osMenuHandle, this->__osMenuItemID, t);
+	CKFree(t);
 	if (this->shortcut) {
 		SetItemCmd(this->__osMenuHandle, this->__osMenuItemID, this->shortcut);
 	} else {
