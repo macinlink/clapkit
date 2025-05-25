@@ -243,14 +243,14 @@ void CKApp::CKRemoveWindow(CKWindow* window) {
  * the user clicks on the Cancel button (if one is provided, that is.)
  * While this function returns a CKWindow, you don't have to call `Show`
  * on the window as the window will be displayed immediately.
- * @param title
- * @param message
+ * @param message Message to be displayed (required)
+ * @param title Title text (optional) - setting this will make the window non-modal.
  * @param btnOk 'OK' button text. If set to null, "OK" is used.
  * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
- * @param callback
+ * @param callback Returns 1 if OK is clicked, 0 if Cancel is clicked and -1 if the window was closed.
  * @return
  */
-CKWindow* CKApp::CKNewMsgBoxNote(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+CKWindow* CKApp::CKNewMsgBoxNote(const char* message, const char* title, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
 	return this->__CreateAlertDialog(title, message, CKSystemIcon::message, btnOk, btnCancel, callback);
 }
 
@@ -262,15 +262,15 @@ CKWindow* CKApp::CKNewMsgBoxNote(const char* title, const char* message, const c
  * the user clicks on the Cancel button (if one is provided, that is.)
  * While this function returns a CKWindow, you don't have to call `Show`
  * on the window as the window will be displayed immediately.
- * @param title
- * @param message
+ * @param message Message to be displayed (required)
+ * @param title Title text (optional) - setting this will make the window non-modal.
  * @param btnOk 'OK' button text. If set to null, "OK" is used.
  * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
- * @param callback
+ * @param callback Returns 1 if OK is clicked, 0 if Cancel is clicked and -1 if the window was closed.
  * @return
  */
-CKWindow* CKApp::CKNewMsgBoxPlain(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
-	return this->__CreateAlertDialog(title, message, CKSystemIcon::noIcon, btnOk, btnCancel, callback);
+CKWindow* CKApp::CKNewMsgBoxPlain(const char* message, const char* title, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+	return this->__CreateAlertDialog(message, title, CKSystemIcon::noIcon, btnOk, btnCancel, callback);
 }
 
 /**
@@ -281,15 +281,15 @@ CKWindow* CKApp::CKNewMsgBoxPlain(const char* title, const char* message, const 
  * the user clicks on the Cancel button (if one is provided, that is.)
  * While this function returns a CKWindow, you don't have to call `Show`
  * on the window as the window will be displayed immediately.
- * @param title
- * @param message
+ * @param message Message to be displayed (required)
+ * @param title Title text (optional) - setting this will make the window non-modal.
  * @param btnOk 'OK' button text. If set to null, "OK" is used.
  * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
- * @param callback
+ * @param callback Returns 1 if OK is clicked, 0 if Cancel is clicked and -1 if the window was closed.
  * @return
  */
-CKWindow* CKApp::CKNewMsgBoxWarning(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
-	return this->__CreateAlertDialog(title, message, CKSystemIcon::warning, btnOk, btnCancel, callback);
+CKWindow* CKApp::CKNewMsgBoxWarning(const char* message, const char* title, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+	return this->__CreateAlertDialog(message, title, CKSystemIcon::warning, btnOk, btnCancel, callback);
 }
 
 /**
@@ -300,39 +300,25 @@ CKWindow* CKApp::CKNewMsgBoxWarning(const char* title, const char* message, cons
  * the user clicks on the Cancel button (if one is provided, that is.)
  * While this function returns a CKWindow, you don't have to call `Show`
  * on the window as the window will be displayed immediately.
- * @param title
- * @param message
+ * @param message Message to be displayed (required)
+ * @param title Title text (optional) - setting this will make the window non-modal.
  * @param btnOk 'OK' button text. If set to null, "OK" is used.
  * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
- * @param callback
+ * @param callback Returns 1 if OK is clicked, 0 if Cancel is clicked and -1 if the window was closed.
  * @return
  */
-CKWindow* CKApp::CKNewMsgBoxError(const char* title, const char* message, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
-	return this->__CreateAlertDialog(title, message, CKSystemIcon::error, btnOk, btnCancel, callback);
+CKWindow* CKApp::CKNewMsgBoxError(const char* message, const char* title, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+	return this->__CreateAlertDialog(message, title, CKSystemIcon::error, btnOk, btnCancel, callback);
 }
 
-/**
- * @brief Create and show an alert.
- * Alerts are non-blocking.
- * btnCancel is optional and only shown if set to a non-null value.
- * `button` is set to "1" if the user clicks on OK and "0" if
- * the user clicks on the Cancel button (if one is provided, that is.)
- * While this function returns a CKWindow, you don't have to call `Show`
- * on the window as the window will be displayed immediately.
- * @param title
- * @param message
- * @param btnOk 'OK' button text. If set to null, "OK" is used.
- * @param btnCancel Optional 'Cancel' button. If set to null, not displayed.
- * @param callback
- * @return
- */
-CKWindow* CKApp::__CreateAlertDialog(const char* title, const char* message, const CKSystemIcon icon, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
+CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, const CKSystemIcon icon, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
 
 	CKPROFILE
 
 	int padding = 13;
 
-	CKWindowInitParams params = CKWindowInitParams(300, 0, title ? title : "Alert", false, true);
+	CKWindowInitParams params = CKWindowInitParams(CKSize(300, 0));
+	params.SetTitle(title ? title : "Alert").SetType(title ? CKWindowType::Standard : CKWindowType::Modal);
 	CKWindow* toReturn = this->CKNewWindow(params);
 
 	int labelX = padding;
@@ -351,9 +337,20 @@ CKWindow* CKApp::__CreateAlertDialog(const char* title, const char* message, con
 		iconCanvas = CKNew CKCanvas({32, 32});
 		iconCanvas->rect->origin->x = padding;
 		iconCanvas->rect->origin->y = padding;
-		iconCanvas->Fill(CKColor(255, 0, 0));
-		iconCanvas->DrawResource('ICON', 1, {0, 0});
-		// iconCanvas->DrawLine(CKPoint(0, 0), CKPoint(16, 16), CKColor(255, 255, 255));
+		switch (icon) {
+			case CKSystemIcon::message:
+				iconCanvas->DrawResource('ICON', 1, {0, 0});
+				break;
+			case CKSystemIcon::error:
+				iconCanvas->DrawResource('ICON', 0, {0, 0});
+				break;
+			case CKSystemIcon::warning:
+				iconCanvas->DrawResource('ICON', 2, {0, 0});
+				break;
+			default:
+				CKLog("Warning - unknown icon: %d", icon);
+				iconCanvas->DrawResource('ICON', 0, {0, 0});
+		}
 		toReturn->AddControl(iconCanvas);
 	}
 
@@ -375,7 +372,7 @@ CKWindow* CKApp::__CreateAlertDialog(const char* title, const char* message, con
 		cancelButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 			toReturn->Close();
 			if (callback) {
-				callback(false);
+				callback(0);
 			}
 		});
 		okButtonLeft -= okButtonWidth + padding;
@@ -386,11 +383,19 @@ CKWindow* CKApp::__CreateAlertDialog(const char* title, const char* message, con
 	okButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 		toReturn->Close();
 		if (callback) {
-			callback(true);
+			callback(1);
 		}
 	});
 	okButton->SetDefault(true);
 
+	// This is here for when/if the `closable` is changed afterwards.
+	toReturn->AddHandler(CKEventType::removed, [callback](CKEvent e) {
+		if (callback) {
+			callback(-1);
+		}
+	});
+
+	toReturn->closable = false;
 	toReturn->rect->size->height = windowHeight;
 	toReturn->Center();
 	toReturn->Show();
@@ -535,7 +540,7 @@ void CKApp::__HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 		if (theChar == 'w' || theChar == 'W') {
 			// Close the window.
 			CKWindow* topmostWindow = this->CKTopMostWindow();
-			if (topmostWindow) {
+			if (topmostWindow && topmostWindow->closable) {
 				topmostWindow->Close();
 			}
 		}

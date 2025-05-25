@@ -61,10 +61,10 @@ class CKApp {
 		void CKDecreaseWork();
 		void CKRestoreCursor();
 
-		CKWindow* CKNewMsgBoxPlain(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = nullptr, std::function<void(int button)> callback = 0);
-		CKWindow* CKNewMsgBoxNote(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = nullptr, std::function<void(int button)> callback = 0);
-		CKWindow* CKNewMsgBoxWarning(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = "Cancel", std::function<void(int button)> callback = 0);
-		CKWindow* CKNewMsgBoxError(const char* title, const char* message, const char* btnOk = "OK", const char* btnCancel = "Cancel", std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxPlain(const char* message, const char* title = nullptr, const char* btnOk = "OK", const char* btnCancel = nullptr, std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxNote(const char* message, const char* title = nullptr, const char* btnOk = "OK", const char* btnCancel = nullptr, std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxWarning(const char* message, const char* title = nullptr, const char* btnOk = "OK", const char* btnCancel = "Cancel", std::function<void(int button)> callback = 0);
+		CKWindow* CKNewMsgBoxError(const char* message, const char* title = nullptr, const char* btnOk = "OK", const char* btnCancel = "Cancel", std::function<void(int button)> callback = 0);
 
 		CKWindow* CKTopMostWindow();
 

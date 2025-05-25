@@ -32,8 +32,8 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	this->hasCustomBackgroundColor = false;
 	this->backgroundColor = CKColor(255, 255, 255);
 
-	if (params.point) {
-		this->rect = CKRect(params.point->x, params.point->y, params.size.width, params.size.height);
+	if (params.origin) {
+		this->rect = CKRect(params.origin->x, params.origin->y, params.size.width, params.size.height);
 	} else {
 		this->rect = CKRect(params.size.width, params.size.height);
 		Rect screen = qd.screenBits.bounds;
@@ -42,7 +42,30 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	}
 
 	Rect r = this->rect->ToOS();
-	this->__windowPtr = NewCWindow(nil, &r, "\p", false, 0, 0, params.closable, 0);
+
+	short windowProcId = -1;
+
+	switch (params.type) {
+		case CKWindowType::Standard:
+			windowProcId = 4;
+			break;
+		case CKWindowType::Floating:
+			windowProcId = 16;
+			break;
+		case CKWindowType::Modal:
+			windowProcId = 1;
+			break;
+		case CKWindowType::StandardResizable:
+			windowProcId = 0;
+			break;
+		default:
+			CKLog("Warning! Unknown window type '%d' passed to CKWindow init.", params.type);
+			windowProcId = 0;
+	}
+
+	this->__type = params.type;
+	this->__windowPtr = NewCWindow(nil, &r, "\p", false, windowProcId, 0, this->closable, 0);
+
 	if (CKHasAppearanceManager()) {
 		SetThemeWindowBackground(this->__windowPtr, kThemeBrushDialogBackgroundActive, true);
 	} else {
@@ -302,6 +325,10 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 		c->Redraw();
 	}
 
+	if (this->__type == CKWindowType::StandardResizable) {
+		DrawGrowIcon(this->__windowPtr);
+	}
+
 	SetPort(oldPort); // Restore port AFTER drawing everything
 }
 
@@ -500,6 +527,9 @@ void CKWindow::__ReflectToOS() {
 	GrafPtr oldPort;
 	GetPort(&oldPort);
 	SetPort(this->__windowPtr);
+
+	WindowPeek windowPeek = (WindowPeek)this->__windowPtr;
+	windowPeek->goAwayFlag = this->closable;
 
 	MoveWindow(this->__windowPtr, this->rect->origin->x, this->rect->origin->y, false);
 	SizeWindow(this->__windowPtr, this->rect->size->width, this->rect->size->height, true);

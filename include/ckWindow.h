@@ -20,23 +20,43 @@
 #include <cstring>
 #include <vector>
 
-struct CKWindowInitParams {
-		/** Initial size of the window */
-		CKSize size = CKSize(0, 0);
-		/** Provide a title for your window (optional) */
-		char* title = 0;
-		/** Provide an initial position for your window (optional - if null, will be centered) */
-		CKPoint* point = nullptr;
-		/** Allows window to be closed by the user. */
-		bool closable = true;
-		/** True if modal dialog */
-		bool modal = false;
+enum class CKWindowType {
+	Standard = 0,
+	StandardResizable = 1,
+	Modal = 2,
+	Floating = 3,
+};
 
-		CKWindowInitParams(int w, int h, const char* _title = nullptr, bool _closable = true, bool _modal = false) {
-			this->size = CKSize(w, h);
-			this->closable = _closable;
-			this->modal = _modal;
-			CKSafeCopyString(this->title, _title);
+struct CKWindowInitParams {
+	public:
+		CKSize size = CKSize(0, 0);
+		std::optional<CKPoint> origin;
+		CKWindowType type = CKWindowType::Standard;
+		char* title = nullptr;
+
+	public:
+		CKWindowInitParams(CKSize size) {
+			this->size = size;
+		}
+
+		CKWindowInitParams& SetTitle(const char* title) {
+			CKSafeCopyString(this->title, title);
+			return *this;
+		}
+
+		CKWindowInitParams& SetType(CKWindowType type) {
+			this->type = type;
+			return *this;
+		}
+
+		CKWindowInitParams& SetOrigin(CKPoint point) {
+			this->origin = point;
+			return *this;
+		}
+
+		CKWindowInitParams& UnsetOrigin() {
+			this->origin.reset();
+			return *this;
 		}
 };
 
@@ -92,6 +112,7 @@ class CKWindow : public CKObject {
 		CKProperty<bool> visible;
 		CKProperty<bool> hasCustomBackgroundColor;
 		CKProperty<CKColor> backgroundColor = CKColor(255, 255, 255);
+		CKProperty<bool> closable = true;
 
 		/**
 		 * @brief True if we should receive mouseMove events.
@@ -107,4 +128,5 @@ class CKWindow : public CKObject {
 		CKControl* __lastDownControl = nullptr;
 		bool __dead = false;
 		bool __isCurrentlyActive = false;
+		CKWindowType __type;
 };
