@@ -47,6 +47,7 @@ class CKControl : public CKObject {
 		virtual void RaisePropertyChange(const char* propertyName);
 
 	protected:
+		friend class CKWindow;
 		virtual void Redraw();
 
 	public:
