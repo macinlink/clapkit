@@ -43,9 +43,11 @@ class CKControl : public CKObject {
 		virtual ~CKControl();
 		virtual void AddedToWindow(CKWindow* window);
 		virtual void RemovedFromWindow();
-		virtual void Redraw();
 		virtual void MarkAsDirty();
 		virtual void RaisePropertyChange(const char* propertyName);
+
+	protected:
+		virtual void Redraw();
 
 	public:
 		CKProperty<CKWindow*> owner = nullptr;

@@ -76,6 +76,10 @@ void CKCanvas::Redraw() {
 	SetPort(oldPort);
 }
 
+const GWorldPtr CKCanvas::GetOSPointer() {
+	return this->__gworldptr;
+}
+
 void CKCanvas::Clear() {
 	this->Fill(CKColor(255, 255, 255));
 }

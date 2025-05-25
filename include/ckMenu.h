@@ -53,6 +53,7 @@ class CKMenuBarItem : public CKObject {
 		friend class CKApp;
 		char* text = nullptr;
 		short __osMenuID;
+		MenuHandle __osMenuHandle;
 };
 
 class CKMenuItem : public CKObject {

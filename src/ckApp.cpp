@@ -210,9 +210,12 @@ CKWindow* CKApp::CKFindWindow(CKWindowPtr ptr) {
 /**
  * @brief Remove and destroy window.
  * You MUST use this function instead of deleting a window yourself.
+ *
  * We don't immediately delete a window but rather collect it for future
  * deletion - this is because mouseUp, etc. events might still pop
  * during execution of an event handler.
+ *
+ * In fact, when possible, use [window]->Close() function.
  * @param window
  */
 void CKApp::CKRemoveWindow(CKWindow* window) {
@@ -943,10 +946,20 @@ void CKApp::CKRemoveTimersOfOwner(CKObject* owner) {
 CKError CKApp::CKSetMenu(CKMenuBar* menu) {
 
 	if (this->__menubar) {
-		// TODO: Remove all previously added/created menus
+		// TODO: Check that we remove all previously added/created menus
 		// so we can start all over here.
+		DeleteMenu(kCKAppleMenuID);
+		for (auto& m : this->__menubar->items) {
+			// TODO: Do we need this?
+			for (auto& sm : m->items.get()) {
+				DeleteMenuItem(m->__osMenuHandle, sm->__osMenuItemID);
+			}
+			DeleteMenu(m->__osMenuID);
+			DisposeMenu(m->__osMenuHandle);
+		}
 		CKDelete(this->__menubar);
 		this->__menubar = nullptr;
+		ClearMenuBar();
 	}
 
 	// Do the Apple Menu, always.
@@ -985,6 +998,7 @@ CKError CKApp::CKSetMenu(CKMenuBar* menu) {
 		unsigned char* t = CKC2P(m->text);
 		MenuHandle mh = NewMenu(menuIdx, t);
 		CKFree(t);
+		m->__osMenuHandle = mh;
 		m->__osMenuID = menuIdx;
 		short submenuIdx = 1;
 		auto& vec = m->items.get();
@@ -1013,12 +1027,14 @@ CKError CKApp::CKSetMenu(CKMenuBar* menu) {
  * @brief If hidden, bring the menu bar back.
  */
 void CKApp::CKShowMenuBar() {
+	// TODO: Implement this.
 }
 
 /**
  * @brief If shown, hide the menu bar.
  */
 void CKApp::CKHideMenuBar() {
+	// TODO: Implement this.
 }
 
 void CKApp::__HandleMenuPropertyChange(const CKObject* obj, const char* propName) {

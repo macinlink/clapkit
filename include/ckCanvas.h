@@ -22,6 +22,7 @@ class CKCanvas : public CKControl {
 		CKCanvas(const CKControlInitParams& params);
 		virtual ~CKCanvas();
 		virtual void Redraw();
+		const GWorldPtr GetOSPointer();
 
 		void Clear();
 		void FillRect(CKRect rect, CKColor c);
