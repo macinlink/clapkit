@@ -84,6 +84,11 @@ class CKWindow : public CKObject {
 		CKApp* GetOwner();
 
 		CKControl* FindControl(CKPoint point);
+		const std::vector<CKControl*>& GetControls() const;
+
+		template <typename T>
+		std::vector<T*> CKWindow::GetControlsOfType() const;
+
 		bool ContainsControl(CKControl* control);
 		void SetActiveControl(CKControl* control);
 

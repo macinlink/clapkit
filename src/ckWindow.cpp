@@ -377,6 +377,32 @@ CKControl* CKWindow::FindControl(CKPoint point) {
 }
 
 /**
+ * @brief Get the list of controls in this window.
+ * @return
+ */
+const std::vector<CKControl*>& CKWindow::GetControls() const {
+	return this->__controls;
+}
+
+/**
+ * @brief Get the list of controls of type T in this window.
+ * @example
+ * auto buttons = myWindow->GetControlsOfType<CKButton>();
+ * @return
+ */
+template <typename T>
+std::vector<T*> CKWindow::GetControlsOfType() const {
+	std::vector<T*> out;
+	out.reserve(__controls.size());
+	for (auto* c : __controls) {
+		if (auto* t = dynamic_cast<T*>(c)) {
+			out.push_back(t);
+		}
+	}
+	return out;
+}
+
+/**
  * True if we have the control here.
  */
 bool CKWindow::ContainsControl(CKControl* control) {
