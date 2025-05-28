@@ -22,7 +22,9 @@ CKRadiobox::~CKRadiobox() {
 }
 
 void CKRadiobox::__ReflectToOS() {
+
 	CKCheckbox::__ReflectToOS();
+
 	if (this->owner) {
 		auto buttons = this->owner->GetControlsOfType<CKRadiobox>();
 		for (auto& b : buttons) {

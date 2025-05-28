@@ -418,6 +418,7 @@ void CKApp::CKIncreaseWork() {
  * @brief Decrease work count by one, if zero, hide the 'Working' cursor.
  */
 void CKApp::CKDecreaseWork() {
+
 	this->__workCount--;
 	CKLog("decrease work.. count is now %d", this->__workCount);
 	if (this->__workCount < 0) {
@@ -431,16 +432,19 @@ void CKApp::CKDecreaseWork() {
  * @brief Changed the cursor yourself? Call this to get the default/waiting back.
  */
 void CKApp::CKRestoreCursor() {
+
 	if (this->__workCount == 0) {
 		SetCursor(&qd.arrow);
 	} else {
 		static Cursor c;
 		static CursHandle ch = 0;
+
 		if (!ch) {
 			ch = GetCursor(watchCursor);
 			HLock((Handle)ch);
 			c = **ch;
 		}
+
 		if (this->__workCount == 1) {
 			SetCursor(&c);
 		}
@@ -864,8 +868,10 @@ void CKApp::__HandleEvtActivate(EventRecord event) {
 }
 
 void CKApp::__HandleEvtOS(EventRecord event) {
+
 	bool resuming = (event.message & suspendResumeMessage) == resumeFlag;
 	CKWindow* top = this->CKTopMostWindow();
+
 	if (top) {
 		top->SetIsActive(resuming);
 	}
@@ -897,6 +903,7 @@ short CKApp::CKFontToId(const char* font) {
  * @param owner Adding this to a window or anything else that might go away? Make sure to set `owner`!
  */
 void CKApp::CKAddTimer(CKTimer* timer, CKObject* owner) {
+
 	this->__timers.push_back(timer);
 	timer->owner = owner;
 	timer->Start();
@@ -907,6 +914,7 @@ void CKApp::CKAddTimer(CKTimer* timer, CKObject* owner) {
  * @param timer Timer to stop and remove
  */
 void CKApp::CKRemoveTimer(CKTimer* timer) {
+
 	for (auto it = __timers.begin(); it != __timers.end(); ++it) {
 		if (*it == timer) {
 			CKLog("Deleting timer %x...", *it);
@@ -915,6 +923,7 @@ void CKApp::CKRemoveTimer(CKTimer* timer) {
 			return;
 		}
 	}
+
 	CKLog("Warning! Can't find and remove timer %x!");
 }
 
@@ -923,13 +932,16 @@ void CKApp::CKRemoveTimer(CKTimer* timer) {
  * @param owner
  */
 void CKApp::CKRemoveTimersOfOwner(CKObject* owner) {
+
 	std::vector<CKTimer*> toRemove;
 	for (auto* timer : __timers) {
 		if (timer->owner == owner) {
 			toRemove.push_back(timer);
 		}
 	}
+
 	CKLog("CKRemoveTimersOfOwner is looking for timers with owner %x, found %d", owner, toRemove.size());
+
 	for (auto* timer : toRemove) {
 		// We need this to avoid a loop as Timer's destructor also calls CKRemoveTimersOfOwner.
 		timer->app = nullptr;
@@ -1038,6 +1050,7 @@ void CKApp::CKHideMenuBar() {
 }
 
 void CKApp::__HandleMenuPropertyChange(const CKObject* obj, const char* propName) {
+
 	CKLog("Menu bar property '%s' of %x has changed!", propName, obj);
 	const CKMenuItem* item = dynamic_cast<const CKMenuItem*>(obj);
 	if (item) {

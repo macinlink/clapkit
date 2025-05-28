@@ -22,17 +22,22 @@ CKCheckbox::~CKCheckbox() {
 }
 
 bool CKCheckbox::HandleEvent(const CKEvent& evt) {
+
 	CKControlToolbox::HandleEvent(evt);
+
 	if (evt.type == CKEventType::click) {
 		this->SetValue(!this->GetBoolean());
 		this->__ReflectToOS();
 		CKControl::HandleEvent(CKEventType::changed);
 	}
+
 	return false;
 }
 
 void CKCheckbox::__ReflectToOS() {
+
 	CKControlToolbox::__ReflectToOS();
+
 	if (this->__ptr) {
 		SetControlValue(__ptr, this->GetBoolean() ? 1 : 0);
 	}

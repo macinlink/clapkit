@@ -115,6 +115,7 @@ CKWindow::~CKWindow() {
  *
  */
 void CKWindow::Loop() {
+
 	if (this->__activeTextInputControl) {
 		if (auto c = dynamic_cast<CKLabel*>(this->__activeTextInputControl)) {
 			c->DoTEIdle();
@@ -392,6 +393,7 @@ const std::vector<CKControl*>& CKWindow::GetControls() const {
  */
 template <typename T>
 std::vector<T*> CKWindow::GetControlsOfType() const {
+
 	std::vector<T*> out;
 	out.reserve(__controls.size());
 	for (auto* c : __controls) {
@@ -472,22 +474,27 @@ void CKWindow::SetIsActive(bool active) {
 }
 
 CKControl* CKWindow::GetLastControl() const {
+
 	return this->__lastDownControl;
 }
 
 void CKWindow::SetLastControl(CKControl* control) {
+
 	this->__lastDownControl = control;
 }
 
 const CKWindowPtr CKWindow::GetWindowPtr() const {
+
 	return this->__windowPtr;
 }
 
 bool CKWindow::GetIsActive() {
+
 	return this->__isCurrentlyActive;
 }
 
 void CKWindow::DirtyArea(const CKRect rect) {
+
 	GrafPtr oldPort;
 	GetPort(&oldPort);
 	SetPort(this->__windowPtr);
@@ -529,6 +536,7 @@ bool CKWindow::HandleEvent(const CKEvent& evt) {
 }
 
 void CKWindow::__InvalidateEntireWindow() {
+
 	Rect r;
 	r.top = 0;
 	r.left = 0;
@@ -564,6 +572,7 @@ void CKWindow::__ReflectToOS() {
 }
 
 void CKWindow::RaisePropertyChange(const char* propertyName) {
+
 	CKLog("Window %x's property '%s' has changed!", this, propertyName);
 	this->__ReflectToOS();
 	if (!strcmp(propertyName, "hasCustomBackgroundColor") || !strcmp(propertyName, "backgroundColor")) {

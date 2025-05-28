@@ -22,6 +22,7 @@ CKButton::~CKButton() {
 }
 
 void CKButton::SetDefault(bool isDefault) {
+
 	this->__is_default = isDefault;
 }
 

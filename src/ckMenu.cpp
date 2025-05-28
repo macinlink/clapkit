@@ -22,9 +22,11 @@ CKMenuBar::CKMenuBar() {
 }
 
 CKMenuBar::~CKMenuBar() {
+
 	for (auto* m : appleMenuItems) {
 		CKDelete(m);
 	}
+
 	for (auto* m : items) {
 		CKDelete(m);
 	}
@@ -34,9 +36,11 @@ CKMenuBar::~CKMenuBar() {
  * @brief Add a menu item to the bar.
  */
 void CKMenuBar::AddMenuItem(CKMenuBarItem* item) {
+
 	if (this->HasMenu(item)) {
 		this->RemoveMenuItem(item);
 	}
+
 	this->items.push_back(item);
 }
 
@@ -56,11 +60,13 @@ void CKMenuBar::RemoveMenuItem(CKMenuBarItem* item) {
  * @brief Check if item is already in this menubar.
  */
 bool CKMenuBar::HasMenu(CKMenuBarItem* item) {
+
 	for (auto& m : this->items) {
 		if (m == item) {
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -68,11 +74,13 @@ bool CKMenuBar::HasMenu(CKMenuBarItem* item) {
  * @brief Check if item is already in this any of the menus.
  */
 bool CKMenuBar::HasMenuItem(CKMenuItem* item) {
+
 	for (auto& sm : this->appleMenuItems) {
 		if (sm == item) {
 			return true;
 		}
 	}
+
 	for (auto& m : this->items) {
 		auto& vec = m->items.get();
 		for (auto& sm : vec) {
@@ -81,6 +89,7 @@ bool CKMenuBar::HasMenuItem(CKMenuItem* item) {
 			}
 		}
 	}
+
 	return false;
 }
 
@@ -89,6 +98,7 @@ bool CKMenuBar::HasMenuItem(CKMenuItem* item) {
 /*** ---------------------------------------------------------------------------- */
 
 CKMenuBarItem::CKMenuBarItem(const char* text) {
+
 	this->text = nullptr;
 	CKSafeCopyString(this->text, text);
 	this->enabled.onChange = CKOBSERVEVALUE("enabled");
@@ -96,6 +106,7 @@ CKMenuBarItem::CKMenuBarItem(const char* text) {
 }
 
 CKMenuBarItem::~CKMenuBarItem() {
+
 	CKSafeCopyString(this->text, nullptr);
 	for (auto* m : this->items.get()) {
 		delete m;
@@ -103,6 +114,7 @@ CKMenuBarItem::~CKMenuBarItem() {
 }
 
 void CKMenuBarItem::SetText(const char* text) {
+
 	CKSafeCopyString(this->text, text);
 	this->RaisePropertyChange("text");
 }
@@ -112,6 +124,7 @@ void CKMenuBarItem::SetText(const char* text) {
 /*** ---------------------------------------------------------------------------- */
 
 CKMenuItem::CKMenuItem(const char* text, char shortcut, CKEventHandlerFunc callback) {
+
 	this->text = nullptr;
 	CKSafeCopyString(this->text, text);
 	this->shortcut = shortcut;
@@ -123,27 +136,33 @@ CKMenuItem::CKMenuItem(const char* text, char shortcut, CKEventHandlerFunc callb
 }
 
 CKMenuItem::~CKMenuItem() {
+
 	CKSafeCopyString(this->text, nullptr);
 }
 
 void CKMenuItem::SetText(const char* text) {
+
 	CKSafeCopyString(this->text, text);
 	this->RaisePropertyChange("text");
 }
 
 void CKMenuItem::ReflectToOS() {
+
 	if (!this->__osMenuHandle || this->__osMenuItemID == 0) {
 		return;
 	}
+
 	unsigned char* t = CKC2P(this->text);
 	SetMenuItemText(this->__osMenuHandle, this->__osMenuItemID, t);
 	CKFree(t);
+
 	if (this->shortcut) {
 		SetItemCmd(this->__osMenuHandle, this->__osMenuItemID, this->shortcut);
 	} else {
 		// TODO: Check if this is valid.
 		SetItemCmd(this->__osMenuHandle, this->__osMenuItemID, 0);
 	}
+
 	if (this->enabled) {
 		EnableItem(this->__osMenuHandle, this->__osMenuItemID);
 	} else {

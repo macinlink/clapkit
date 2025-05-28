@@ -75,6 +75,7 @@ char* __CKP2C(const unsigned char* src, const char* func, int line, const char* 
  * Level 3 => Fatal Error
  */
 void __CKDebugLog(int level, const char* s, ...) {
+
 	// Allocate a larger buffer to avoid overflows
 	char* buffer = (char*)dlmalloc(250);
 	if (!buffer) {
@@ -253,6 +254,7 @@ void CKPrintProfileData() {
  * @return True if Appearance Manager is available
  */
 bool CKHasAppearanceManager() {
+
 	long result;
 	return (Gestalt(gestaltAppearanceAttr, &result) == noErr) && (result & (1 << gestaltAppearanceExists));
 }
@@ -262,6 +264,7 @@ bool CKHasAppearanceManager() {
  * @return
  */
 UInt32 CKMillis() {
+
 	UnsignedWide usec;
 	Microseconds(&usec);
 	return (usec.hi << (32 - 10)) | (usec.lo >> 10);

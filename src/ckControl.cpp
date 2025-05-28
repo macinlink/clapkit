@@ -87,6 +87,7 @@ void CKControl::MarkAsDirty() {
 }
 
 void CKControl::RaisePropertyChange(const char* propertyName) {
+
 	this->MarkAsDirty();
 	CKObject::RaisePropertyChange(propertyName);
 }

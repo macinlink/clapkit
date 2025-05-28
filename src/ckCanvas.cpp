@@ -133,6 +133,7 @@ void CKCanvas::SetPixel(CKPoint p, CKColor c) {
 	if (p.x < 0 || p.x > this->rect->size->width) {
 		return;
 	}
+
 	if (p.y < 0 || p.y > this->rect->size->height) {
 		return;
 	}
@@ -155,6 +156,7 @@ void CKCanvas::SetPixel(CKPoint p, CKColor c) {
 }
 
 void CKCanvas::DrawLine(CKPoint start, CKPoint end, CKColor c) {
+
 	RGBColor rgb = c.ToOS();
 	CGrafPtr oldPort;
 	GDHandle oldGD;

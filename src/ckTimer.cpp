@@ -18,6 +18,7 @@ CKTimer::CKTimer() {
 }
 
 CKTimer::~CKTimer() {
+
 	if (this->owner && this->app) {
 		CKLog("Timer %x has an owner/app, calling CKRemoveTimersOfOwner.", this);
 		this->app->CKRemoveTimersOfOwner(this->owner);
@@ -29,9 +30,11 @@ CKTimer::~CKTimer() {
  * @return Returns false if timer needs to be removed from the queue / destroyed.
  */
 bool CKTimer::Update() {
+
 	if (!this->enabled) {
 		return true;
 	}
+
 	if (CKMillis() >= this->nextRun) {
 		this->nextRun = CKMillis() + this->interval;
 		if (this->callback) {
@@ -41,14 +44,17 @@ bool CKTimer::Update() {
 			return false;
 		}
 	}
+
 	return true;
 }
 
 void CKTimer::Start() {
+
 	this->enabled = true;
 	this->nextRun = CKMillis() + this->interval;
 }
 
 void CKTimer::Stop() {
+
 	this->enabled = false;
 }

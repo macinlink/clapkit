@@ -35,7 +35,7 @@ CKLabel::CKLabel(const CKControlInitParams& params)
 }
 
 CKLabel::~CKLabel() {
-	CKLog("~CKLabel called");
+
 	if (this->__teHandle != nullptr) {
 		TEDispose(this->__teHandle);
 		this->__teHandle = nullptr;
@@ -83,6 +83,9 @@ void CKLabel::PrepareForDraw() {
 
 	// TODO: We probably shouldn't be doing this every time we draw it..
 	// But this is probably the quickest way of doing this for now.
+
+	// TODO: We are not handling `multiline` for now.
+	// If `multiline` is false, we need a single line, vertically-centered.
 
 	HLock((Handle)this->__teHandle);
 

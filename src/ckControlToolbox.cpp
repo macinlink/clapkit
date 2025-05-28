@@ -109,6 +109,7 @@ bool CKControlToolbox::HandleEvent(const CKEvent& evt) {
 }
 
 void CKControlToolbox::__ReflectToOS() {
+
 	if (!this->__ptr) {
 		return;
 	}
@@ -131,6 +132,7 @@ void CKControlToolbox::__ReflectToOS() {
 }
 
 void CKControlToolbox::RaisePropertyChange(const char* propertyName) {
+
 	CKLog("[CKControlToolbox] Property '%s' of %x has changed, calling ReflectToOS...", propertyName, this);
 	this->__ReflectToOS();
 	CKControl::RaisePropertyChange(propertyName);
