@@ -301,7 +301,6 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	GetPort(&oldPort);
 	SetPort(this->__windowPtr);
 
-	// Use stack-allocated Rect (No malloc needed)
 	Rect r;
 	r.top = 0;
 	r.left = 0;
@@ -309,12 +308,14 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	r.bottom = this->rect->size->height;
 
 	if (this->hasCustomBackgroundColor) {
+		// Use the user's picked color.
 		RGBColor c = this->backgroundColor->ToOS();
 		RGBBackColor(&c);
 		EraseRect(&r);
 	} else if (CKHasAppearanceManager()) {
+		// Mac OS 8 and above: use theme color.
 		SetThemeWindowBackground(this->__windowPtr, this->__isCurrentlyActive ? kThemeBrushDialogBackgroundActive : kThemeBrushDialogBackgroundInactive, false);
-		// TODO: Do we need EraseRect here?
+		EraseRect(&r);
 	} else {
 		// System 7 or below: default white
 		BackColor(whiteColor);
@@ -330,7 +331,7 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 		DrawGrowIcon(this->__windowPtr);
 	}
 
-	SetPort(oldPort); // Restore port AFTER drawing everything
+	SetPort(oldPort);
 }
 
 /**
