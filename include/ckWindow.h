@@ -87,7 +87,7 @@ class CKWindow : public CKObject {
 		const std::vector<CKControl*>& GetControls() const;
 
 		template <typename T>
-		std::vector<T*> CKWindow::GetControlsOfType() const;
+		std::vector<T*> GetControlsOfType() const;
 
 		bool ContainsControl(CKControl* control);
 		void SetActiveControl(CKControl* control);
