@@ -322,13 +322,27 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 		EraseRect(&r);
 	}
 
+	// If we are resizable, we need to clip the draw area
+	// before we draw the controls!
+	// The scrollbars are 15px wide / tall.
+	RgnHandle clipHandle = NewRgn();
+	if (this->__type == CKWindowType::StandardResizable) {
+		GetClip(clipHandle);
+		Rect cr = r;
+		cr.right -= 15;
+		cr.bottom -= 15;
+		ClipRect(&cr);
+	}
+
 	// Redraw all controls
 	for (auto& c : this->__controls) {
 		c->Redraw();
 	}
 
 	if (this->__type == CKWindowType::StandardResizable) {
+		SetClip(clipHandle);
 		DrawGrowIcon(this->__windowPtr);
+		DisposeRgn(clipHandle);
 	}
 
 	SetPort(oldPort);
