@@ -18,6 +18,9 @@ CKCheckbox::CKCheckbox(const CKControlInitParams& params)
 	: CKControlToolbox(params, CKControlType::Checkbox) {
 }
 
+CKCheckbox::CKCheckbox(const CKControlInitParams& params, CKControlType forcedType)
+	: CKControlToolbox(params, forcedType) {}
+
 CKCheckbox::~CKCheckbox() {
 }
 
@@ -28,7 +31,7 @@ bool CKCheckbox::HandleEvent(const CKEvent& evt) {
 	if (evt.type == CKEventType::click) {
 		this->SetValue(!this->GetBoolean());
 		this->__ReflectToOS();
-		CKControl::HandleEvent(CKEventType::changed);
+		CKControlToolbox::HandleEvent(CKEventType::changed);
 	}
 
 	return false;

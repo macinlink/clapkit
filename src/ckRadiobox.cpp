@@ -15,22 +15,30 @@
 #include "ckWindow.h"
 
 CKRadiobox::CKRadiobox(const CKControlInitParams& params)
-	: CKCheckbox(params) {
-}
+	: CKCheckbox(params, CKControlType::RadioButton) {}
 
 CKRadiobox::~CKRadiobox() {
 }
 
-void CKRadiobox::__ReflectToOS() {
+bool CKRadiobox::HandleEvent(const CKEvent& evt) {
 
-	CKCheckbox::__ReflectToOS();
+	CKControlToolbox::HandleEvent(evt);
 
-	if (this->owner) {
-		auto buttons = this->owner->GetControlsOfType<CKRadiobox>();
-		for (auto& b : buttons) {
-			if (b->groupID == this->groupID && b != this) {
-				b->SetValue(false);
+	if (evt.type == CKEventType::click) {
+		if (!this->GetBoolean()) {
+			this->SetValue(true);
+		}
+		if (this->groupID != 0 && this->owner) {
+			auto buttons = this->owner->GetControlsOfType<CKRadiobox>();
+			for (auto& b : buttons) {
+				if (b->groupID == this->groupID && b != this) {
+					b->SetValue(false);
+				}
 			}
 		}
+		this->__ReflectToOS();
+		CKControl::HandleEvent(CKEventType::changed);
 	}
+
+	return false;
 }

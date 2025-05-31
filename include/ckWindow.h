@@ -86,8 +86,24 @@ class CKWindow : public CKObject {
 		CKControl* FindControl(CKPoint point);
 		const std::vector<CKControl*>& GetControls() const;
 
+		/**
+		 * @brief Get the list of controls of type T in this window.
+		 * @example
+		 * auto buttons = myWindow->GetControlsOfType<CKButton>();
+		 * @return
+		 */
 		template <typename T>
-		std::vector<T*> GetControlsOfType() const;
+		std::vector<T*> GetControlsOfType() const {
+
+			std::vector<T*> out;
+			out.reserve(__controls.size());
+			for (auto* c : __controls) {
+				if (auto* t = dynamic_cast<T*>(c)) {
+					out.push_back(t);
+				}
+			}
+			return out;
+		}
 
 		bool ContainsControl(CKControl* control);
 		void SetActiveControl(CKControl* control);

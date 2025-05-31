@@ -22,8 +22,7 @@ class CKRadiobox : public CKCheckbox {
 		CKRadiobox(const CKControlInitParams& params);
 		virtual ~CKRadiobox();
 		virtual bool HandleEvent(const CKEvent& evt);
-		virtual void __ReflectToOS();
 
 	public:
-		void* groupID = nullptr;
+		uint32_t groupID = 0;
 };

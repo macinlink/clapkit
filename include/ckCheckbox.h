@@ -24,4 +24,24 @@ class CKCheckbox : public CKControlToolbox, public CKValueContainingControl {
 		virtual ~CKCheckbox();
 		virtual bool HandleEvent(const CKEvent& evt);
 		virtual void __ReflectToOS();
+
+		// TODO: A better way of doing these?
+
+		virtual void SetValue(const char* value) {
+			CKValueContainingControl::SetValue(value);
+			this->RaisePropertyChange("value");
+		}
+
+		virtual void SetValue(bool value) {
+			CKValueContainingControl::SetValue(value);
+			this->RaisePropertyChange("value");
+		}
+
+		virtual void SetValue(void* value) {
+			CKValueContainingControl::SetValue(value);
+			this->RaisePropertyChange("value");
+		}
+
+	protected:
+		CKCheckbox(const CKControlInitParams& params, CKControlType forcedType);
 };
