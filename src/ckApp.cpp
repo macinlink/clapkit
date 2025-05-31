@@ -604,6 +604,28 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 		return;
 	}
 
+	if (where == inGrow) {
+		CKWindow* ckFoundWindow = this->CKFindWindow(foundWindow);
+		if (!ckFoundWindow) {
+			return;
+		}
+		Rect growRect;
+		growRect.top = ckFoundWindow->minimumHeight;
+		growRect.bottom = ckFoundWindow->maximumHeight;
+		growRect.left = ckFoundWindow->minimumWidth;
+		growRect.right = ckFoundWindow->maximumWidth;
+		long result = GrowWindow(foundWindow, event.where, &growRect);
+		if (result == 0) {
+			// No change.
+			return;
+		}
+		short newWidth = LOWORD(result);
+		short newHeight = HIWORD(result);
+		ckFoundWindow->rect->size->width = newWidth;
+		ckFoundWindow->rect->size->height = newHeight;
+		return;
+	}
+
 	if (where == inMenuBar) {
 		long choice = MenuSelect(event.where);
 		if (choice) {

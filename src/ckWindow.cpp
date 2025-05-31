@@ -578,5 +578,8 @@ void CKWindow::RaisePropertyChange(const char* propertyName) {
 	if (!strcmp(propertyName, "hasCustomBackgroundColor") || !strcmp(propertyName, "backgroundColor")) {
 		this->__InvalidateEntireWindow();
 	}
+	if (!strcmp(propertyName, "rect")) {
+		this->__InvalidateEntireWindow();
+	}
 	CKObject::RaisePropertyChange(propertyName);
 }

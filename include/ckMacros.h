@@ -30,6 +30,6 @@
 #endif
 
 #ifndef LOWORD
-#define LOWORD(l) ((((DWORD_PTR)(l)) & 0xffff))
-#define HIWORD(l) (((((DWORD_PTR)(l)) >> 16) & 0xffff))
+#define LOWORD(l) ((l) & 0xffff)
+#define HIWORD(l) ((l >> 16) & 0xffff)
 #endif

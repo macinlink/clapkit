@@ -119,6 +119,11 @@ class CKWindow : public CKObject {
 		CKProperty<CKColor> backgroundColor = CKColor(255, 255, 255);
 		CKProperty<bool> closable = true;
 
+		int minimumWidth = 0;
+		int minimumHeight = 0;
+		int maximumWidth = 1000;
+		int maximumHeight = 1000;
+
 		/**
 		 * @brief True if we should receive mouseMove events.
 		 * We are storing this as a hack to speed things up as HasHandler is pretty slow.
