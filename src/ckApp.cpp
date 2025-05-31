@@ -630,8 +630,8 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 		long choice = MenuSelect(event.where);
 		if (choice) {
 			// Handle choice.
-			short menuId = choice >> 16;
-			short menuItem = choice & 0xFFFF;
+			short menuId = HIWORD(choice);
+			short menuItem = LOWORD(choice);
 			CKLog("Got menu item %d on menu %d", menuItem, menuId);
 
 			if (menuId == kCKAppleMenuID) {
@@ -676,9 +676,9 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 				int actualMenuId = menuId - kCKUserMenuStartID;
 				int actualItemId = menuItem - 1;
 
-				if (actualItemId > (short)this->__menubar->items.size()) {
+				if (actualMenuId > (short)this->__menubar->items.size()) {
 					// Should not happen but, just in case.
-					CKLog("actualItemId = %d but size = %d", actualItemId, this->__menubar->items.size());
+					CKLog("actualItemId = %d but size = %d", actualMenuId, this->__menubar->items.size());
 					goto cleanMenuActionUp;
 				}
 
