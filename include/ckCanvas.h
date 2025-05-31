@@ -29,7 +29,7 @@ class CKCanvas : public CKControl {
 		void Fill(CKColor c);
 		void SetPixel(CKPoint p, CKColor c);
 		void DrawLine(CKPoint start, CKPoint end, CKColor c);
-		bool DrawResource(ResType type, short resourceId, CKPoint where);
+		bool DrawResourceIcon(short resourceId, CKPoint where);
 
 	private:
 		GWorldPtr __gworldptr;

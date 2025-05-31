@@ -170,7 +170,7 @@ void CKCanvas::DrawLine(CKPoint start, CKPoint end, CKColor c) {
 	SetGWorld(oldPort, oldGD); // Restore the old port
 }
 
-bool CKCanvas::DrawResource(ResType type, short resourceId, CKPoint where) {
+bool CKCanvas::DrawResourceIcon(short resourceId, CKPoint where) {
 
 	PixMapHandle offscreenPixMap = GetGWorldPixMap(this->__gworldptr);
 	if (!LockPixels(offscreenPixMap)) {
@@ -183,10 +183,27 @@ bool CKCanvas::DrawResource(ResType type, short resourceId, CKPoint where) {
 	GetGWorld(&oldPort, &oldGD);		// Save the old port
 	SetGWorld(this->__gworldptr, NULL); // Set the GWorld as the current port
 
-	Handle iconHandle = GetIcon(resourceId);
+	Handle iconHandle = nullptr;
+
+	// Try color first.
+	iconHandle = (Handle)GetCIcon(resourceId);
+	bool isColor = true;
+	if (!iconHandle) {
+		// OK, try monochrome.
+		iconHandle = GetIcon(resourceId);
+		isColor = false;
+		if (!iconHandle) {
+			CKLog("Resource %d not found.", resourceId);
+			return false;
+		}
+	}
 	Rect destRect = {0, 0, 32, 32};
 
-	PlotIcon(&destRect, iconHandle);
+	if (isColor) {
+		PlotCIcon(&destRect, (CIconHandle)iconHandle);
+	} else {
+		PlotIcon(&destRect, iconHandle);
+	}
 
 	SetGWorld(oldPort, oldGD); // Restore the old port
 

@@ -342,17 +342,17 @@ CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, con
 		iconCanvas->rect->origin->y = padding;
 		switch (icon) {
 			case CKSystemIcon::message:
-				iconCanvas->DrawResource('ICON', 1, {0, 0});
+				iconCanvas->DrawResourceIcon(1, {0, 0});
 				break;
 			case CKSystemIcon::error:
-				iconCanvas->DrawResource('ICON', 0, {0, 0});
+				iconCanvas->DrawResourceIcon(0, {0, 0});
 				break;
 			case CKSystemIcon::warning:
-				iconCanvas->DrawResource('ICON', 2, {0, 0});
+				iconCanvas->DrawResourceIcon(2, {0, 0});
 				break;
 			default:
 				CKLog("Warning - unknown icon: %d", icon);
-				iconCanvas->DrawResource('ICON', 0, {0, 0});
+				iconCanvas->DrawResourceIcon(0, {0, 0});
 		}
 		toReturn->AddControl(iconCanvas);
 	}
