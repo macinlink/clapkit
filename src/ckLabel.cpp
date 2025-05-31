@@ -177,10 +177,20 @@ void CKLabel::Redraw() {
 	GetPort(&oldPort);
 	SetPort(this->owner->GetWindowPtr());
 
+	// Clip area to our rect.
+	// TODO: Does TEUpdate even respect this?
+	RgnHandle clipHandle = NewRgn();
+	GetClip(clipHandle);
+	Rect cr = this->rect->ToOS();
+	ClipRect(&cr);
+
 	TECalText(this->__teHandle);
 	TEUpdate(&(trecord->viewRect), this->__teHandle);
 
 	ForeColor(blackColor);
+
+	SetClip(clipHandle);
+	DisposeRgn(clipHandle);
 
 	SetPort(oldPort);
 	HUnlock((Handle)this->__teHandle);
