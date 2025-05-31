@@ -30,10 +30,23 @@ struct CKControlInitParams {
 		int y = 0;
 		int width = 100;
 		int height = 50;
-		CKControlInitParams(const char* t, int xx, int yy, int w, int h)
-			: title(t), x(xx), y(yy), width(w), height(h) {}
-		CKControlInitParams(int w, int h)
-			: width(w), height(h) {}
+		CKControlInitParams(const char* t, CKRect r) {
+			title = t;
+			x = r.origin->x;
+			y = r.origin->y;
+			width = r.size->width;
+			height = r.size->height;
+		}
+		CKControlInitParams(CKRect r) {
+			x = r.origin->x;
+			y = r.origin->y;
+			width = r.size->width;
+			height = r.size->height;
+		}
+		CKControlInitParams(CKSize s) {
+			width = s.width;
+			height = s.height;
+		}
 };
 
 class CKControl : public CKObject {

@@ -328,7 +328,7 @@ CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, con
 	if (icon != CKSystemIcon::noIcon) {
 		labelX += 32 + padding;
 	}
-	CKLabel* label = CKNew CKLabel({message, labelX, padding, params.size.width - (padding + labelX), 0});
+	CKLabel* label = CKNew CKLabel({message, CKRect(labelX, padding, params.size.width - (padding + labelX), 0)});
 	label->AutoHeight(400);
 	if (label->rect->size->height <= 28) {
 		label->rect->size->height = 28;
@@ -337,7 +337,7 @@ CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, con
 
 	CKCanvas* iconCanvas;
 	if (icon != CKSystemIcon::noIcon) {
-		iconCanvas = CKNew CKCanvas({32, 32});
+		iconCanvas = CKNew CKCanvas(CKSize(32, 32));
 		iconCanvas->rect->origin->x = padding;
 		iconCanvas->rect->origin->y = padding;
 		switch (icon) {
@@ -370,7 +370,7 @@ CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, con
 
 	if (btnCancel) {
 		int cancelButtonLeft = okButtonLeft;
-		CKButton* cancelButton = CKNew CKButton({btnCancel, cancelButtonLeft, buttonTop, okButtonWidth, 20});
+		CKButton* cancelButton = CKNew CKButton({btnCancel, CKRect(cancelButtonLeft, buttonTop, okButtonWidth, 20)});
 		toReturn->AddControl(cancelButton);
 		cancelButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 			toReturn->Close();
@@ -381,7 +381,7 @@ CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, con
 		okButtonLeft -= okButtonWidth + padding;
 	}
 
-	CKButton* okButton = CKNew CKButton({btnOk ? btnOk : "OK", okButtonLeft, buttonTop, okButtonWidth, 20});
+	CKButton* okButton = CKNew CKButton({btnOk ? btnOk : "OK", CKRect(okButtonLeft, buttonTop, okButtonWidth, 20)});
 	toReturn->AddControl(okButton);
 	okButton->AddHandler(CKEventType::click, [callback, toReturn](CKEvent e) {
 		toReturn->Close();
