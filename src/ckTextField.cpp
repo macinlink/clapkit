@@ -26,16 +26,31 @@ void CKTextField::Redraw() {
 	// Draw the outline.
 	// TODO: Use AppearanceManager in MacOS 8+ to make this pretty.
 
-	if (CKHasAppearanceManager()) {
-		// TODO: Use DrawThemeEditTextFrame() to draw it.
-	}
-
 	Rect r = this->rect->ToOS();
-	ForeColor(blackColor);
-	FillRect(&r, &qd.white);
-	BackColor(whiteColor);
-	ForeColor(blackColor);
-	FrameRect(&r);
+
+	if (CKHasAppearanceManager()) {
+
+		ThemeDrawState s = kThemeStateActive;
+		if (!this->enabled) {
+			s = kThemeStateDisabled;
+		} else {
+			if (this->focused) {
+				s = kThemeStatePressed;
+			}
+		}
+		DrawThemeEditTextFrame(&r, s);
+	} else {
+
+		if (this->enabled) {
+			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+			RGBForeColor(&white);
+		} else {
+			RGBColor gray = {0xC000, 0xC000, 0xC000};
+			RGBForeColor(&gray);
+		}
+		ForeColor(blackColor);
+		FrameRect(&r);
+	}
 
 	CKLabel::Redraw();
 }
@@ -51,6 +66,8 @@ void CKTextField::Blurred() {
 
 	CKLog("CKTextField %x blurred.", this);
 
+	this->focused = false;
+
 	if (!this->__teHandle) {
 		return;
 	}
@@ -61,6 +78,8 @@ void CKTextField::Blurred() {
 void CKTextField::Focused() {
 
 	CKLog("CKTextField %x Focused.", this);
+
+	this->focused = true;
 
 	if (!this->__teHandle) {
 		return;
@@ -81,14 +100,24 @@ void CKTextField::PrepareForDraw() {
 	trecord->lineHeight = this->fontSize + 3;
 	trecord->fontAscent = this->fontSize;
 
-	RGBColor color = this->color.get().ToOS();
-	RGBForeColor(&color);
+	if (this->enabled) {
+		RGBColor color = this->color.get().ToOS();
+		RGBForeColor(&color);
+	} else {
+		// 50% gray.
+		RGBColor gray = {0x8000, 0x8000, 0x8000};
+		RGBForeColor(&gray);
+	}
 
+	// TODO: This padding works perfectly fine for
+	// standard system font + kCKTextFieldHeight but
+	// what if the user wants a taller text field or
+	// uses a different font?
 	Rect r = this->rect->ToOS();
 	r.top += 2;
 	r.left += 2;
-	r.right -= 4;
-	r.bottom -= 4;
+	r.right -= 2;
+	r.bottom -= 2;
 	trecord->viewRect = r;
 	trecord->destRect = r;
 	trecord->txMode = srcCopy;
@@ -97,6 +126,11 @@ void CKTextField::PrepareForDraw() {
 }
 
 bool CKTextField::HandleEvent(const CKEvent& evt) {
+
+	if (evt.type == CKEventType::click) {
+		CKLog("TEClick on %dx%d", evt.point.x, evt.point.y);
+		TEClick(evt.point.ToOS(), evt.shiftDown, this->__teHandle);
+	}
 
 	if (evt.type == CKEventType::keyDown) {
 		TEKey(evt.key, this->__teHandle);

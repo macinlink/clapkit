@@ -564,6 +564,7 @@ void CKApp::__HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 	CKEvent evt = CKEvent(isKeyUp ? CKEventType::keyUp : CKEventType::keyDown);
 	evt.character = theChar;
 	evt.key = theKey;
+	evt.fillFromOS(event);
 	activeWindow->HandleEvent(evt);
 }
 
@@ -632,7 +633,6 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 			// Handle choice.
 			short menuId = HIWORD(choice);
 			short menuItem = LOWORD(choice);
-			CKLog("Got menu item %d on menu %d", menuItem, menuId);
 
 			if (menuId == kCKAppleMenuID) {
 				bool launchDeskAcc = false;
@@ -722,6 +722,7 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 						if (lastControl != control) {
 							CKPoint p = CKPoint().FromOS(event.where);
 							CKEvent evt = CKEvent(CKEventType::mouseUp, p);
+							evt.fillFromOS(event);
 							lastControl->HandleEvent(evt);
 							ckFoundWindow->SetLastControl(nullptr);
 						}
@@ -730,6 +731,7 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 
 					CKPoint p = CKPoint().FromOS(event.where);
 					CKEvent evt = CKEvent(CKEventType::mouseDown, p);
+					evt.fillFromOS(event);
 					if (control) {
 						CKLog("Will call control %x to handle down event", control);
 						control->HandleEvent(evt);
@@ -784,11 +786,15 @@ void CKApp::__HandleEvtMouseUp(EventRecord event) {
 					if (lastControl) {
 						CKPoint p = CKPoint().FromOS(event.where);
 						CKEvent evt = CKEvent(CKEventType::mouseUp, p);
+						evt.fillFromOS(event);
+						lastControl->HandleEvent(evt);
+						evt.type = CKEventType::click;
 						lastControl->HandleEvent(evt);
 						ckFoundWindow->SetLastControl(nullptr);
 					}
 					CKPoint p = CKPoint().FromOS(event.where);
 					CKEvent evt = CKEvent(CKEventType::mouseUp, p);
+					evt.fillFromOS(event);
 					if (control) {
 						control->HandleEvent(evt);
 					}
@@ -833,6 +839,7 @@ void CKApp::__HandleEvtMouseMove(EventRecord event) {
 			SetPort(oldPort);
 			CKPoint p = CKPoint().FromOS(event.where);
 			CKEvent evt = CKEvent(CKEventType::mouseMove, p);
+			evt.fillFromOS(event);
 			// TODO: We shouldn't need the second check here. Find out why lastMouseDownWindow gets 'stuck'
 			if (this->__lastMouseDownWindow && this->__lastMouseDownWindow == ckFoundWindow) {
 				evt.mouseButton = CKMouseButton::Left;

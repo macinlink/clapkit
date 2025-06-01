@@ -19,5 +19,10 @@
 #define kCKAppleMenuID	   128
 #define kCKUserMenuStartID 200
 
+#define kCKButtonHeight	   20
+#define kCKCheckboxHeight  16
+#define kCKRadioboxHeight  kCKCheckboxHeight
+#define kCKTextFieldHeight 20
+
 using CKWindowPtr = WindowPtr;
 using CKControlPtr = ControlRef;

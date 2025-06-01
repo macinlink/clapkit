@@ -391,8 +391,14 @@ struct CKEvent {
 		CKEventType type;
 		CKPoint point;
 		CKMouseButton mouseButton;
-		char key;
-		char character;
+
+		bool shiftDown = false;
+		bool cmdDown = false;
+		bool optDown = false;
+		bool ctrlDown = false;
+
+		char key;		// Keycode of the key being pressed/released
+		char character; // Character Code (A, B, C..) of the key pressed/released
 
 		const CKWindow* window = nullptr;	// always set
 		const CKControl* control = nullptr; // can be nullptr for window-only events
@@ -402,14 +408,12 @@ struct CKEvent {
 		CKEvent(CKEventType type, CKPoint point)
 			: type(type), point(point) {}
 
-		/**
-		 * @brief Reserved.
-		 */
-		void* primaryValue;
-		/**
-		 * @brief Reserved.
-		 */
-		void* secondaryValue;
+		void fillFromOS(EventRecord e) {
+			shiftDown = (e.modifiers & shiftKey) == shiftKey;
+			cmdDown = (e.modifiers & cmdKey) == cmdKey;
+			optDown = (e.modifiers & optionKey) == optionKey;
+			ctrlDown = (e.modifiers & controlKey) == controlKey;
+		}
 };
 
 enum class CKSystemIcon {

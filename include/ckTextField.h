@@ -30,4 +30,7 @@ class CKTextField : public CKLabel, public CKFocusableControl {
 
 	protected:
 		virtual void TECreated();
+
+	protected:
+		bool focused = false;
 };
