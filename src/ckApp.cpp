@@ -254,7 +254,7 @@ void CKApp::CKRemoveWindow(CKWindow* window) {
  * @return
  */
 CKWindow* CKApp::CKNewMsgBoxNote(const char* message, const char* title, const char* btnOk, const char* btnCancel, std::function<void(int button)> callback) {
-	return this->__CreateAlertDialog(title, message, CKSystemIcon::message, btnOk, btnCancel, callback);
+	return this->__CreateAlertDialog(message, title, CKSystemIcon::message, btnOk, btnCancel, callback);
 }
 
 /**
