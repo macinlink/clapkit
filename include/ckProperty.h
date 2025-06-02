@@ -18,7 +18,7 @@ template <typename, typename = void>
 struct has_subscribe : std::false_type {};
 
 template <typename U>
-struct has_subscribe<U, std::void_t<decltype(std::declval<U>().subscribe(std::declval<std::function<void()>>()))>> : std::true_type {};
+struct has_subscribe<U, std::void_t<decltype(std::declval<U>().Subscribe(std::declval<std::function<void()>>()))>> : std::true_type {};
 
 template <typename T>
 class CKProperty {
@@ -56,7 +56,7 @@ class CKProperty {
 
 		void bindSubscribable() {
 			if constexpr (has_subscribe<T>::value) {
-				value_.subscribe([this] { if(onChange) onChange(); });
+				value_.Subscribe([this] { if(onChange) onChange(); });
 			}
 		}
 

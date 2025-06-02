@@ -867,9 +867,14 @@ void CKApp::__HandleEvtUpdate(EventRecord event) {
 	SetPort(window);
 
 	BeginUpdate((WindowRef)event.message);
+
+	WindowPeek wp = (WindowPeek)(window);
+	Rect dr = (**wp->port.visRgn).rgnBBox;
+	CKRect drk = CKRect().FromOS(dr);
+
 	CKWindow* ckFoundWindow = this->CKFindWindow(window);
 	if (ckFoundWindow) {
-		ckFoundWindow->Redraw(CKRect());
+		ckFoundWindow->Redraw(drk);
 	} else {
 		CKLog("__HandleEvtUpdate called, but ckFoundWindow is nil");
 	}

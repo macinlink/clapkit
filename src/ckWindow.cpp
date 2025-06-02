@@ -335,8 +335,12 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	}
 
 	// Redraw all controls
+	WindowPeek wp = (WindowPeek)(this->__windowPtr);
+	Rect dr = (**wp->updateRgn).rgnBBox;
 	for (auto& c : this->__controls) {
-		c->Redraw();
+		if (c->rect->IntersectsRect(rectToRedraw)) {
+			c->Redraw();
+		}
 	}
 
 	if (this->__type == CKWindowType::StandardResizable) {
@@ -384,7 +388,7 @@ CKControl* CKWindow::FindControl(CKPoint point) {
 		if (!c->visible) {
 			continue;
 		}
-		if (c->rect->intersectsPoint(point)) {
+		if (c->rect->IntersectsPoint(point)) {
 			return c;
 		}
 	}

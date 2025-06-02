@@ -158,7 +158,7 @@ struct CKPoint {
 		}
 
 		/** For change tracking */
-		void subscribe(std::function<void()> cb) {
+		void Subscribe(std::function<void()> cb) {
 			x.onChange = cb;
 			y.onChange = cb;
 		}
@@ -204,7 +204,7 @@ struct CKSize {
 		}
 
 		/** For change tracking */
-		void subscribe(std::function<void()> cb) {
+		void Subscribe(std::function<void()> cb) {
 			width.onChange = cb;
 			height.onChange = cb;
 		}
@@ -281,13 +281,20 @@ struct CKRect : public CKObject {
 		/**
 		 * Is the CKPoint inside us?
 		 */
-		bool intersectsPoint(CKPoint p) {
+		bool IntersectsPoint(CKPoint p) {
 			if (p.x >= this->origin->x && p.x <= this->origin->x + this->size->width) {
 				if (p.y >= this->origin->y && p.y <= this->origin->y + this->size->height) {
 					return true;
 				}
 			}
 			return false;
+		}
+
+		bool IntersectsRect(CKRect r) {
+			return (origin->x < (r.origin->x + r.size->width)) &&
+				   ((origin->x + size->width) > r.origin->x) &&
+				   (origin->y < (r.origin->y + r.size->height)) &&
+				   ((origin->y + size->height) > r.origin->y);
 		}
 
 		inline bool operator==(const CKRect& other) const {
@@ -302,11 +309,11 @@ struct CKRect : public CKObject {
 		}
 
 		/** For change tracking */
-		void subscribe(std::function<void()> cb) {
+		void Subscribe(std::function<void()> cb) {
 			origin.onChange = cb;
 			size.onChange = cb;
-			origin.get().subscribe(cb);
-			size.get().subscribe(cb);
+			origin.get().Subscribe(cb);
+			size.get().Subscribe(cb);
 		}
 };
 
