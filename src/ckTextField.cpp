@@ -24,7 +24,6 @@ CKTextField::~CKTextField() {
 void CKTextField::Redraw() {
 
 	// Draw the outline.
-	// TODO: Use AppearanceManager in MacOS 8+ to make this pretty.
 
 	Rect r = this->rect->ToOS();
 

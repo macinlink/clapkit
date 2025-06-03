@@ -38,6 +38,8 @@ class CKLabel : public CKControl, public CKTextableControl {
 			TEIdle(this->__teHandle);
 		}
 
+		virtual void RaisePropertyChange(const char* propertyName);
+
 	protected:
 		// Called once TE is created so you can override things in your class.
 		virtual void TECreated();
@@ -54,4 +56,5 @@ class CKLabel : public CKControl, public CKTextableControl {
 	protected:
 		short __fontNumber;
 		TEHandle __teHandle;
+		bool __needsPreparing = true;
 };

@@ -23,11 +23,22 @@ CKLabel::CKLabel(const CKControlInitParams& params)
 	this->__fontNumber = 0;
 
 	this->bold = false;
+	this->bold.onChange = CKOBSERVEVALUE("bold");
+
 	this->italic = false;
+	this->italic.onChange = CKOBSERVEVALUE("italic");
+
 	this->underline = false;
+	this->underline.onChange = CKOBSERVEVALUE("underline");
+
 	this->color = {0, 0, 0};
+	this->color.onChange = CKOBSERVEVALUE("color");
+
 	this->fontSize = 12;
+	this->fontSize.onChange = CKOBSERVEVALUE("fontSize");
+
 	this->justification = CKTextJustification::Left;
+	this->justification.onChange = CKOBSERVEVALUE("justification");
 
 	this->__teHandle = nullptr;
 
@@ -151,10 +162,11 @@ void CKLabel::PrepareForDraw() {
 				}
 			}
 
-			TESetStyle(doAll, &style, true, this->__teHandle);
+			TESetStyle(doAll, &style, false, this->__teHandle);
 		} else {
 			TESetText("", 0, this->__teHandle);
 		}
+		TECalText(this->__teHandle);
 	}
 
 	HUnlock((Handle)this->__teHandle);
@@ -168,7 +180,10 @@ void CKLabel::Redraw() {
 		return;
 	}
 
-	this->PrepareForDraw();
+	if (this->__needsPreparing) {
+		this->PrepareForDraw();
+		this->__needsPreparing = false;
+	}
 
 	HLock((Handle)this->__teHandle);
 	TEPtr trecord = *(this->__teHandle);
@@ -184,10 +199,11 @@ void CKLabel::Redraw() {
 	Rect cr = this->rect->ToOS();
 	ClipRect(&cr);
 
-	TECalText(this->__teHandle);
 	TEUpdate(&(trecord->viewRect), this->__teHandle);
 
 	ForeColor(blackColor);
+
+	FrameRect(&cr);
 
 	SetClip(clipHandle);
 	DisposeRgn(clipHandle);
@@ -282,4 +298,14 @@ short CKLabel::GetFont() {
 
 void CKLabel::TECreated() {
 	// Nothing here, override me.
+}
+
+void CKLabel::RaisePropertyChange(const char* propertyName) {
+	if (!strcmp(propertyName, "rect")) {
+		if (this->__teHandle) {
+			TECalText(this->__teHandle);
+		}
+	}
+	this->__needsPreparing = true;
+	CKControl::RaisePropertyChange(propertyName);
 }
