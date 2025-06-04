@@ -429,3 +429,10 @@ enum class CKSystemIcon {
 	warning = 2,
 	error = 3,
 };
+
+enum class CKScrollType {
+	none = 0,
+	vertical = 1,
+	horizontal = 2,
+	both = 3
+};

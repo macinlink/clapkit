@@ -16,13 +16,18 @@
 #include <MacWindows.h>
 #include <Quickdraw.h>
 
-#define kCKAppleMenuID	   128
-#define kCKUserMenuStartID 200
+#define kCKAppleMenuID			128
+#define kCKUserMenuStartID		200
 
-#define kCKButtonHeight	   20
-#define kCKCheckboxHeight  16
-#define kCKRadioboxHeight  kCKCheckboxHeight
-#define kCKTextFieldHeight 20
+#define kCKButtonHeight			20
+#define kCKCheckboxHeight		16
+#define kCKRadioboxHeight		kCKCheckboxHeight
+#define kCKTextFieldHeight		20
+
+#define kControlProcIDButton	0
+#define kControlProcIDCheckbox	1
+#define kControlProcIDRadio		2
+#define kControlProcIDScrollbar 16
 
 using CKWindowPtr = WindowPtr;
 using CKControlPtr = ControlRef;

@@ -72,6 +72,7 @@ void CKLabel::AddedToWindow(CKWindow* window) {
 	Rect r = this->rect->ToOS();
 	this->__teHandle = TEStyleNew(&r, &r);
 	(*this->__teHandle)->txMode = srcCopy;
+	this->ResizeTE();
 
 	SetPort(oldPort);
 
@@ -98,78 +99,82 @@ void CKLabel::PrepareForDraw() {
 	// TODO: We are not handling `multiline` for now.
 	// If `multiline` is false, we need a single line, vertically-centered.
 
+	if (!this->__teHandle) {
+		return;
+	}
+
+	this->ResizeTE();
+
 	HLock((Handle)this->__teHandle);
 
-	if (this->__teHandle) {
-		if (this->__text) {
-			TESetText(this->__text, strlen(this->__text), this->__teHandle);
+	if (this->__text) {
+		TESetText(this->__text, strlen(this->__text), this->__teHandle);
 
-			// Select all text
-			(*this->__teHandle)->selStart = 0;
-			(*this->__teHandle)->selEnd = strlen(this->__text);
-			TEPtr trecord = *(this->__teHandle);
+		// Select all text
+		(*this->__teHandle)->selStart = 0;
+		(*this->__teHandle)->selEnd = strlen(this->__text);
+		TEPtr trecord = *(this->__teHandle);
 
-			switch (this->justification) {
-				case CKTextJustification::Center:
-					trecord->just = 1;
-					break;
-				case CKTextJustification::Right:
-					trecord->just = -1;
-					break;
-				default:
-					trecord->just = 0;
-					break;
-			}
-
-			TextStyle style;
-
-			style.tsFont = this->__fontNumber;
-			style.tsSize = this->fontSize;
-			style.tsFace = 0;
-
-			if (this->bold) {
-				style.tsFace = style.tsFace | QD_BOLD;
-			} else {
-				style.tsFace = style.tsFace & ~QD_BOLD;
-			}
-
-			if (this->italic) {
-				style.tsFace = style.tsFace | QD_ITALIC;
-			} else {
-				style.tsFace = style.tsFace & ~QD_ITALIC;
-			}
-
-			if (this->underline) {
-				style.tsFace = style.tsFace | QD_UNDERLINE;
-			} else {
-				style.tsFace = style.tsFace & ~QD_UNDERLINE;
-			}
-
-			CKColor black = {0, 0, 0};
-			if (this->color.get() != black || !CKHasAppearanceManager()) {
-				style.tsColor = this->color.get().ToOS();
-			} else {
-				if (this->color.get() == black && CKHasAppearanceManager()) {
-					RGBColor color;
-					GDHandle deviceHdl = LMGetMainDevice();
-					SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
-					ThemeBrush brush = kThemeInactiveDialogTextColor;
-					if (this->owner && this->owner->GetIsActive()) {
-						brush = kThemeActiveDialogTextColor;
-					}
-					SetThemeTextColor(brush, gPixelDepth, true); // TODO: Maybe not hardcode 'isColorDevice'?
-					style.tsColor = color;
-				}
-			}
-
-			TESetStyle(doAll, &style, false, this->__teHandle);
-		} else {
-			TESetText("", 0, this->__teHandle);
+		switch (this->justification) {
+			case CKTextJustification::Center:
+				trecord->just = 1;
+				break;
+			case CKTextJustification::Right:
+				trecord->just = -1;
+				break;
+			default:
+				trecord->just = 0;
+				break;
 		}
-		TECalText(this->__teHandle);
+
+		TextStyle style;
+
+		style.tsFont = this->__fontNumber;
+		style.tsSize = this->fontSize;
+		style.tsFace = 0;
+
+		if (this->bold) {
+			style.tsFace = style.tsFace | QD_BOLD;
+		} else {
+			style.tsFace = style.tsFace & ~QD_BOLD;
+		}
+
+		if (this->italic) {
+			style.tsFace = style.tsFace | QD_ITALIC;
+		} else {
+			style.tsFace = style.tsFace & ~QD_ITALIC;
+		}
+
+		if (this->underline) {
+			style.tsFace = style.tsFace | QD_UNDERLINE;
+		} else {
+			style.tsFace = style.tsFace & ~QD_UNDERLINE;
+		}
+
+		CKColor black = {0, 0, 0};
+		if (this->color.get() != black || !CKHasAppearanceManager()) {
+			style.tsColor = this->color.get().ToOS();
+		} else {
+			if (this->color.get() == black && CKHasAppearanceManager()) {
+				RGBColor color;
+				GDHandle deviceHdl = LMGetMainDevice();
+				SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
+				ThemeBrush brush = kThemeInactiveDialogTextColor;
+				if (this->owner && this->owner->GetIsActive()) {
+					brush = kThemeActiveDialogTextColor;
+				}
+				SetThemeTextColor(brush, gPixelDepth, true); // TODO: Maybe not hardcode 'isColorDevice'?
+				style.tsColor = color;
+			}
+		}
+
+		TESetStyle(doAll, &style, false, this->__teHandle);
+	} else {
+		TESetText("", 0, this->__teHandle);
 	}
 
 	HUnlock((Handle)this->__teHandle);
+	TECalText(this->__teHandle);
 }
 
 void CKLabel::Redraw() {
@@ -202,8 +207,6 @@ void CKLabel::Redraw() {
 	TEUpdate(&(trecord->viewRect), this->__teHandle);
 
 	ForeColor(blackColor);
-
-	FrameRect(&cr);
 
 	SetClip(clipHandle);
 	DisposeRgn(clipHandle);
@@ -300,12 +303,25 @@ void CKLabel::TECreated() {
 	// Nothing here, override me.
 }
 
-void CKLabel::RaisePropertyChange(const char* propertyName) {
-	if (!strcmp(propertyName, "rect")) {
-		if (this->__teHandle) {
-			TECalText(this->__teHandle);
-		}
+void CKLabel::ResizeTE() {
+
+	if (!this->__teHandle) {
+		return;
 	}
+
+	HLock((Handle)this->__teHandle);
+
+	Rect cr = this->rect->ToOS();
+
+	(*this->__teHandle)->destRect = cr;
+	(*this->__teHandle)->viewRect = cr;
+
+	TECalText(this->__teHandle);
+
+	HUnlock((Handle)this->__teHandle);
+}
+
+void CKLabel::RaisePropertyChange(const char* propertyName) {
 	this->__needsPreparing = true;
 	CKControl::RaisePropertyChange(propertyName);
 }

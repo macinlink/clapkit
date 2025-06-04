@@ -43,6 +43,7 @@ class CKLabel : public CKControl, public CKTextableControl {
 	protected:
 		// Called once TE is created so you can override things in your class.
 		virtual void TECreated();
+		virtual void ResizeTE();
 
 	public:
 		CKProperty<bool> bold = false;

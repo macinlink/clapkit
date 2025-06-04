@@ -127,7 +127,7 @@ void CKTextField::PrepareForDraw() {
 bool CKTextField::HandleEvent(const CKEvent& evt) {
 
 	if (evt.type == CKEventType::click) {
-		CKLog("TEClick on %dx%d", evt.point.x, evt.point.y);
+		CKLog("TEClick on %dx%d", evt.point.x.get(), evt.point.y.get());
 		TEClick(evt.point.ToOS(), evt.shiftDown, this->__teHandle);
 	}
 

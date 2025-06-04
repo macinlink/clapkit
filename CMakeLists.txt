@@ -33,6 +33,7 @@ add_library(clapkit
     src/ckRadiobox.cpp
     src/ckCanvas.cpp
     src/ckTextField.cpp
+    src/ckTextArea.cpp
     src/ckTimer.cpp
     src/ckMenu.cpp
 )

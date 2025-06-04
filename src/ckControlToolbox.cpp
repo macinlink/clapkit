@@ -12,14 +12,11 @@
  */
 
 #include "ckControlToolbox.h"
+#include "ckPlatform.h"
 #include "ckWindow.h"
 #include "ck_pValueContainingControl.h"
 #include <Appearance.h>
 #include <Controls.h>
-
-#define kControlProcIDButton   0
-#define kControlProcIDCheckbox 1
-#define kControlProcIDRadio	   2
 
 CKControlToolbox::CKControlToolbox(const CKControlInitParams& params, CKControlType type)
 	: CKControl(params, type) {
@@ -133,7 +130,6 @@ void CKControlToolbox::__ReflectToOS() {
 
 void CKControlToolbox::RaisePropertyChange(const char* propertyName) {
 
-	CKLog("[CKControlToolbox] Property '%s' of %x has changed, calling ReflectToOS...", propertyName, this);
 	this->__ReflectToOS();
 	CKControl::RaisePropertyChange(propertyName);
 }
