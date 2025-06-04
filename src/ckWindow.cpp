@@ -301,25 +301,28 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	GetPort(&oldPort);
 	SetPort(this->__windowPtr);
 
-	Rect r;
-	r.top = 0;
-	r.left = 0;
-	r.right = this->rect->size->width;
-	r.bottom = this->rect->size->height;
+	Rect r = rectToRedraw.ToOS();
 
-	if (this->hasCustomBackgroundColor) {
-		// Use the user's picked color.
-		RGBColor c = this->backgroundColor->ToOS();
-		RGBBackColor(&c);
-		EraseRect(&r);
-	} else if (CKHasAppearanceManager()) {
-		// Mac OS 8 and above: use theme color.
-		SetThemeWindowBackground(this->__windowPtr, this->__isCurrentlyActive ? kThemeBrushDialogBackgroundActive : kThemeBrushDialogBackgroundInactive, false);
-		EraseRect(&r);
-	} else {
-		// System 7 or below: default white
-		BackColor(whiteColor);
-		EraseRect(&r);
+	if (this->__controlDirtifiedAreas.size() == 0) {
+
+		// If we are NOT coming from a control wanting an update,
+		// then we here because of the OS wanting us to update, which means
+		// we should be drawing the background.
+
+		if (this->hasCustomBackgroundColor) {
+			// Use the user's picked color.
+			RGBColor c = this->backgroundColor->ToOS();
+			RGBBackColor(&c);
+			EraseRect(&r);
+		} else if (CKHasAppearanceManager()) {
+			// Mac OS 8 and above: use theme color.
+			SetThemeWindowBackground(this->__windowPtr, this->__isCurrentlyActive ? kThemeBrushDialogBackgroundActive : kThemeBrushDialogBackgroundInactive, false);
+			EraseRect(&r);
+		} else {
+			// System 7 or below: default white
+			BackColor(whiteColor);
+			EraseRect(&r);
+		}
 	}
 
 	// If we are resizable, we need to clip the draw area
@@ -350,6 +353,7 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	}
 
 	SetPort(oldPort);
+	this->__controlDirtifiedAreas.clear();
 }
 
 /**
@@ -468,6 +472,7 @@ void CKWindow::SetIsActive(bool active) {
 		} else {
 			// We should not call this->__InvalidateEntireWindow() here
 			// as if we've arrived here from an OSEvt, we won't get any update requests.
+			this->__controlDirtifiedAreas.clear(); // Make sure we do a background paint.
 			this->Redraw(CKRect(this->rect->size->width, this->rect->size->height));
 		}
 	}
@@ -501,6 +506,8 @@ void CKWindow::DirtyArea(const CKRect rect) {
 	Rect r = rect.ToOS();
 	InvalRect(&r);
 	SetPort(oldPort);
+
+	__controlDirtifiedAreas.push_back(rect);
 }
 
 /**
@@ -547,6 +554,7 @@ void CKWindow::__InvalidateEntireWindow() {
 	SetPort(this->__windowPtr);
 	InvalRect(&r);
 	SetPort(oldPort);
+	this->__controlDirtifiedAreas.clear(); // Make sure we do a background paint.
 }
 
 void CKWindow::__ReflectToOS() {

@@ -68,4 +68,7 @@ class CKControl : public CKObject {
 		CKProperty<CKRect> rect;
 		CKProperty<bool> enabled = true;
 		CKProperty<bool> visible;
+
+	private:
+		CKRect __lastRect = CKRect(0, 0, 0, 0);
 };

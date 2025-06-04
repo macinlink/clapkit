@@ -87,7 +87,12 @@ void CKControl::MarkAsDirty() {
 }
 
 void CKControl::RaisePropertyChange(const char* propertyName) {
-
+	if (!strcmp(propertyName, "rect")) {
+		if (this->owner) {
+			this->owner->DirtyArea(this->__lastRect);
+		}
+		this->__lastRect = this->rect;
+	}
 	this->MarkAsDirty();
 	CKObject::RaisePropertyChange(propertyName);
 }

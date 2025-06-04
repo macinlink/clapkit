@@ -155,4 +155,5 @@ class CKWindow : public CKObject {
 		bool __dead = false;
 		bool __isCurrentlyActive = false;
 		CKWindowType __type;
+		std::vector<CKRect> __controlDirtifiedAreas;
 };
