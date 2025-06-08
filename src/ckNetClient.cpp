@@ -51,30 +51,34 @@ CKError CKNetClient::Connect(CKIPAddress address, UInt16 port) {
 
 	CKLog("Calling TCPActiveOpen with stream %d and address %d.%d.%d.%d and port %d", this->__stream, address[0], address[1], address[2], address[3], port);
 
-	TCPiopb pb;
-	memset(&pb, 0, sizeof(pb));
-	pb.ioCRefNum = CKNetworking::GetDriverRefNum();
-	pb.tcpStream = this->__stream;
-	pb.ioCompletion = ckgIOCompletionUPP;
-	pb.csCode = TCPActiveOpen;
-	pb.csParam.open.userDataPtr = (Ptr)this;
-	pb.csParam.open.localPort = 0;
-	pb.csParam.open.remoteHost =
+	TCPiopb* pb = (TCPiopb*)CKMalloc(sizeof(*pb));
+	if (!pb) {
+		return CKError_OutOfMemory;
+	}
+	memset(pb, 0, sizeof(*pb));
+	pb->ioCRefNum = CKNetworking::GetDriverRefNum();
+	pb->tcpStream = this->__stream;
+	pb->ioCompletion = ckgIOCompletionUPP;
+	pb->csCode = TCPActiveOpen;
+	pb->csParam.open.userDataPtr = (Ptr)this;
+	pb->csParam.open.localPort = 0;
+	pb->csParam.open.remoteHost =
 		(address[0] << 24) | (address[1] << 16) | (address[2] << 8) | address[3];
-	pb.csParam.open.remotePort = port;
-	pb.csParam.open.tosFlags = 0;
-	pb.csParam.open.precedence = 0;
-	pb.csParam.open.dontFrag = 0;
-	pb.csParam.open.timeToLive = 0;
-	pb.csParam.open.security = 0;
-	pb.csParam.open.optionCnt = 0;
+	pb->csParam.open.remotePort = port;
+	pb->csParam.open.tosFlags = 0;
+	pb->csParam.open.precedence = 0;
+	pb->csParam.open.dontFrag = 0;
+	pb->csParam.open.timeToLive = 0;
+	pb->csParam.open.security = 0;
+	pb->csParam.open.optionCnt = 0;
 
-	OSErr err = PBControlAsync((ParmBlkPtr)&pb);
+	OSErr err = PBControlAsync((ParmBlkPtr)pb);
 	CKLog("PB result is %d", err);
 	if (err != noErr && err != inProgress) {
 		CKLog("TCPActiveOpen failed with error code %d", err);
 		this->Close();
 		this->HandleEvent(CKEvent(CKEventType::tcpConnectionFailed));
+		CKFree(pb);
 		if (err == connectionExists) {
 			// A stray connection?
 			// TODO: In this case, should we retry or not?
@@ -104,7 +108,7 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 
 	CKLog("Calling Read...");
 
-	OSErr err = PBControl((ParmBlkPtr)&pb, false);
+	OSErr err = PBControlSync((ParmBlkPtr)&pb);
 
 	if (err != noErr) {
 		CKLog("Read failed: %d", err);

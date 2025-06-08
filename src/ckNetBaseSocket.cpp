@@ -61,7 +61,7 @@ CKError CKNetBaseSocket::__closeStream() {
 	pb.csCode = TCPClose;
 	pb.tcpStream = this->__stream;
 
-	OSErr err = PBControl((ParmBlkPtr)&pb, false);
+	OSErr err = PBControlSync((ParmBlkPtr)&pb);
 	if (err != noErr) {
 		CKLog("Closing of stream failed: %d", err);
 		return CKError_DriverActionFailed;
@@ -72,7 +72,7 @@ CKError CKNetBaseSocket::__closeStream() {
 	pb.csCode = TCPRelease;
 	pb.tcpStream = this->__stream;
 
-	err = PBControl((ParmBlkPtr)&pb, false);
+	err = PBControlSync((ParmBlkPtr)&pb);
 	if (err != noErr) {
 		CKLog("Releasing of stream failed: %d", err);
 		return CKError_DriverActionFailed;
@@ -126,7 +126,7 @@ CKError CKNetBaseSocket::__openStream() {
 	pb.csParam.create.notifyProc = ckgNotifyUPP;
 	pb.csParam.create.userDataPtr = (Ptr)this;
 
-	OSErr err = PBControlAsync((ParmBlkPtr)&pb);
+	OSErr err = PBControlSync((ParmBlkPtr)&pb);
 	if (err != noErr) {
 		CKLog("Opening of stream failed: %d", err);
 		return CKError_DriverActionFailed;
@@ -281,4 +281,6 @@ pascal void CKNBSIOCompletion(TCPiopb* iopb) {
 
 	bool opSuccessful = iopb->ioResult == noErr;
 	socket->__postIOCompletionEvent(iopb->csCode, opSuccessful);
+
+	CKFree(iopb);
 }
