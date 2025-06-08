@@ -99,7 +99,7 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 	memset(&pb, 0, sizeof(pb));
 	pb.ioCRefNum = CKNetworking::GetDriverRefNum();
 	pb.tcpStream = this->__stream;
-	pb.ioCompletion = ckgIOCompletionUPP;
+	pb.ioCompletion = nullptr;
 	pb.csCode = TCPRcv;
 	pb.csParam.receive.rcvBuff = (Ptr)out;
 	pb.csParam.receive.rcvBuffLen = len;
