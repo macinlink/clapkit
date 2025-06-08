@@ -14,6 +14,8 @@ Clapkit is in very early stages of development. A lot of things are either not s
 ## Features
 
 * "Modern-style" wrappers for basic Macintosh Toolbox functions.
+  * Easily create windows (CKWindow), controls (CKButton, CKLabel, etc.) and objects (like timers with CKTimer) using modern C++ syntax and lambda expressions.
+* Basic networking support with event-based MacTCP wrapper implementation.
 * Simple debug tools including debug logs and leaks checking.
 
 ## Installation
@@ -140,6 +142,34 @@ int main() {
 	delete app;
 	return 0;
 }
+```
+
+## Networking
+
+Though currently extremely buggy, a TCP client is also available via MacTCP.
+
+```C++
+CKNetClient* socket = CKNew CKNetClient();
+CKError res = socket->Connect("google.com", 80);
+
+socket->AddHandler(CKEventType::tcpConnected, [lbl2, socket](CKEvent e) {
+  CKLog("Connected!");
+  char data[256];
+  sprintf(data, "GET / HTTP/1.1\nHost: google.com\n\n");
+  socket->Write(data, strlen(data));
+});
+
+socket->AddHandler(CKEventType::tcpReceivedData, [lbl2, socket](CKEvent e) {
+  void* buffer = CKMalloc(512);
+  short readBytes;
+  CKError r = socket->Read(buffer, 512, &readBytes);
+  if (r != CKPass) {
+  	lbl2->SetText("Read failed!");
+  	return;
+  }
+  CKLog("Read %d bytes.", readBytes);
+  CKFree(buffer);
+});
 ```
 
 ## Debugging & Leaks Checking
