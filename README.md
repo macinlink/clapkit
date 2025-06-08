@@ -1,8 +1,6 @@
-# clapkit
+![Logo](misc/clapkit-logo.png)
 
-## Introduction
-
-Clapkit (CLassic APplication KIT) is basically a C++/object-oriented wrapper for Macintosh Toolbox functions. 
+Clapkit (CLassic APplication KIT) is a framework for developing applications for Classic Mac OS (System 7.x - Mac OS 9.x), basically a C++/object-oriented wrapper for Macintosh Toolbox functions. 
 
 It builds using [Retro68](https://github.com/autc04/Retro68) on modern systems and is designed to make application development for Mac OS 7.x - 9.x easier by doing most of the manual work one has to do when it comes to Toolbox programming.
 
@@ -17,6 +15,8 @@ Clapkit is in very early stages of development. A lot of things are either not s
   * Easily create windows (CKWindow), controls (CKButton, CKLabel, etc.) and objects (like timers with CKTimer) using modern C++ syntax and lambda expressions.
 * Basic networking support with event-based MacTCP wrapper implementation.
 * Simple debug tools including debug logs and leaks checking.
+
+![Screenshot](https://raw.githubusercontent.com/macinlink/clapkit-test/refs/heads/main/Clapkit-Test-App.png)
 
 ## Installation
 
@@ -60,7 +60,7 @@ You may need CMakeLists.txt and .vscode/c_cpp_properties.json modified to point 
 
 ## Usage
 
-**Note: For a sample app, check out [this repo](https://github.com/macinlink/clapkit-test).**
+**Note: For a sample app, check out [The Kitchen Sink](https://github.com/macinlink/clapkit/examples/kitchen-sink) in the the `Examples` folder.**
 
 Create an object for your app by subclassing CApp.
 
