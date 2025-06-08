@@ -16,12 +16,16 @@
 #include "ckCanvas.h"
 #include "ckLabel.h"
 #include "ckMenu.h"
+#include "ckNetBaseSocket.h"
+#include "ckNetworking.h"
 #include "ckTimer.h"
 #include "ckUtils.h"
 #include "ckWindow.h"
 #include <Appearance.h>
 #include <Devices.h>
 #include <Quickdraw.h>
+
+CKApp* __ckgCurrentCKApp = nullptr;
 
 /**
  * Initialize the app, set up menus, etc.
@@ -52,12 +56,15 @@ CKApp::CKApp() {
 	this->__windows = std::vector<CKWindow*>();
 	this->__gc_windows = std::vector<CKWindow*>();
 	this->__lastMouseDownWindow = nil;
+
+	__ckgCurrentCKApp = this;
 }
 
 /**
  * Nothing much ere.
  */
 CKApp::~CKApp() {
+	__ckgCurrentCKApp = nullptr;
 }
 
 /**
@@ -143,6 +150,11 @@ void CKApp::CKQuit() {
 	while (this->__windows.size() > 0) {
 		this->CKRemoveWindow(this->__windows.at(0));
 	}
+
+	for (auto& s : this->__net_sockets) {
+		s->Close();
+	}
+	CKNetworking::Deinitialize();
 
 	this->CKSetMenu(nullptr);
 
@@ -476,6 +488,8 @@ CKWindow* CKApp::CKTopMostWindow() {
 
 void CKApp::__DoHousekeepingTasks() {
 
+	SystemTask();
+
 	CKWindow* tmw = this->CKTopMostWindow();
 	if (tmw) {
 		tmw->Loop();
@@ -488,6 +502,8 @@ void CKApp::__DoHousekeepingTasks() {
 			++it;
 		}
 	}
+
+	CKNetworking::Loop(this->__net_sockets);
 }
 
 void CKApp::__DispatchEvent(EventRecord e) {

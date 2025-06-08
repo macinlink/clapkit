@@ -39,6 +39,7 @@
 class CKObject;
 class CKWindow;
 class CKTimer;
+class CKNetBaseSocket;
 struct CKWindowInitParams;
 struct CKMenuBar;
 struct CKMenuBarItem;
@@ -98,4 +99,7 @@ class CKApp {
 		std::vector<CKWindow*> __gc_windows;
 		std::vector<CKTimer*> __timers;
 		CKMenuBar* __menubar = nullptr;
+
+		friend CKNetBaseSocket;
+		std::vector<CKNetBaseSocket*> __net_sockets;
 };

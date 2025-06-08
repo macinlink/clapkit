@@ -42,7 +42,6 @@ class CKTextArea : public CKTextField {
 				return 0;
 			}
 			HLock((Handle)this->__teHandle);
-			TEPtr te = *(this->__teHandle);
 			// TODO: Instead of hard-coding first line,
 			// maybe we should determine what line is visible on top
 			// and use that.

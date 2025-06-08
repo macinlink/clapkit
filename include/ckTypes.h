@@ -386,6 +386,36 @@ enum class CKEventType {
 	 */
 	changed,
 
+	/**
+	 * @brief TCP socket was unable to connect to the specified address.
+	 */
+	tcpConnectionFailed,
+
+	/**
+	 * @brief TCP socket has disconnected.
+	 *
+	 * Note: This does NOT get called if you close the socket yourself.
+	 * This is only for "unexpected" disconnections.
+	 */
+	tcpDisconnected,
+
+	/**
+	 * @brief TCP socket has connected.
+	 */
+	tcpConnected,
+
+	/**
+	 * @brief TCP socket has data to read.
+	 */
+	tcpReceivedData,
+
+	/**
+	 * @brief TCP socket's incoming data buffer became full
+	 * and you've missed incoming data - and will be missing data
+	 * until you read the buffer.
+	 */
+	tcpBufferFull,
+
 };
 
 /**

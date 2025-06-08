@@ -36,6 +36,10 @@ add_library(clapkit
     src/ckTextArea.cpp
     src/ckTimer.cpp
     src/ckMenu.cpp
+    src/MacTCP/dnr.c
+    src/ckNetworking.cpp
+    src/ckNetBaseSocket.cpp
+    src/ckNetClient.cpp
 )
 
 target_include_directories(clapkit

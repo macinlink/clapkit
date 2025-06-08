@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include "ckApp.h"
-
 #include <stdio.h>
 #include <string.h>
 
