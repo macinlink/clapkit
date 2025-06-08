@@ -92,9 +92,6 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 		return CKError_TCPNotConnected;
 	}
 
-	if (actuallyRead)
-		*actuallyRead = 0;
-
 	TCPiopb pb;
 	memset(&pb, 0, sizeof(pb));
 	pb.ioCRefNum = CKNetworking::GetDriverRefNum();
@@ -105,6 +102,8 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 	pb.csParam.receive.rcvBuffLen = len;
 	pb.csParam.receive.userDataPtr = (Ptr)this;
 
+	CKLog("Calling Read...");
+
 	OSErr err = PBControl((ParmBlkPtr)&pb, false);
 
 	if (err != noErr) {
@@ -114,8 +113,10 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 
 	if (actuallyRead) {
 		*actuallyRead = pb.csParam.receive.rcvBuffLen;
+		CKLog("ActuallyRead: %d", *actuallyRead);
+	} else {
+		CKLog("Warning! actuallyRead is null!");
 	}
-	CKLog("ActuallRead: %d", *actuallyRead);
 	return CKPass;
 }
 
@@ -136,21 +137,23 @@ CKError CKNetClient::Write(const void* data, UInt32 len) {
 	pb.csParam.send.validityFlags = timeoutValue | timeoutAction;
 	pb.csParam.send.pushFlag = 1; // Push data immediately
 	pb.csParam.send.urgentFlag = 0;
-	pb.csParam.send.wdsPtr = (Ptr)NewPtr(sizeof(wdsEntry));
 
-	if (!pb.csParam.send.wdsPtr) {
+	wdsEntry* wds = (wdsEntry*)NewPtr(sizeof(wdsEntry) * 2);
+	if (!wds) {
+		CKLog("Write failed: out of memory for WDS");
 		return CKError_OutOfMemory;
 	}
 
-	// Set up write data structure
-	wdsEntry* wds = (wdsEntry*)pb.csParam.send.wdsPtr;
 	wds[0].length = len;
 	wds[0].ptr = (Ptr)data;
 	wds[1].length = 0; // End marker
 	wds[1].ptr = nullptr;
+	pb.csParam.send.wdsPtr = (Ptr)wds;
 
-	OSErr err = PBControlAsync((ParmBlkPtr)&pb);
-	DisposePtr(pb.csParam.send.wdsPtr);
+	CKLog("Calling Write...");
+	OSErr err = PBControlSync((ParmBlkPtr)&pb);
+	DisposePtr((Ptr)wds);
+
 	if (err != noErr) {
 		return CKError_DriverActionFailed;
 	}
