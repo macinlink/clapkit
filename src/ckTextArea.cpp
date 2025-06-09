@@ -36,7 +36,7 @@ pascal void __ScrollActionUPP(ControlHandle control, ControlPartCode part) {
 
 	// If it’s the thumb‐track, scroll by thumb position:
 	if (part == kControlIndicatorPart) {
-		ta->__UpdateTextScroll();
+		// ta->__UpdateTextScroll();
 		return;
 	}
 
@@ -71,7 +71,7 @@ pascal void __ScrollActionUPP(ControlHandle control, ControlPartCode part) {
 	SetControlValue(control, newVal);
 
 	// Finally, tell the text‐area to refresh itself at that scroll offset:
-	ta->__UpdateTextScroll();
+	ta->__UpdateTextScroll(delta, 0);
 }
 
 CKTextArea::CKTextArea(const CKControlInitParams& params)
@@ -95,8 +95,13 @@ void CKTextArea::ResizeTE() {
 
 	CKLog("CKTextArea's resize called.");
 
-	HLock((Handle)this->__teHandle);
+	// A ResizeTE call means our rect and/or our scrollbars have
+	// changed, meaning we need to clear the background or we'll have
+	// artifacts stuck on the screen.
+	this->__needsFullRedraw = true;
+
 	Rect cr = this->rect->ToOS();
+	HLock((Handle)this->__teHandle);
 
 	cr.top += 4;
 	cr.left += 4;
@@ -113,11 +118,6 @@ void CKTextArea::ResizeTE() {
 	(*this->__teHandle)->viewRect = cr;
 	(*this->__teHandle)->destRect = cr;
 
-	int vScroll = this->__vScrollBar ? GetControlValue(this->__vScrollBar) : 0;
-	int hScroll = this->__hScrollBar ? GetControlValue(this->__hScrollBar) : 0;
-	(*this->__teHandle)->destRect.top -= vScroll;
-	(*this->__teHandle)->destRect.left -= hScroll;
-
 	TECalText(this->__teHandle);
 
 	HUnlock((Handle)this->__teHandle);
@@ -125,6 +125,12 @@ void CKTextArea::ResizeTE() {
 
 void CKTextArea::TECreated() {
 
+	TEFeatureFlag(teFTextBuffering, teBitClear, this->__teHandle);
+	TEFeatureFlag(teFInlineInput, teBitClear, this->__teHandle);
+	TEFeatureFlag(teFOutlineHilite, teBitSet, this->__teHandle);
+	TEFeatureFlag(teFAutoScroll, teBitClear, this->__teHandle);
+	TEFeatureFlag(teFInlineInputAutoScroll, teBitClear, this->__teHandle);
+	TEFeatureFlag(teFUseWhiteBackground, teBitSet, this->__teHandle);
 	TEAutoView(false, this->__teHandle);
 	this->ResizeTE();
 }
@@ -154,7 +160,6 @@ void CKTextArea::PrepareForDraw() {
 			SetControlValue(this->__vScrollBar, 0);
 			HiliteControl(this->__vScrollBar, 255); // Disable
 		}
-		Draw1Control(this->__vScrollBar);
 	}
 }
 
@@ -174,46 +179,43 @@ void CKTextArea::Redraw() {
 	cr.top += 1;
 	cr.left += 1;
 
-	if (!this->__drewChrome) {
+	Rect r = this->rect->ToOS();
 
-		Rect r = this->rect->ToOS();
-
-		if (CKHasAppearanceManager()) {
-
-			ThemeDrawState s = kThemeStateActive;
-			if (!this->enabled) {
-				s = kThemeStateDisabled;
-			} else {
-				if (this->focused) {
-					s = kThemeStatePressed;
-				}
-			}
-			DrawThemeEditTextFrame(&r, s);
+	if (this->__needsFullRedraw) {
+		if (this->enabled) {
+			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+			RGBForeColor(&white);
 		} else {
+			RGBColor gray = {0xC000, 0xC000, 0xC000};
+			RGBForeColor(&gray);
+		}
+		EraseRect(&cr);
+		this->__needsFullRedraw = false;
+	}
 
-			if (this->enabled) {
-				RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-				RGBForeColor(&white);
-			} else {
-				RGBColor gray = {0xC000, 0xC000, 0xC000};
-				RGBForeColor(&gray);
+	if (CKHasAppearanceManager()) {
+		ThemeDrawState s = kThemeStateActive;
+		if (!this->enabled) {
+			s = kThemeStateDisabled;
+		} else {
+			if (this->focused) {
+				s = kThemeStatePressed;
 			}
-			PaintRect(&r);
-			ForeColor(blackColor);
-			FrameRect(&r);
 		}
+		DrawThemeEditTextFrame(&r, s);
+	} else {
+		ForeColor(blackColor);
+		FrameRect(&r);
+	}
 
-		if (this->__hScrollBar) {
-			Draw1Control(this->__hScrollBar);
-			cr.bottom -= kScrollBarWidth;
-		}
+	if (this->__hScrollBar) {
+		Draw1Control(this->__hScrollBar);
+		cr.bottom -= kScrollBarWidth;
+	}
 
-		if (this->__vScrollBar) {
-			Draw1Control(this->__vScrollBar);
-			cr.right -= kScrollBarWidth;
-		}
-
-		this->__drewChrome = true;
+	if (this->__vScrollBar) {
+		Draw1Control(this->__vScrollBar);
+		cr.right -= kScrollBarWidth;
 	}
 
 	if (this->__needsPreparing) {
@@ -226,6 +228,19 @@ void CKTextArea::Redraw() {
 	HLock((Handle)this->__teHandle);
 	TEPtr trecord = *(this->__teHandle);
 
+	bool shouldBeActive = this->owner->GetIsActive() && this->focused;
+	bool isActive = (trecord->active != 0);
+
+	CKLog("shouldBeActive = %d / OwnerActive = %d / ThisFocused = %d / IsActive = %d", shouldBeActive, owner->GetIsActive(), this->focused, isActive);
+	if (shouldBeActive && !isActive) {
+		TEActivate(this->__teHandle);
+	} else if (!shouldBeActive && isActive) {
+		TEDeactivate(this->__teHandle);
+	}
+
+	cr.bottom -= 1;
+	cr.right -= 1;
+	EraseRect(&cr);
 	TEUpdate(&(trecord->viewRect), this->__teHandle);
 
 	SetClip(clipHandle);
@@ -236,8 +251,6 @@ void CKTextArea::Redraw() {
 }
 
 void CKTextArea::__SetupScrollbars(bool removeOnly) {
-
-	this->__drewChrome = false;
 
 	if (this->__hScrollBar != nullptr) {
 		DisposeControl(this->__hScrollBar);
@@ -289,18 +302,31 @@ void CKTextArea::__SetupScrollbars(bool removeOnly) {
 
 void CKTextArea::RaisePropertyChange(const char* propertyName) {
 
-	if (!strcmp(propertyName, "scrollType")) {
+	if (!strcmp(propertyName, "scrollType") || !strcmp(propertyName, "rect")) {
 		this->__SetupScrollbars();
 		this->ResizeTE();
 	}
-	if (!strcmp(propertyName, "rect")) {
-		this->__drewChrome = false;
+	if (!strcmp(propertyName, "enabled")) {
+		this->__needsFullRedraw = true;
 	}
 	this->__needsPreparing = true;
 	CKTextField::RaisePropertyChange(propertyName);
 }
 
 bool CKTextArea::HandleEvent(const CKEvent& evt) {
+
+	// TODO: HACK HACK HACK
+	// We SHOULD be getting ->Focused() that does this for us,
+	// but for some reason it's not working properly?
+
+	HLock((Handle)this->__teHandle);
+	TEPtr trecord = *(this->__teHandle);
+	bool isActive = (trecord->active != 0);
+	if (!isActive) {
+		TEActivate(this->__teHandle);
+		this->Focused();
+	}
+	HUnlock((Handle)this->__teHandle);
 
 	if (evt.type == CKEventType::mouseDown) {
 
@@ -319,7 +345,13 @@ bool CKTextArea::HandleEvent(const CKEvent& evt) {
 		}
 	}
 
-	return CKTextField::HandleEvent(evt);
+	bool r = CKTextField::HandleEvent(evt);
+
+	// if (evt.type == CKEventType::mouseDown || evt.type == CKEventType::keyDown) {
+	// 	this->MarkAsDirty();
+	// }
+
+	return r;
 }
 
 void CKTextArea::__HandleScrollBarClick(ControlHandle control, CKPoint point) {
@@ -332,8 +364,14 @@ void CKTextArea::__HandleScrollBarClick(ControlHandle control, CKPoint point) {
 	if (part == kControlIndicatorPart) {
 		// Installing an UPP to IndicatorPart crashes.
 		// This is apparently the right way of doing it.
+		int vScroll = this->__vScrollBar ? GetControlValue(this->__vScrollBar) : 0;
+		int hScroll = this->__hScrollBar ? GetControlValue(this->__hScrollBar) : 0;
 		if (TrackControl(control, point.ToOS(), nullptr) != 0) {
-			this->__UpdateTextScroll();
+			int vScrollNew = this->__vScrollBar ? GetControlValue(this->__vScrollBar) : 0;
+			int hScrollNew = this->__hScrollBar ? GetControlValue(this->__hScrollBar) : 0;
+			int vDelta = vScrollNew - vScroll;
+			int hDelta = hScrollNew - hScroll;
+			this->__UpdateTextScroll(vDelta, hDelta);
 		}
 		return;
 	}
@@ -345,7 +383,19 @@ void CKTextArea::__HandleScrollBarClick(ControlHandle control, CKPoint point) {
 	HUnlock((Handle)control);
 }
 
-void CKTextArea::__UpdateTextScroll() {
+void CKTextArea::__UpdateTextScroll(int vDelta, int hDelta) {
+	if (!this->__teHandle || (vDelta == 0 && hDelta == 0)) {
+		return;
+	}
+
+	HLock((Handle)this->__teHandle);
+	short selStart = (*this->__teHandle)->selStart;
+	short selEnd = (*this->__teHandle)->selEnd;
+	HUnlock((Handle)this->__teHandle);
+
+	TEPinScroll(-hDelta, -vDelta, this->__teHandle);
+	// TESetSelect(selStart, selEnd, this->__teHandle);
+
 	this->__needsPreparing = true;
 	this->MarkAsDirty();
 }

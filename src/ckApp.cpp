@@ -741,6 +741,7 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 							evt.fillFromOS(event);
 							lastControl->HandleEvent(evt);
 							ckFoundWindow->SetLastControl(nullptr);
+							ckFoundWindow->SetActiveControl(nullptr);
 						}
 					}
 					ckFoundWindow->SetLastControl(control);
@@ -748,17 +749,18 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 					CKPoint p = CKPoint().FromOS(event.where);
 					CKEvent evt = CKEvent(CKEventType::mouseDown, p);
 					evt.fillFromOS(event);
+
+					if (this->__lastMouseDownWindow != ckFoundWindow) {
+						// Let the window know to switch the active control.
+						ckFoundWindow->SetActiveControl(control);
+					}
 					if (control) {
-						CKLog("Will call control %x to handle down event", control);
 						control->HandleEvent(evt);
 					}
 					if (this->__lastMouseDownWindow == ckFoundWindow) {
 						// Send mouseMove instead.
 						evt.type = CKEventType::mouseMove;
 						evt.mouseButton = CKMouseButton::Left;
-					} else {
-						// Let the window know to switch the active control.
-						ckFoundWindow->SetActiveControl(control);
 					}
 					this->__lastMouseDownWindow = ckFoundWindow;
 					ckFoundWindow->HandleEvent(evt);

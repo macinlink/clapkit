@@ -458,23 +458,14 @@ void CKWindow::SetActiveControl(CKControl* control) {
  * Called when the window becomes active/inactive.
  */
 void CKWindow::SetIsActive(bool active) {
-
-	// TODO: Handle scrollbars, etc.
-	bool doRefresh = false;
-	if (this->__isCurrentlyActive != active) {
-		doRefresh = true;
-	}
 	this->__isCurrentlyActive = active;
-	CKLog("Setting window %x as %s - %s refresh", this, active ? "active" : "inactive", doRefresh ? "will" : "won't");
-	if (doRefresh) {
-		if (active) {
-			this->__InvalidateEntireWindow();
-		} else {
-			// We should not call this->__InvalidateEntireWindow() here
-			// as if we've arrived here from an OSEvt, we won't get any update requests.
-			this->__controlDirtifiedAreas.clear(); // Make sure we do a background paint.
-			this->Redraw(CKRect(this->rect->size->width, this->rect->size->height));
-		}
+	if (active) {
+		this->__InvalidateEntireWindow();
+	} else {
+		// We should not call this->__InvalidateEntireWindow() here
+		// as if we've arrived here from an OSEvt, we won't get any update requests.
+		this->__controlDirtifiedAreas.clear(); // Make sure we do a background paint.
+		this->Redraw(CKRect(this->rect->size->width, this->rect->size->height));
 	}
 }
 

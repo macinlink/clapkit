@@ -12,6 +12,7 @@
  */
 
 #include "ckTextField.h"
+#include "ckWindow.h"
 #include <Appearance.h>
 
 CKTextField::CKTextField(const CKControlInitParams& params)
@@ -47,6 +48,7 @@ void CKTextField::Redraw() {
 			RGBColor gray = {0xC000, 0xC000, 0xC000};
 			RGBForeColor(&gray);
 		}
+		PaintRect(&r);
 		ForeColor(blackColor);
 		FrameRect(&r);
 	}
@@ -126,7 +128,7 @@ void CKTextField::PrepareForDraw() {
 
 bool CKTextField::HandleEvent(const CKEvent& evt) {
 
-	if (evt.type == CKEventType::click) {
+	if (evt.type == CKEventType::mouseDown) {
 		CKLog("TEClick on %dx%d", evt.point.x.get(), evt.point.y.get());
 		TEClick(evt.point.ToOS(), evt.shiftDown, this->__teHandle);
 	}

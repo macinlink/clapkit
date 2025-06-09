@@ -12,6 +12,7 @@
  */
 
 #include "ckLabel.h"
+#include "ckTextArea.h"
 #include "ckWindow.h"
 #include <Appearance.h>
 #include <TextEdit.h>
@@ -103,7 +104,9 @@ void CKLabel::PrepareForDraw() {
 		return;
 	}
 
-	this->ResizeTE();
+	if (!dynamic_cast<CKTextArea*>(this)) {
+		this->ResizeTE();
+	}
 
 	HLock((Handle)this->__teHandle);
 

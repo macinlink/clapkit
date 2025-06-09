@@ -32,7 +32,7 @@ class CKTextArea : public CKTextField {
 		/**
 		 * @brief This is only to be called from the UPPs for the scrollbar.
 		 */
-		virtual void __UpdateTextScroll();
+		virtual void __UpdateTextScroll(int vDelta, int hDelta);
 
 		/**
 		 * @brief This is only to be called from the UPPs for the scrollbar.
@@ -76,7 +76,7 @@ class CKTextArea : public CKTextField {
 		bool focused = false;
 		ControlHandle __vScrollBar = nullptr;
 		ControlHandle __hScrollBar = nullptr;
-		bool __drewChrome = false;
+		bool __needsFullRedraw = true;
 
 	public:
 		CKProperty<CKScrollType> scrollType;
