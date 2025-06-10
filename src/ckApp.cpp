@@ -343,7 +343,7 @@ CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, con
 	CKLabel* label = CKNew CKLabel({message, CKRect(labelX, padding, params.size.width - (padding + labelX), 0)});
 	label->AutoHeight(400);
 	if (label->rect->size->height <= 28) {
-		// label->rect->size->height = 28;
+		label->rect->size->height = 28;
 	}
 	toReturn->AddControl(label);
 
