@@ -235,7 +235,6 @@ void CKLabel::SetText(const char* text) {
 
 	if (this->__teHandle) {
 		if (text) {
-			CKLog("Setting text '%s' to TextEdit directly (%x)", text, this->__teHandle);
 			TESetText(text, strlen(text), this->__teHandle);
 		} else {
 			TESetText("", 0, this->__teHandle);
@@ -246,7 +245,6 @@ void CKLabel::SetText(const char* text) {
 			this->__tempTextStorage = nullptr;
 		}
 		if (text) {
-			CKLog("Setting text '%s' to temp storage.", text);
 			this->__tempTextStorage = (char*)CKMalloc(strlen(text) + 1);
 			strcpy(this->__tempTextStorage, text);
 		}

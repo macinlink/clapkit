@@ -157,6 +157,8 @@ void CKTextArea::PrepareForDraw() {
 			HiliteControl(this->__vScrollBar, 255); // Disable
 		}
 	}
+
+	HUnlock((Handle)this->__teHandle);
 }
 
 void CKTextArea::Redraw() {
