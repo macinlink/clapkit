@@ -161,7 +161,7 @@ void CKTextArea::PrepareForDraw() {
 
 void CKTextArea::Redraw() {
 
-	if (!this->__text || !this->__teHandle) {
+	if (!this->__teHandle) {
 		return;
 	}
 

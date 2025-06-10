@@ -29,6 +29,7 @@ class CKLabel : public CKControl, public CKTextableControl {
 		virtual void PrepareForDraw();
 		virtual void Redraw();
 		virtual void SetText(const char* text);
+		virtual const char* GetText();
 		void AutoHeight(int maxHeight = 0);
 
 		void SetFont(short fontId);
@@ -56,6 +57,7 @@ class CKLabel : public CKControl, public CKTextableControl {
 
 	protected:
 		short __fontNumber;
-		TEHandle __teHandle;
+		TEHandle __teHandle = nullptr;
+		char* __tempTextStorage = nullptr;
 		bool __needsPreparing = true;
 };

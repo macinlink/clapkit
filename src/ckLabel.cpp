@@ -52,6 +52,11 @@ CKLabel::~CKLabel() {
 		TEDispose(this->__teHandle);
 		this->__teHandle = nullptr;
 	}
+
+	if (this->__tempTextStorage) {
+		CKFree(this->__tempTextStorage);
+		this->__tempTextStorage = nullptr;
+	}
 }
 
 void CKLabel::AddedToWindow(CKWindow* window) {
@@ -77,8 +82,10 @@ void CKLabel::AddedToWindow(CKWindow* window) {
 
 	SetPort(oldPort);
 
-	if (this->__text) {
-		TESetText(this->__text, strlen(this->__text), this->__teHandle);
+	if (this->__tempTextStorage) {
+		TESetText(this->__tempTextStorage, strlen(this->__tempTextStorage), this->__teHandle);
+		CKFree(this->__tempTextStorage);
+		this->__tempTextStorage = nullptr;
 	}
 
 	TECreated();
@@ -113,71 +120,71 @@ void CKLabel::PrepareForDraw() {
 	short oldSelStart = (*this->__teHandle)->selStart;
 	short oldSelEnd = (*this->__teHandle)->selEnd;
 
-	if (this->__text) {
-		TESetText(this->__text, strlen(this->__text), this->__teHandle);
-
-		// Select all text
-		(*this->__teHandle)->selStart = 0;
-		(*this->__teHandle)->selEnd = strlen(this->__text);
-		TEPtr trecord = *(this->__teHandle);
-
-		switch (this->justification) {
-			case CKTextJustification::Center:
-				trecord->just = 1;
-				break;
-			case CKTextJustification::Right:
-				trecord->just = -1;
-				break;
-			default:
-				trecord->just = 0;
-				break;
-		}
-
-		TextStyle style;
-
-		style.tsFont = this->__fontNumber;
-		style.tsSize = this->fontSize;
-		style.tsFace = 0;
-
-		if (this->bold) {
-			style.tsFace = style.tsFace | QD_BOLD;
-		} else {
-			style.tsFace = style.tsFace & ~QD_BOLD;
-		}
-
-		if (this->italic) {
-			style.tsFace = style.tsFace | QD_ITALIC;
-		} else {
-			style.tsFace = style.tsFace & ~QD_ITALIC;
-		}
-
-		if (this->underline) {
-			style.tsFace = style.tsFace | QD_UNDERLINE;
-		} else {
-			style.tsFace = style.tsFace & ~QD_UNDERLINE;
-		}
-
-		CKColor black = {0, 0, 0};
-		if (this->color.get() != black || !CKHasAppearanceManager()) {
-			style.tsColor = this->color.get().ToOS();
-		} else {
-			if (this->color.get() == black && CKHasAppearanceManager()) {
-				RGBColor color;
-				GDHandle deviceHdl = LMGetMainDevice();
-				SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
-				ThemeBrush brush = kThemeInactiveDialogTextColor;
-				if (this->owner && this->owner->GetIsActive()) {
-					brush = kThemeActiveDialogTextColor;
-				}
-				SetThemeTextColor(brush, gPixelDepth, true); // TODO: Maybe not hardcode 'isColorDevice'?
-				style.tsColor = color;
-			}
-		}
-
-		TESetStyle(doAll, &style, false, this->__teHandle);
-	} else {
-		TESetText("", 0, this->__teHandle);
+	if (this->__tempTextStorage) {
+		TESetText(this->__tempTextStorage, strlen(this->__tempTextStorage), this->__teHandle);
+		CKFree(this->__tempTextStorage);
+		this->__tempTextStorage = nullptr;
 	}
+
+	// Select all text
+	(*this->__teHandle)->selStart = 0;
+	(*this->__teHandle)->selEnd = -1;
+	TEPtr trecord = *(this->__teHandle);
+
+	switch (this->justification) {
+		case CKTextJustification::Center:
+			trecord->just = 1;
+			break;
+		case CKTextJustification::Right:
+			trecord->just = -1;
+			break;
+		default:
+			trecord->just = 0;
+			break;
+	}
+
+	TextStyle style;
+
+	style.tsFont = this->__fontNumber;
+	style.tsSize = this->fontSize;
+	style.tsFace = 0;
+
+	if (this->bold) {
+		style.tsFace = style.tsFace | QD_BOLD;
+	} else {
+		style.tsFace = style.tsFace & ~QD_BOLD;
+	}
+
+	if (this->italic) {
+		style.tsFace = style.tsFace | QD_ITALIC;
+	} else {
+		style.tsFace = style.tsFace & ~QD_ITALIC;
+	}
+
+	if (this->underline) {
+		style.tsFace = style.tsFace | QD_UNDERLINE;
+	} else {
+		style.tsFace = style.tsFace & ~QD_UNDERLINE;
+	}
+
+	CKColor black = {0, 0, 0};
+	if (this->color.get() != black || !CKHasAppearanceManager()) {
+		style.tsColor = this->color.get().ToOS();
+	} else {
+		if (this->color.get() == black && CKHasAppearanceManager()) {
+			RGBColor color;
+			GDHandle deviceHdl = LMGetMainDevice();
+			SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
+			ThemeBrush brush = kThemeInactiveDialogTextColor;
+			if (this->owner && this->owner->GetIsActive()) {
+				brush = kThemeActiveDialogTextColor;
+			}
+			SetThemeTextColor(brush, gPixelDepth, true); // TODO: Maybe not hardcode 'isColorDevice'?
+			style.tsColor = color;
+		}
+	}
+
+	TESetStyle(doAll, &style, false, this->__teHandle);
 
 	(*this->__teHandle)->selStart = oldSelStart;
 	(*this->__teHandle)->selEnd = oldSelEnd;
@@ -190,7 +197,7 @@ void CKLabel::Redraw() {
 
 	CKPROFILE
 
-	if (!this->__text || !this->__teHandle) {
+	if (!this->__teHandle) {
 		return;
 	}
 
@@ -226,25 +233,68 @@ void CKLabel::Redraw() {
 
 void CKLabel::SetText(const char* text) {
 
-	CKTextableControl::SetText(text);
-
 	if (this->__teHandle) {
-		if (this->__text) {
-			TESetText(this->__text, strlen(this->__text), this->__teHandle);
+		if (text) {
+			CKLog("Setting text '%s' to TextEdit directly (%x)", text, this->__teHandle);
+			TESetText(text, strlen(text), this->__teHandle);
 		} else {
 			TESetText("", 0, this->__teHandle);
+		}
+	} else {
+		if (this->__tempTextStorage) {
+			CKFree(this->__tempTextStorage);
+			this->__tempTextStorage = nullptr;
+		}
+		if (text) {
+			CKLog("Setting text '%s' to temp storage.", text);
+			this->__tempTextStorage = (char*)CKMalloc(strlen(text) + 1);
+			strcpy(this->__tempTextStorage, text);
 		}
 	}
 
 	this->MarkAsDirty();
 }
+
+const char* CKLabel::GetText() {
+
+	if (!this->__teHandle) {
+		return this->__tempTextStorage;
+	}
+
+	// Use a static buffer or member variable to hold the text
+	static char* textBuffer = nullptr;
+
+	HLock((Handle)this->__teHandle);
+	TEPtr te = *this->__teHandle;
+
+	CharsHandle textHandle = TEGetText(this->__teHandle);
+	long textLength = te->teLength;
+
+	// Clean up old buffer
+	if (textBuffer) {
+		delete[] textBuffer;
+	}
+
+	if (textHandle && textLength > 0) {
+		HLock(textHandle);
+		textBuffer = new char[textLength + 1];
+		memcpy(textBuffer, *textHandle, textLength);
+		textBuffer[textLength] = '\0';
+		HUnlock(textHandle);
+	} else {
+		textBuffer = new char[1];
+		textBuffer[0] = '\0';
+	}
+
+	HUnlock((Handle)this->__teHandle);
+	return textBuffer;
+}
+
 /**
  * @brief Increase the height until it fits.
  * @param maxHeight If set to non-zero value, will limit maximum height.
  */
 void CKLabel::AutoHeight(int maxHeight) {
-	if (!this->__text)
-		return;
 
 	// Create a temporary TEHandle with a dummy GrafPort
 	GrafPtr oldPort;
@@ -268,9 +318,9 @@ void CKLabel::AutoHeight(int maxHeight) {
 		return;
 	}
 
-	// Set text (ensure non-empty)
-	const char* safeText = this->__text ? this->__text : " ";
-	TESetText(safeText, strlen(safeText), tempTE);
+	if (this->__tempTextStorage) {
+		TESetText(this->__tempTextStorage, strlen(this->__tempTextStorage), tempTE);
+	}
 
 	// Apply font settings BEFORE calling TECalText()
 	(*tempTE)->txFont = this->__fontNumber;
@@ -285,6 +335,8 @@ void CKLabel::AutoHeight(int maxHeight) {
 
 	// Get total height using TEGetHeight
 	int totalHeight = TEGetHeight((*tempTE)->nLines, 0, tempTE);
+
+	CKLog("TotalHeight for auto-height is %d", totalHeight);
 
 	// Limit max height if needed
 	if (maxHeight > 0 && totalHeight > maxHeight) {
