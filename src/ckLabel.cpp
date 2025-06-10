@@ -110,6 +110,9 @@ void CKLabel::PrepareForDraw() {
 
 	HLock((Handle)this->__teHandle);
 
+	short oldSelStart = (*this->__teHandle)->selStart;
+	short oldSelEnd = (*this->__teHandle)->selEnd;
+
 	if (this->__text) {
 		TESetText(this->__text, strlen(this->__text), this->__teHandle);
 
@@ -175,6 +178,9 @@ void CKLabel::PrepareForDraw() {
 	} else {
 		TESetText("", 0, this->__teHandle);
 	}
+
+	(*this->__teHandle)->selStart = oldSelStart;
+	(*this->__teHandle)->selEnd = oldSelEnd;
 
 	HUnlock((Handle)this->__teHandle);
 	TECalText(this->__teHandle);

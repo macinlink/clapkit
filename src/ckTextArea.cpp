@@ -125,13 +125,9 @@ void CKTextArea::ResizeTE() {
 
 void CKTextArea::TECreated() {
 
-	TEFeatureFlag(teFTextBuffering, teBitClear, this->__teHandle);
-	TEFeatureFlag(teFInlineInput, teBitClear, this->__teHandle);
+	TEAutoView(true, this->__teHandle);
 	TEFeatureFlag(teFOutlineHilite, teBitSet, this->__teHandle);
-	TEFeatureFlag(teFAutoScroll, teBitClear, this->__teHandle);
-	TEFeatureFlag(teFInlineInputAutoScroll, teBitClear, this->__teHandle);
 	TEFeatureFlag(teFUseWhiteBackground, teBitSet, this->__teHandle);
-	TEAutoView(false, this->__teHandle);
 	this->ResizeTE();
 }
 
@@ -228,19 +224,9 @@ void CKTextArea::Redraw() {
 	HLock((Handle)this->__teHandle);
 	TEPtr trecord = *(this->__teHandle);
 
-	bool shouldBeActive = this->owner->GetIsActive() && this->focused;
-	bool isActive = (trecord->active != 0);
-
-	CKLog("shouldBeActive = %d / OwnerActive = %d / ThisFocused = %d / IsActive = %d", shouldBeActive, owner->GetIsActive(), this->focused, isActive);
-	if (shouldBeActive && !isActive) {
-		TEActivate(this->__teHandle);
-	} else if (!shouldBeActive && isActive) {
-		TEDeactivate(this->__teHandle);
-	}
-
 	cr.bottom -= 1;
 	cr.right -= 1;
-	EraseRect(&cr);
+	EraseRect(&(trecord->viewRect));
 	TEUpdate(&(trecord->viewRect), this->__teHandle);
 
 	SetClip(clipHandle);
@@ -315,19 +301,6 @@ void CKTextArea::RaisePropertyChange(const char* propertyName) {
 
 bool CKTextArea::HandleEvent(const CKEvent& evt) {
 
-	// TODO: HACK HACK HACK
-	// We SHOULD be getting ->Focused() that does this for us,
-	// but for some reason it's not working properly?
-
-	HLock((Handle)this->__teHandle);
-	TEPtr trecord = *(this->__teHandle);
-	bool isActive = (trecord->active != 0);
-	if (!isActive) {
-		TEActivate(this->__teHandle);
-		this->Focused();
-	}
-	HUnlock((Handle)this->__teHandle);
-
 	if (evt.type == CKEventType::mouseDown) {
 
 		if (this->__vScrollBar) {
@@ -345,13 +318,7 @@ bool CKTextArea::HandleEvent(const CKEvent& evt) {
 		}
 	}
 
-	bool r = CKTextField::HandleEvent(evt);
-
-	// if (evt.type == CKEventType::mouseDown || evt.type == CKEventType::keyDown) {
-	// 	this->MarkAsDirty();
-	// }
-
-	return r;
+	return CKTextField::HandleEvent(evt);
 }
 
 void CKTextArea::__HandleScrollBarClick(ControlHandle control, CKPoint point) {
@@ -388,14 +355,7 @@ void CKTextArea::__UpdateTextScroll(int vDelta, int hDelta) {
 		return;
 	}
 
-	HLock((Handle)this->__teHandle);
-	short selStart = (*this->__teHandle)->selStart;
-	short selEnd = (*this->__teHandle)->selEnd;
-	HUnlock((Handle)this->__teHandle);
-
 	TEPinScroll(-hDelta, -vDelta, this->__teHandle);
-	// TESetSelect(selStart, selEnd, this->__teHandle);
-
 	this->__needsPreparing = true;
 	this->MarkAsDirty();
 }

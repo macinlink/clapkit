@@ -73,7 +73,6 @@ class CKTextArea : public CKTextField {
 		virtual void __HandleScrollBarClick(ControlHandle ctl, CKPoint point);
 
 	protected:
-		bool focused = false;
 		ControlHandle __vScrollBar = nullptr;
 		ControlHandle __hScrollBar = nullptr;
 		bool __needsFullRedraw = true;

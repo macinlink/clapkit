@@ -459,6 +459,17 @@ void CKWindow::SetActiveControl(CKControl* control) {
  */
 void CKWindow::SetIsActive(bool active) {
 	this->__isCurrentlyActive = active;
+
+	if (this->__activeTextInputControl) {
+		if (auto c = dynamic_cast<CKFocusableControl*>(this->__activeTextInputControl)) {
+			if (active) {
+				c->Focused();
+			} else {
+				c->Blurred();
+			}
+		}
+	}
+
 	if (active) {
 		this->__InvalidateEntireWindow();
 	} else {

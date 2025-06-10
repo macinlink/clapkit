@@ -750,11 +750,8 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 					CKEvent evt = CKEvent(CKEventType::mouseDown, p);
 					evt.fillFromOS(event);
 
-					if (this->__lastMouseDownWindow != ckFoundWindow) {
-						// Let the window know to switch the active control.
-						ckFoundWindow->SetActiveControl(control);
-					}
 					if (control) {
+						ckFoundWindow->SetActiveControl(control);
 						control->HandleEvent(evt);
 					}
 					if (this->__lastMouseDownWindow == ckFoundWindow) {
