@@ -25,11 +25,6 @@ enum class CKValueType {
 class CKValueContainingControl {
 
 	public:
-		void SetValue(const char* value) {
-			_value.tValue = value;
-			_type = CKValueType::Text;
-		}
-
 		void SetValue(bool value) {
 			_value.bValue = value;
 			_type = CKValueType::Boolean;
@@ -38,10 +33,6 @@ class CKValueContainingControl {
 		void SetValue(void* value) {
 			_value.mValue = value;
 			_type = CKValueType::Misc;
-		}
-
-		const char* GetText() const {
-			return _type == CKValueType::Text ? _value.tValue : nullptr;
 		}
 
 		bool GetBoolean() const {
@@ -56,7 +47,6 @@ class CKValueContainingControl {
 		CKValueType _type = CKValueType::None;
 		union {
 				bool bValue;
-				const char* tValue;
 				void* mValue;
 		} _value;
 };
