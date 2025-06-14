@@ -111,10 +111,6 @@ void CKLabel::PrepareForDraw() {
 		return;
 	}
 
-	if (!dynamic_cast<CKTextArea*>(this)) {
-		this->ResizeTE();
-	}
-
 	HLock((Handle)this->__teHandle);
 
 	short oldSelStart = (*this->__teHandle)->selStart;
@@ -128,7 +124,7 @@ void CKLabel::PrepareForDraw() {
 
 	// Select all text
 	(*this->__teHandle)->selStart = 0;
-	(*this->__teHandle)->selEnd = -1;
+	(*this->__teHandle)->selEnd = (*this->__teHandle)->teLength;
 	TEPtr trecord = *(this->__teHandle);
 
 	switch (this->justification) {
@@ -250,6 +246,7 @@ void CKLabel::SetText(const char* text) {
 		}
 	}
 
+	this->__needsPreparing = true;
 	this->MarkAsDirty();
 }
 
