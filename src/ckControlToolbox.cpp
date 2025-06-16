@@ -29,6 +29,9 @@ CKControlToolbox::CKControlToolbox(const CKControlInitParams& params, CKControlT
 }
 
 CKControlToolbox::~CKControlToolbox() {
+	if (this->__ptr) {
+		DisposeControl(this->__ptr);
+	}
 }
 
 void CKControlToolbox::AddedToWindow(CKWindow* window) {
