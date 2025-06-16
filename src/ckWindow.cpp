@@ -583,7 +583,6 @@ void CKWindow::__ReflectToOS() {
 
 void CKWindow::RaisePropertyChange(const char* propertyName) {
 
-	CKLog("Window %x's property '%s' has changed!", this, propertyName);
 	this->__ReflectToOS();
 	if (!strcmp(propertyName, "hasCustomBackgroundColor") || !strcmp(propertyName, "backgroundColor")) {
 		this->__InvalidateEntireWindow();

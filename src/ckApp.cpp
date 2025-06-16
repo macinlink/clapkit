@@ -1100,7 +1100,6 @@ void CKApp::CKHideMenuBar() {
 
 void CKApp::__HandleMenuPropertyChange(const CKObject* obj, const char* propName) {
 
-	CKLog("Menu bar property '%s' of %x has changed!", propName, obj);
 	const CKMenuItem* item = dynamic_cast<const CKMenuItem*>(obj);
 	if (item) {
 		const_cast<CKMenuItem*>(item)->ReflectToOS();

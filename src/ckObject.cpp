@@ -67,7 +67,6 @@ void CKObject::UnsetPropertyObserver() {
 void CKObject::RaisePropertyChange(const char* propertyName) {
 
 	if (this->propertyObserverCB) {
-		CKLog("[CKObject] Property '%s' of %x has changed, calling propertyObserverCB (%x)", propertyName, this, this->propertyObserverCB);
 		propertyObserverCB(this, propertyName);
 	}
 }
