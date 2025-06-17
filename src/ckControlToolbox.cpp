@@ -60,9 +60,16 @@ void CKControlToolbox::AddedToWindow(CKWindow* window) {
 		case CKControlType::RadioButton:
 			this->__ptr = NewControl(windowPtr, &r, title, false, 0, 0, 1, kControlProcIDRadio, 0);
 			break;
+		case CKControlType::Dropdown:
+			// Handled over at CKDropdown::AddedToWindow override.
+			break;
 		default:
 			throw CKNew CKException("Unknown/unhandled type passed to Toolbox control initializer!");
 			break;
+	}
+
+	if (!this->__ptr) {
+		CKLog("Unable to create new control!");
 	}
 
 	CKFree(title);
@@ -88,14 +95,11 @@ void CKControlToolbox::Redraw() {
 
 bool CKControlToolbox::HandleEvent(const CKEvent& evt) {
 
-	if (CKControl::HandleEvent(evt)) {
-		// Already handled, stop here.
-		return true;
-	}
+	CKControl::HandleEvent(evt);
 
 	if (evt.type == CKEventType::mouseDown) {
 		bool didClick = false;
-		if (TrackControl(this->__ptr, evt.point.ToOS(), 0)) {
+		if (TrackControl(this->__ptr, evt.point.ToOS(), (ControlActionUPP)(-1))) {
 			didClick = true;
 		}
 		if (didClick) {

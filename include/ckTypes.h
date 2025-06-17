@@ -54,6 +54,7 @@ enum class CKControlType {
 	RadioButton,
 	Canvas,
 	TextField,
+	Dropdown,
 };
 
 /**

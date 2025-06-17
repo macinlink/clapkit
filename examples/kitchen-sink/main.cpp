@@ -1,6 +1,7 @@
 #include "main.h"
 #include <ckButton.h>
 #include <ckCheckbox.h>
+#include <ckDropdown.h>
 #include <ckLabel.h>
 #include <ckMenu.h>
 #include <ckNetClient.h>
@@ -447,6 +448,47 @@ int main() {
 				lbl2->SetText("Could not connect to server.");
 			});
 		}
+	};
+
+	/*** ---------------------------------------------------------------------- */
+	/*** Showcase dropdowns
+	/-------------------------------------------------------------------------- */
+
+	tests["Dropdowns"] = []() {
+		CKWindow* window = app->CKNewWindow(CKWindowInitParams(CKSize(300, 40)));
+		window->SetTitle("Dropdowns");
+		int padding = 10;
+		CKLabel* label = CKNew CKLabel(CKSize(300 - (padding * 2), 20));
+		label->rect->origin->x = padding;
+		label->rect->origin->y = padding;
+		label->SetText("Make a selection below.");
+		window->AddControl(label);
+		for (int i = 0; i < 2; i++) {
+			CKDropdown* control = CKNew CKDropdown(CKSize(300 - (padding * 2), kCKDropdownHeight));
+			control->rect->origin->x = padding;
+			control->rect->origin->y = padding + ((i + 1) * (kCKDropdownHeight + padding));
+			control->items->push_back("Hello world!");
+			window->AddControl(control);
+			window->rect->size->height += control->rect->size->height + padding;
+			control->items->push_back("Bye world!");
+			control->items->push_back("Hello again, world!");
+			switch (i) {
+				case 0:
+					control->SetText("Select:");
+					break;
+				case 1:
+					control->SetText("A disabled dropdown!");
+					control->enabled = false;
+					break;
+			}
+			control->AddHandler(CKEventType::changed, [control, label](CKEvent e) {
+				char t[256];
+				sprintf(t, "Selection index: %d", control->selectedIndex.get());
+				label->SetText(t);
+			});
+		}
+		window->Center();
+		window->Show();
 	};
 
 	for (const auto& [name, test] : tests) {

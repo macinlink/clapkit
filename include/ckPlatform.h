@@ -23,11 +23,21 @@
 #define kCKCheckboxHeight		16
 #define kCKRadioboxHeight		kCKCheckboxHeight
 #define kCKTextFieldHeight		20
+#define kCKDropdownHeight		20
 
 #define kControlProcIDButton	0
 #define kControlProcIDCheckbox	1
 #define kControlProcIDRadio		2
 #define kControlProcIDScrollbar 16
+#define kControlProcPopup		1008
 
 using CKWindowPtr = WindowPtr;
 using CKControlPtr = ControlRef;
+
+static inline int CKFindFreeMenuID(void) {
+	int mid = 500;
+	while (GetMenuHandle(mid) != nullptr) {
+		++mid;
+	}
+	return mid;
+}

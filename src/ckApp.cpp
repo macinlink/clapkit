@@ -868,8 +868,6 @@ void CKApp::__HandleEvtMouseMove(EventRecord event) {
 
 void CKApp::__HandleEvtUpdate(EventRecord event) {
 
-	CKLog("Update event received.");
-
 	WindowPtr window = (WindowPtr)event.message;
 	if (window == nil || ((WindowPeek)window)->windowKind != userKind) {
 		// No window (or it's not ours), so no update.

@@ -15,6 +15,7 @@
 
 #include "ckApp.h"
 #include "ckControl.h"
+#include "ckPlatform.h"
 #include "ck_pTextableControl.h"
 
 class CKWindow;

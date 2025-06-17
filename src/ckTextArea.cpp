@@ -42,7 +42,6 @@ pascal void __ScrollActionUPP(ControlHandle control, ControlPartCode part) {
 
 	// Otherwise it is an arrow or page click:
 	int delta = 0;
-	const int pageSize = 10;
 	switch (part) {
 		case kControlUpButtonPart:
 			delta = ta->__GetLineHeight() * -1;
