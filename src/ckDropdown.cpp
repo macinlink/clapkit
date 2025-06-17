@@ -104,7 +104,7 @@ bool CKDropdown::HandleEvent(const CKEvent& evt) {
 	bool r = CKControlToolbox::HandleEvent(evt);
 
 	if (evt.type == CKEventType::mouseDown) {
-		this->selectedIndex.get() = GetControlValue(this->__ptr);
+		this->selectedIndex.get() = GetControlValue(this->__ptr) - 1;
 		if (this->selectedIndex != this->__lastRaisedSelectedIndex) {
 			CKControlToolbox::HandleEvent(CKEventType::changed);
 			this->__lastRaisedSelectedIndex = this->selectedIndex;
@@ -120,8 +120,8 @@ void CKDropdown::RaisePropertyChange(const char* propertyName) {
 		this->__rebuildMenu = true;
 	}
 	if (!strcmp(propertyName, "selectedIndex")) {
-		SetControlValue(this->__ptr, MIN(this->selectedIndex.get(), this->items->size()));
-		this->selectedIndex.get() = GetControlValue(this->__ptr);
+		SetControlValue(this->__ptr, MIN(this->selectedIndex.get() - 1, this->items->size()));
+		this->selectedIndex.get() = GetControlValue(this->__ptr) - 1;
 	}
 	this->__ReflectToOS();
 	CKControl::RaisePropertyChange(propertyName);

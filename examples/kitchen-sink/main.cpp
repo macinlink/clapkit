@@ -483,7 +483,7 @@ int main() {
 			}
 			control->AddHandler(CKEventType::changed, [control, label](CKEvent e) {
 				char t[256];
-				sprintf(t, "Selection index: %d", control->selectedIndex.get());
+				sprintf(t, "Selection index: %d (\"%s\")", control->selectedIndex.get(), control->items->at(control->selectedIndex));
 				label->SetText(t);
 			});
 		}
