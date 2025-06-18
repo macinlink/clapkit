@@ -60,7 +60,7 @@ You may need CMakeLists.txt and .vscode/c_cpp_properties.json modified to point 
 
 ## Usage
 
-**Note: For a sample app, check out [The Kitchen Sink](https://github.com/macinlink/clapkit/examples/kitchen-sink) in the the `Examples` folder.**
+**Note: For a sample app, check out [The Kitchen Sink](https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink) in the the `Examples` folder.**
 
 Create an object for your app by subclassing CApp.
 
