@@ -21,6 +21,7 @@
 #include "ckTimer.h"
 #include "ckUtils.h"
 #include "ckWindow.h"
+#include "ck_pFocusableControl.h"
 #include <Appearance.h>
 #include <Devices.h>
 #include <Quickdraw.h>
@@ -504,6 +505,7 @@ void CKApp::__DoHousekeepingTasks() {
 	}
 
 	CKNetworking::Loop(this->__net_sockets);
+	this->CKUpdateMenuBarItems();
 }
 
 void CKApp::__DispatchEvent(EventRecord e) {
@@ -555,16 +557,22 @@ void CKApp::__HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 
 	if (isCmd) {
 
-		if (theChar == 'q' || theChar == 'Q') {
-			// Close the app!
-			this->CKQuit();
-		}
-
 		if (theChar == 'w' || theChar == 'W') {
 			// Close the window.
 			CKWindow* topmostWindow = this->CKTopMostWindow();
 			if (topmostWindow && topmostWindow->closable) {
 				topmostWindow->Close();
+			}
+			return;
+		}
+
+		for (auto& m : this->__menubar->items) {
+			auto& vec = m->items.get();
+			for (auto& sm : vec) {
+				if (toupper(sm->shortcut) == toupper(theChar)) {
+					sm->DoCallback(this);
+					return;
+				}
 			}
 		}
 
@@ -683,8 +691,8 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 				}
 
 				auto& mi = this->__menubar->appleMenuItems[actualItemId];
-				if (mi->callback) {
-					mi->callback(CKEvent(CKEventType::click));
+				if (mi) {
+					mi->DoCallback(this);
 				}
 
 			} else {
@@ -708,8 +716,8 @@ void CKApp::__HandleEvtMouseDown(EventRecord event) {
 				}
 
 				auto& mi = vec[actualItemId];
-				if (mi->callback) {
-					mi->callback(CKEvent(CKEventType::click));
+				if (mi) {
+					mi->DoCallback(this);
 				}
 			}
 		}
@@ -1033,7 +1041,7 @@ CKError CKApp::CKSetMenu(CKMenuBar* menu) {
 			CKFree(t);
 			m->__osMenuHandle = appleMh;
 			m->__osMenuItemID = submenuIdx;
-			m->ReflectToOS(); // Shortcuts, enable/disable, etc.
+			m->__ReflectToOS(); // Shortcuts, enable/disable, etc.
 			m->SetPropertyObserver(std::bind(&CKApp::__HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 			submenuIdx++;
 		}
@@ -1067,7 +1075,7 @@ CKError CKApp::CKSetMenu(CKMenuBar* menu) {
 			CKFree(t);
 			sm->__osMenuHandle = mh;
 			sm->__osMenuItemID = submenuIdx;
-			sm->ReflectToOS(); // Shortcuts, enable/disable, etc.
+			sm->__ReflectToOS(); // Shortcuts, enable/disable, etc.
 			submenuIdx++;
 			sm->SetPropertyObserver(std::bind(&CKApp::__HandleMenuPropertyChange, this, std::placeholders::_1, std::placeholders::_2));
 		}
@@ -1079,6 +1087,7 @@ CKError CKApp::CKSetMenu(CKMenuBar* menu) {
 
 	DrawMenuBar();
 	this->__menubar = menu;
+	this->CKUpdateMenuBarItems();
 	return CKPass;
 }
 
@@ -1100,12 +1109,58 @@ void CKApp::__HandleMenuPropertyChange(const CKObject* obj, const char* propName
 
 	const CKMenuItem* item = dynamic_cast<const CKMenuItem*>(obj);
 	if (item) {
-		const_cast<CKMenuItem*>(item)->ReflectToOS();
+		const_cast<CKMenuItem*>(item)->__ReflectToOS();
 	} else {
-		const CKMenuBarItem* menubarItem = dynamic_cast<const CKMenuBarItem*>(obj);
+		const CKMenu* menubarItem = dynamic_cast<const CKMenu*>(obj);
 		if (!strcmp(propName, "enabled")) {
 			// TODO: Gray out all child items on disable
 			// -- but need to store the previous
+		}
+	}
+}
+
+/**
+ * @brief Called from CKWindow on focused-item change to update
+ * (i.e. enable/disable) the standard menu items (Cut, Copy, Paste, etc.)
+ */
+void CKApp::CKUpdateMenuBarItems() {
+
+	bool enableItems = false;
+
+	CKWindow* window = this->CKTopMostWindow();
+	CKFocusableControl* control = nullptr;
+	if (window) {
+		if (window->GetActiveControl()) {
+			enableItems = true;
+			control = window->GetActiveControl();
+		}
+	}
+
+	for (auto& m : this->__menubar->items) {
+		auto& vec = m->items.get();
+		for (auto& sm : vec) {
+			if (sm->type == CKMenuItemType::Standard) {
+				continue;
+			}
+			if (sm->type == CKMenuItemType::Quit) {
+				continue;
+			}
+			if (sm->type == CKMenuItemType::Undo) {
+				sm->enabled = enableItems & control->undoable;
+			}
+			if (sm->type == CKMenuItemType::Cut) {
+				sm->enabled = enableItems & control->cutable;
+			}
+			if (sm->type == CKMenuItemType::Copy) {
+				sm->enabled = enableItems & control->copyable;
+			}
+			if (sm->type == CKMenuItemType::Paste) {
+				sm->enabled = enableItems & control->pastable;
+			}
+			if (sm->type == CKMenuItemType::Clear) {
+				sm->enabled = enableItems & control->clearable;
+			}
+			sm->enabled = enableItems;
 		}
 	}
 }

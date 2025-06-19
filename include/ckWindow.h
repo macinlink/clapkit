@@ -27,6 +27,8 @@ enum class CKWindowType {
 	Floating = 3,
 };
 
+class CKFocusableControl;
+
 struct CKWindowInitParams {
 	public:
 		CKSize size = CKSize(0, 0);
@@ -106,6 +108,7 @@ class CKWindow : public CKObject {
 		}
 
 		bool ContainsControl(CKControl* control);
+		CKFocusableControl* GetActiveControl();
 		void SetActiveControl(CKControl* control);
 
 		virtual bool HandleEvent(const CKEvent& evt);

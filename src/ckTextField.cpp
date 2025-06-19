@@ -144,3 +144,26 @@ bool CKTextField::HandleEvent(const CKEvent& evt) {
 
 	return CKLabel::HandleEvent(evt);
 }
+
+void CKTextField::PerformClear() {
+	CKLog("perform clear...");
+	this->SetText(nullptr);
+}
+
+void CKTextField::PerformCut() {
+	if (this->__teHandle) {
+		TECut(this->__teHandle);
+	}
+}
+
+void CKTextField::PerformCopy() {
+	if (this->__teHandle) {
+		TECopy(this->__teHandle);
+	}
+}
+
+void CKTextField::PerformPaste() {
+	if (this->__teHandle) {
+		TEPaste(this->__teHandle);
+	}
+}

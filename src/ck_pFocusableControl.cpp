@@ -20,9 +20,3 @@ CKFocusableControl::CKFocusableControl() {
 
 CKFocusableControl::~CKFocusableControl() {
 }
-
-void CKFocusableControl::Focused() {
-}
-
-void CKFocusableControl::Blurred() {
-}

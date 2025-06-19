@@ -28,6 +28,11 @@ class CKTextField : public CKLabel, public CKFocusableControl {
 		virtual void PrepareForDraw();
 		virtual bool HandleEvent(const CKEvent& evt);
 
+		virtual void PerformCut();
+		virtual void PerformCopy();
+		virtual void PerformPaste();
+		virtual void PerformClear();
+
 	protected:
 		virtual void TECreated();
 };

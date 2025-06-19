@@ -425,6 +425,19 @@ bool CKWindow::ContainsControl(CKControl* control) {
 }
 
 /**
+ * @brief Called by ckApp to determine UI Changes needed,
+ * like enabling/disabling menu items.
+ * @return
+ */
+CKFocusableControl* CKWindow::GetActiveControl() {
+
+	if (auto c = dynamic_cast<CKFocusableControl*>(this->__activeTextInputControl)) {
+		return c;
+	}
+	return nullptr;
+}
+
+/**
  * @brief Called by ckApp on a click event - to set the
  * active control (like a textfield.)
  * @param control Can be nil.

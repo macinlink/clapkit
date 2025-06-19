@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ckProperty.h"
-#include <unordered_map>
+#include <map>
 
 #define CKOBSERVEVALUE(name) [this]() { this->RaisePropertyChange(name); };
 
@@ -39,6 +39,6 @@ class CKObject {
 		virtual void RaisePropertyChange(const char* propertyName);
 
 	protected:
-		std::unordered_map<CKEventType, CKEventHandlerFunc> __handlers;
+		std::map<CKEventType, CKEventHandlerFunc> __handlers;
 		CKPropertyObserverFunc propertyObserverCB = nullptr;
 };

@@ -21,9 +21,19 @@ class CKFocusableControl {
 	public:
 		CKFocusableControl();
 		virtual ~CKFocusableControl();
-		virtual void Focused();
-		virtual void Blurred();
+		virtual void Focused() {};
+		virtual void Blurred() {};
+		virtual void PerformUndo() {};
+		virtual void PerformCut() {};
+		virtual void PerformCopy() {};
+		virtual void PerformPaste() {};
+		virtual void PerformClear() {};
 
 	public:
 		CKProperty<bool> focused;
+		const bool undoable = false;
+		const bool copyable = true;
+		const bool pastable = true;
+		const bool cutable = true;
+		const bool clearable = true;
 };

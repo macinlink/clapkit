@@ -21,28 +21,24 @@ int main() {
 
 	// Create a new app.
 	app = CKNew CKTest();
-	// app->showAlert();
 
-	CKMenuBar* menuBar = CKNew CKMenuBar();
+	/*** ---------------------------------------------------------------------- */
+	/*** Set up the menu bar.
+	/-------------------------------------------------------------------------- */
 
-	CKMenuBarItem* menuFile = CKNew CKMenuBarItem("File");
-	menuBar->AddMenuItem(menuFile);
+	// Create the menu bar with the standard File/Edit menus.
+	CKMenuBar* menuBar = CKNew CKMenuBar(true);
 
+	menuBar->GetStdFileMenu()->PrependItem(CKNew CKMenuItem(CKMenuItemType::Separator));
 	CKMenuItem* meowItem = CKNew CKMenuItem("Meow", 'M', [&meowItem](CKEvent e) {
 		app->CKNewMsgBoxError("Hello world!", "This is meow!", "Oh ok", "Bark!");
-
 		meowItem->SetText("Bark");
 		meowItem->enabled = false;
 	});
-	menuFile->AddItem(meowItem);
+	menuBar->GetStdFileMenu()->PrependItem(meowItem);
 
-	CKMenuItem* quitItem = CKNew CKMenuItem("Quit", 'Q', [&quitItem](CKEvent e) {
-		app->CKQuit();
-	});
-	menuFile->AddItem(quitItem);
-
-	CKMenuBarItem* menuTests = CKNew CKMenuBarItem("Tests");
-	menuBar->AddMenuItem(menuTests);
+	CKMenu* menuTests = CKNew CKMenu("Tests");
+	menuBar->AddMenu(menuTests);
 
 	std::map<std::string, std::function<void()>> tests;
 

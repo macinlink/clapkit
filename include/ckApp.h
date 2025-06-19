@@ -42,7 +42,7 @@ class CKTimer;
 class CKNetBaseSocket;
 struct CKWindowInitParams;
 struct CKMenuBar;
-struct CKMenuBarItem;
+struct CKMenu;
 struct CKMenuItem;
 
 class CKApp {
@@ -78,6 +78,7 @@ class CKApp {
 		CKError CKSetMenu(CKMenuBar* menu);
 		void CKShowMenuBar();
 		void CKHideMenuBar();
+		void CKUpdateMenuBarItems();
 
 	private:
 		void __DoHousekeepingTasks();

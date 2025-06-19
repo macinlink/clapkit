@@ -417,6 +417,57 @@ enum class CKEventType {
 	 */
 	tcpBufferFull,
 
+	/**
+	 * @brief User wants to perform an undo (Cmd + Z)
+	 * If no such event handler is installed, Clapkit will try to
+	 * perform the task itself if it's a known type.
+	 * If you install an event handler, you'll have to do it yourself.
+	 * You have to install an event handler for non-standard data types.
+	 * Additionally, you can overwrite 'PerformUndo' of your object.
+	 */
+	dataUndo,
+
+	/**
+	 * @brief User wants to perform a cut (Cmd + X)
+	 * If no such event handler is installed, Clapkit will try to
+	 * perform the task itself if it's a known type.
+	 * If you install an event handler, you'll have to do it yourself.
+	 * You have to install an event handler for non-standard data types.
+	 * Additionally, you can overwrite 'PerformCut' of your object.
+	 */
+	dataCut,
+
+	/**
+	 * @brief User wants to perform a copy (Cmd + C)
+	 * If no such event handler is installed, Clapkit will try to
+	 * perform the task itself if it's a known type.
+	 * If you install an event handler, you'll have to do it yourself.
+	 * You have to install an event handler for non-standard data types.
+	 * Additionally, you can overwrite 'PerformCopy' of your object.
+	 */
+	dataCopy,
+
+	/**
+	 * @brief User wants to perform a paste (Cmd + V)
+	 * If no such event handler is installed, Clapkit will try to
+	 * perform the task itself if it's a known type.
+	 * If you install an event handler, you'll have to do it yourself.
+	 * You have to install an event handler for non-standard data types.
+	 * Additionally, you can overwrite 'PerformPaste' of your object.
+	 */
+	dataPaste,
+
+	/**
+	 * @brief User wants to perform a 'clear' -
+	 * i.e. delete all data on an user-editable control.
+	 * If no such event handler is installed, Clapkit will try to
+	 * perform the task itself if it's a known type.
+	 * If you install an event handler, you'll have to do it yourself.
+	 * You have to install an event handler for non-standard data types.
+	 * Additionally, you can overwrite 'PerformClear' of your object.
+	 */
+	dataClear,
+
 };
 
 /**
