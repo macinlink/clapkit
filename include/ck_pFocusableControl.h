@@ -28,6 +28,7 @@ class CKFocusableControl {
 		virtual void PerformCopy() {};
 		virtual void PerformPaste() {};
 		virtual void PerformClear() {};
+		virtual bool CanPerformPaste() { return false; }
 
 	public:
 		CKProperty<bool> focused;

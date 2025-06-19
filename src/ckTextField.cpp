@@ -14,6 +14,7 @@
 #include "ckTextField.h"
 #include "ckWindow.h"
 #include <Appearance.h>
+#include <Scrap.h>
 
 CKTextField::CKTextField(const CKControlInitParams& params)
 	: CKLabel(params) {
@@ -166,4 +167,10 @@ void CKTextField::PerformPaste() {
 	if (this->__teHandle) {
 		TEPaste(this->__teHandle);
 	}
+}
+
+bool CKTextField::CanPerformPaste() {
+	long offset; // TODO: needed?
+	long r = GetScrap(nil, 'TEXT', &offset);
+	return r != noTypeErr;
 }

@@ -1128,11 +1128,15 @@ void CKApp::CKUpdateMenuBarItems() {
 	bool enableItems = false;
 
 	CKWindow* window = this->CKTopMostWindow();
-	CKFocusableControl* control = nullptr;
+	CKFocusableControl* fcontrol = nullptr;
+	CKObject* control = nullptr;
 	if (window) {
 		if (window->GetActiveControl()) {
-			enableItems = true;
-			control = window->GetActiveControl();
+			fcontrol = window->GetActiveControl();
+			if (auto c = dynamic_cast<CKControl*>(fcontrol)) {
+				enableItems = c->enabled;
+				control = c;
+			}
 		}
 	}
 
@@ -1146,21 +1150,20 @@ void CKApp::CKUpdateMenuBarItems() {
 				continue;
 			}
 			if (sm->type == CKMenuItemType::Undo) {
-				sm->enabled = enableItems & control->undoable;
+				sm->enabled = enableItems && fcontrol->undoable;
 			}
 			if (sm->type == CKMenuItemType::Cut) {
-				sm->enabled = enableItems & control->cutable;
+				sm->enabled = enableItems && fcontrol->cutable;
 			}
 			if (sm->type == CKMenuItemType::Copy) {
-				sm->enabled = enableItems & control->copyable;
+				sm->enabled = enableItems && fcontrol->copyable;
 			}
 			if (sm->type == CKMenuItemType::Paste) {
-				sm->enabled = enableItems & control->pastable;
+				sm->enabled = enableItems && fcontrol->pastable && fcontrol->CanPerformPaste();
 			}
 			if (sm->type == CKMenuItemType::Clear) {
-				sm->enabled = enableItems & control->clearable;
+				sm->enabled = enableItems && fcontrol->clearable;
 			}
-			sm->enabled = enableItems;
 		}
 	}
 }

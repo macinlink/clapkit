@@ -32,6 +32,7 @@ class CKTextField : public CKLabel, public CKFocusableControl {
 		virtual void PerformCopy();
 		virtual void PerformPaste();
 		virtual void PerformClear();
+		virtual bool CanPerformPaste();
 
 	protected:
 		virtual void TECreated();
