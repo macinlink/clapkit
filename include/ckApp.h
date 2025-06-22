@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -45,6 +45,15 @@ struct CKMenuBar;
 struct CKMenu;
 struct CKMenuItem;
 
+/**
+ * @ingroup CoreApp
+ * @brief Defines the main entry point for a Clapkit application.
+ *
+ * @details This class represents the root of any Clapkit app.
+ * You must create (ideally only one) instance of CKApp and call `CKLoop()` to start the UI.
+ *
+ * You can subclass this if needed, but it’s not required.
+ */
 class CKApp {
 
 	public:

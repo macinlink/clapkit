@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -17,6 +17,10 @@
 #include "ckTextField.h"
 #include <TextEdit.h>
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a multi-line text area that can optionally be editable.
+ */
 class CKTextArea : public CKTextField {
 
 	public:

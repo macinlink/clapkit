@@ -16,7 +16,7 @@ Clapkit is in very early stages of development. A lot of things are either not s
 * Basic networking support with event-based MacTCP wrapper implementation.
 * Simple debug tools including debug logs and leaks checking.
 
-![Screenshot](https://raw.githubusercontent.com/macinlink/clapkit-test/refs/heads/main/Clapkit-Test-App.png)
+![Screenshot](misc/clapkit-screenshot.png)
 
 ## Installation
 

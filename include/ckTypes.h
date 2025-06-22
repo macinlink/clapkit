@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -19,16 +19,17 @@
 #include "ckUtils.h"
 #include <exception>
 
-#define CKError			uint32_t
-#define CKPass			1
+/**
+ * @ingroup Types
+ * @brief Return type for functions that might return an error. Also see: @ref CKPass and @ref CKErrorCode
+ */
+typedef int32_t CKError;
 
-#define QD_BOLD			1
-#define QD_ITALIC		2
-#define QD_UNDERLINE	4
-
-#define CKTextBold		QD_BOLD
-#define CKTextItalic	QD_ITALIC
-#define CKTextUnderline QD_UNDERLINE
+/**
+ * @ingroup Types
+ * @brief Functions that return CKError return CKPass on success.
+ */
+#define CKPass 1
 
 /**
  * We throw this and subclasses of this when we fail.
@@ -44,7 +45,8 @@ class CKException : public std::exception {
 };
 
 /**
- * Defines a control type (i.e. PushButton, Checkbox, etc.)
+ * @ingroup Types
+ * @brief Defines a control type (i.e. PushButton, Checkbox, etc.)
  */
 enum class CKControlType {
 	Unknown = 0,
@@ -58,7 +60,8 @@ enum class CKControlType {
 };
 
 /**
- * Abstraction for mouse buttons.
+ * @ingroup Types
+ * @brief Abstraction for mouse buttons.
  */
 enum class CKMouseButton {
 	None = 0,
@@ -68,6 +71,7 @@ enum class CKMouseButton {
 };
 
 /**
+ * @ingroup Types
  * @brief Used for text labels, etc.
  */
 enum class CKTextJustification {
@@ -77,7 +81,8 @@ enum class CKTextJustification {
 };
 
 /**
- * @brief Defines an RGB color. A is usually not used in our calse.
+ * @ingroup Types
+ * @brief Defines an RGB color. A (Alpha) is usually not used in our case.
  */
 struct CKColor {
 		u_int8_t r = 0;
@@ -109,8 +114,9 @@ struct CKColor {
 };
 
 /**
- * Defines a point on the screen.
- * Use ToOS/FromOS to interact with native version(s) of this.
+ * @ingroup Types
+ * @brief Defines a point on the screen.
+ * @note Use ToOS/FromOS to interact with native version(s) of this.
  */
 struct CKPoint {
 
@@ -166,7 +172,9 @@ struct CKPoint {
 };
 
 /**
+ * @ingroup Types
  * @brief Defines a rectangular area.
+ * @note Use ToOS/FromOS to interact with native version(s) of this.
  */
 struct CKSize {
 
@@ -212,10 +220,11 @@ struct CKSize {
 };
 
 /**
+ * @ingroup Types
  * @brief Defines a rectangular area at a specific location.
- * Use ToOS/FromOS to interact with native version(s) of this.
+ * @note Use ToOS/FromOS to interact with native version(s) of this.
  */
-struct CKRect : public CKObject {
+struct CKRect {
 
 		CKProperty<CKPoint> origin;
 		CKProperty<CKSize> size;
@@ -319,7 +328,8 @@ struct CKRect : public CKObject {
 };
 
 /**
- * Defines an event type for controls (and windows.)
+ * @ingroup Types
+ * @brief Defines an event type for controls (and windows.)
  */
 enum class CKEventType {
 	/**
@@ -470,11 +480,13 @@ enum class CKEventType {
 
 };
 
-/**
- * Defines an event, handled internally.
- */
 class CKWindow;
 class CKControl;
+
+/**
+ * @ingroup Types
+ * @brief Defines an event raised by the framework, mostly for user actions.
+ */
 struct CKEvent {
 
 		CKEventType type;
@@ -505,6 +517,10 @@ struct CKEvent {
 		}
 };
 
+/**
+ * @ingroup Types
+ * @brief Defines a system icon type.
+ */
 enum class CKSystemIcon {
 	noIcon = 0,
 	message = 1,
@@ -512,6 +528,10 @@ enum class CKSystemIcon {
 	error = 3,
 };
 
+/**
+ * @ingroup Types
+ * @brief Defines a scroll type.
+ */
 enum class CKScrollType {
 	none = 0,
 	vertical = 1,

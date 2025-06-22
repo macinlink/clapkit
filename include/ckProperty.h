@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -20,6 +20,42 @@ struct has_subscribe : std::false_type {};
 template <typename U>
 struct has_subscribe<U, std::void_t<decltype(std::declval<U>().Subscribe(std::declval<std::function<void()>>()))>> : std::true_type {};
 
+/**
+ * @ingroup Utils
+ * @brief Defines an observable value.
+ *
+ * @details
+ * These are mostly used to react to property changes
+ * on UI elements to refresh the screen.
+ *
+ * In most cases, you can use a CKProperty just like a
+ * regular data type like an int or bool, but in some cases you will need to use get() to
+ * get the raw data type.
+ * @code
+ * CKProperty<std::vector<CKMenuItem*>> items;
+ * auto& vec = items.get();
+ * for (auto& sm : vec) { ... }
+ * @endcode
+ *
+ * In most cases, you'll need to set the onChange to your control's property change handler,
+ * using the macro CKOBSERVEVALUE.
+ *
+ * @code
+ * this->text.onChange = CKOBSERVEVALUE("text");
+ * @endcode
+ *
+ * Then you can use RaisePropertyChange to respond to changes.
+ *
+ * @code
+ * void CKLabel::RaisePropertyChange(const char* propertyName) {
+ * 	if (!strcmp("text")) {
+ * 		// Redraw the text.
+ * 	}
+ * }
+ * @endcode
+ *
+ * @tparam T
+ */
 template <typename T>
 class CKProperty {
 	public:
@@ -52,12 +88,6 @@ class CKProperty {
 		template <typename U = T>
 		auto operator->() const -> typename std::enable_if<std::is_pointer<U>::value, typename std::remove_pointer<U>::type*>::type {
 			return value_;
-		}
-
-		void bindSubscribable() {
-			if constexpr (has_subscribe<T>::value) {
-				value_.Subscribe([this] { if(onChange) onChange(); });
-			}
 		}
 
 		// write access
@@ -133,7 +163,17 @@ class CKProperty {
 			return tmp;
 		}
 
+		/**
+		 * @brief The function to be called when the value changes.
+		 */
 		std::function<void()> onChange;
+
+	private:
+		void bindSubscribable() {
+			if constexpr (has_subscribe<T>::value) {
+				value_.Subscribe([this] { if(onChange) onChange(); });
+			}
+		}
 
 	private:
 		T value_;

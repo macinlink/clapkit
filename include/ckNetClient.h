@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -14,6 +14,10 @@
 #include "ckNetBaseSocket.h"
 #include "ckNetworking.h"
 
+/**
+ * @ingroup Networking
+ * @brief Defines a client TCP socket.
+ */
 class CKNetClient : public CKNetBaseSocket {
 
 	public:

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -22,6 +22,10 @@ pascal void CKNBSIOCompletion(TCPiopb* iopb);
 extern TCPNotifyUPP ckgNotifyUPP;
 extern TCPIOCompletionUPP ckgIOCompletionUPP;
 
+/**
+ * @brief Defines a TCP event that's coming from the interrupt, to be added to the
+ * event handling queue.
+ */
 struct CKNetBaseSocketEvtFromInterrupt {
 	public:
 		short csCode = 0;
@@ -30,6 +34,10 @@ struct CKNetBaseSocketEvtFromInterrupt {
 		bool isRead = false;
 };
 
+/**
+ * @ingroup Networking
+ * @brief Defines the base of all TCP client/server sockets.
+ */
 class CKNetBaseSocket : public CKObject {
 
 	public:

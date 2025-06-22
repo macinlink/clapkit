@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -16,6 +16,10 @@
 #include "ckApp.h"
 #include "ckCheckbox.h"
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a radio box control.
+ */
 class CKRadiobox : public CKCheckbox {
 
 	public:

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -16,6 +16,10 @@
 #include "ckApp.h"
 #include "ckControlToolbox.h"
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a push button
+ */
 class CKButton : public CKControlToolbox {
 
 	public:

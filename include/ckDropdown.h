@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -17,6 +17,10 @@
 #include "ckControlToolbox.h"
 #include "ck_pValueContainingControl.h"
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a dropdown control.
+ */
 class CKDropdown : public CKControlToolbox, public CKValueContainingControl {
 
 	public:

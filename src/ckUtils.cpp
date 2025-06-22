@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -250,6 +250,7 @@ void CKPrintProfileData() {
 #endif
 
 /**
+ * @ingroup Utils
  * @brief Checks if Appearance Manager is present (8.x+)
  * @return True if Appearance Manager is available
  */
@@ -260,8 +261,9 @@ bool CKHasAppearanceManager() {
 }
 
 /**
+ * @ingroup Utils
  * @brief Return the number of milliseconds since computer booted up.
- * @return
+ * @return Milliseconds since computer booted up.
  */
 UInt32 CKMillis() {
 

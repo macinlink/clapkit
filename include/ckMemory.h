@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -24,10 +24,11 @@ void CKMemoryDumpLeaks();
 
 #ifdef kCKDEBUGMEMORY
 
-void* __CKMalloc(const char* func, int line, const char* file, size_t size);
-void __CKFree(const char* func, int line, const char* file, void* ptr);
-void* __CKNew(const char* func, int line, const char* file, size_t size);
-void __CKDelete(void* ptr, const char* func, int line, const char* file);
+/** @internal */ void* __CKMalloc(const char* func, int line, const char* file, size_t size);
+
+/** @internal */ void __CKFree(const char* func, int line, const char* file, void* ptr);
+/** @internal */ void* __CKNew(const char* func, int line, const char* file, size_t size);
+/** @internal */ void __CKDelete(void* ptr, const char* func, int line, const char* file);
 
 template <typename T>
 inline void __CKDestroy(T* ptr, const char* file, const char* func, int line) noexcept {
@@ -46,10 +47,28 @@ inline void __CKDestroyArray(T* ptr, int count, const char* file, const char* fu
 	}
 }
 
+/**
+ * @ingroup Memory
+ * @brief Use instead of malloc.
+ */
 #define CKMalloc(sz)  __CKMalloc(__func__, __LINE__, __FILENAME__, (sz))
+
+/**
+ * @ingroup Memory
+ * @brief Use instead of free.
+ */
 #define CKFree(ptr)	  __CKFree(__func__, __LINE__, __FILENAME__, (ptr))
 
+/**
+ * @ingroup Memory
+ * @brief Use instead of new.
+ */
 #define CKNew		  new (__func__, __LINE__, __FILENAME__)
+
+/**
+ * @ingroup Memory
+ * @brief Use instead of delete.
+ */
 #define CKDelete(ptr) __CKDestroy(ptr, __FILENAME__, __func__, __LINE__)
 
 #define CKNewArray	  new (__func__, __LINE__, __FILENAME__)
@@ -63,6 +82,14 @@ inline void* operator new[](size_t size, const char* func, int line, const char*
 	return __CKNew(func, line, file, size);
 }
 
+/**
+ * @ingroup Memory
+ * @brief Copy a string (if it is a string) to a destination.
+ * Free the destination if there is already something there.
+ * @param dest
+ * @param src
+ * @return True on success
+ */
 #define CKSafeCopyString(dest, src) __CKSafeCopyString(&dest, src, __func__, __LINE__, __FILENAME__)
 
 #else

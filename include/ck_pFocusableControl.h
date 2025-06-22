@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -16,6 +16,9 @@
 #pragma once
 #include "ckProperty.h"
 
+/**
+ * @brief A base for controls that can have a "focus" - i.e. textfields.
+ */
 class CKFocusableControl {
 
 	public:

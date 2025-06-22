@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -15,6 +15,9 @@
 
 #pragma once
 
+/**
+ * @brief A base for controls that have a text property.
+ */
 class CKTextableControl {
 
 	public:

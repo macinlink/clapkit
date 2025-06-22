@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -20,6 +20,10 @@ using CKTimerCallbackFunc = std::function<void(void*)>;
 
 class CKApp;
 
+/**
+ * @ingroup CoreApp
+ * @brief Defines a timer that can execute code on a pre-defined interval.
+ */
 class CKTimer : public CKObject {
 
 	public:

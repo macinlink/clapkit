@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -29,6 +29,7 @@
 CKApp* __ckgCurrentCKApp = nullptr;
 
 /**
+ * @brief The starting point of any Clapkit app.
  * Initialize the app, set up menus, etc.
  */
 CKApp::CKApp() {
@@ -62,19 +63,16 @@ CKApp::CKApp() {
 }
 
 /**
- * Nothing much ere.
+ * Nothing much here.
  */
 CKApp::~CKApp() {
 	__ckgCurrentCKApp = nullptr;
 }
 
 /**
- * Main event loop, handling events.
- * Needs to be called as much as possible.
- *
- * Returns:
- *  0   All OK, keep going.
- *  1   App is going to quit, clean up.
+ * @brief Main event loop, handling events. Needs to be called as much as possible.
+ * @param waitTime Wait time to be given to the OS. Passed to `WaitNextEvent`
+ * @return `0` All OK, keep going. Any other value means app is going to quit, clean up.
  */
 int CKApp::CKLoop(int waitTime) {
 

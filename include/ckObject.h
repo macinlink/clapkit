@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -16,15 +16,30 @@
 #include "ckProperty.h"
 #include <map>
 
+/**
+ * @ingroup Utils
+ * @brief Simple wrapper for tying an @ref CKProperty::onChange of CKProperty to an object.
+ */
 #define CKOBSERVEVALUE(name) [this]() { this->RaisePropertyChange(name); };
 
 enum class CKEventType;
 class CKEvent;
 class CKObject;
 
+/**
+ * @ingroup Types
+ */
 using CKEventHandlerFunc = std::function<void(const CKEvent&)>;
+
+/**
+ * @ingroup Types
+ */
 using CKPropertyObserverFunc = std::function<void(const CKObject*, const char*)>;
 
+/**
+ * @ingroup CoreApp
+ * @brief Defines the base class for all controls and objects.
+ */
 class CKObject {
 
 	public:

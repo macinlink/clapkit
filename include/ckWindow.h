@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -20,6 +20,10 @@
 #include <cstring>
 #include <vector>
 
+/**
+ * @ingroup Types
+ * @brief Defines the type of the window.
+ */
 enum class CKWindowType {
 	Standard = 0,
 	StandardResizable = 1,
@@ -29,6 +33,14 @@ enum class CKWindowType {
 
 class CKFocusableControl;
 
+/**
+ * @ingroup Types
+ * @brief Initialization parameters for a CKWindow.
+ * @code
+ * CKWindow* window = app->CKNewWindow(CKWindowInitParams(CKSize(300, 100)));
+ * window->SetTitle("My Window!");
+ * @endcode
+ */
 struct CKWindowInitParams {
 	public:
 		CKSize size = CKSize(0, 0);
@@ -37,6 +49,13 @@ struct CKWindowInitParams {
 		char* title = nullptr;
 
 	public:
+		/**
+		 * @brief Initialization parameters for a CKWindow. You must set a size larger than 0x0. Title/type can be set later on.
+		 * @code
+		 * CKWindow* window = app->CKNewWindow(CKWindowInitParams(CKSize(300, 100)));
+		 * window->SetTitle("My Window!");
+		 * @endcode
+		 */
 		CKWindowInitParams(CKSize size) {
 			this->size = size;
 		}
@@ -62,6 +81,11 @@ struct CKWindowInitParams {
 		}
 };
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a window.
+ * Window type (modal, document) is determined by CKWindowInitParams and CKWindowType
+ */
 class CKWindow : public CKObject {
 
 	public:
@@ -90,8 +114,9 @@ class CKWindow : public CKObject {
 
 		/**
 		 * @brief Get the list of controls of type T in this window.
-		 * @example
+		 * @code
 		 * auto buttons = myWindow->GetControlsOfType<CKButton>();
+		 * @endcode
 		 * @return
 		 */
 		template <typename T>

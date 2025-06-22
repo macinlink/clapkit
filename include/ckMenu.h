@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -22,6 +22,10 @@ class CKApp;
 class CKMenu;
 class CKMenuItem;
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a menubar for the application.
+ */
 class CKMenuBar : public CKObject {
 	public:
 		CKMenuBar(bool createStandardItems = false);
@@ -44,6 +48,10 @@ class CKMenuBar : public CKObject {
 		CKMenu* __stdEdit = nullptr;
 };
 
+/**
+ * @ingroup UIControls
+ * @brief Defines an item on the menubar. (e.g. "File", "Edit" ..)
+ */
 class CKMenu : public CKObject {
 	public:
 		CKMenu(const char* text);
@@ -80,6 +88,10 @@ enum class CKMenuItemType {
 	Clear,
 };
 
+/**
+ * @ingroup UIControls
+ * @brief Defines an item on the menu (i.e. "Save", "Quit", etc..)
+ */
 class CKMenuItem : public CKObject {
 	public:
 		CKMenuItem(const char* text, char shortcut, CKEventHandlerFunc callback);

@@ -87,6 +87,7 @@ void* __CKMalloc(const char* func, int line, const char* file, size_t size) {
 }
 
 /**
+ * @internal
  * Wrapper for `free` used to find potential leaks.
  */
 void __CKFree(const char* func, int line, const char* file, void* ptr) {
@@ -143,6 +144,7 @@ void CKMemoryDumpLeaks() {
 }
 
 /**
+ * @internal
  * @brief Copy a string (if it is a string) to a destination.
  * Free the destination if there is already something there.
  * @param dest

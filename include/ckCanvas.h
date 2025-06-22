@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -16,6 +16,10 @@
 #include "ckApp.h"
 #include "ckControl.h"
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a drawable canvas.
+ */
 class CKCanvas : public CKControl {
 
 	public:

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -22,13 +22,11 @@ TCPIOCompletionUPP ckgIOCompletionUPP = nullptr;
 
 CKNetBaseSocket::CKNetBaseSocket() {
 	if (ckgNotifyUPP == nullptr) {
-		CKLog("Creating UPPs...");
 		ckgNotifyUPP = NewTCPNotifyUPP(CKNBSNotify);
 		ckgIOCompletionUPP = NewTCPIOCompletionUPP(CKNBSIOCompletion);
 	}
 	if (__ckgCurrentCKApp) {
 		__ckgCurrentCKApp->__net_sockets.push_back(this);
-		CKLog("I've added myself (%x) to __net_sockets of current app (%x)", this, __ckgCurrentCKApp);
 	}
 }
 
@@ -213,7 +211,6 @@ void CKNetBaseSocket::Loop() {
 	}
 
 	found->isRead = true;
-	CKLog("Found event of csCode %d with result %s", found->csCode, found->result ? "true" : "false");
 
 	switch (found->csCode) {
 		case TCPCreate:

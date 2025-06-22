@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -27,15 +27,29 @@
 #define __FILENAME__ ""
 #endif
 
+/**
+ * @ingroup Utils
+ * @brief Convert milliseconds to ticks
+ */
 #define CKMSToTicks(milliseconds) ((int)((milliseconds) / 16.66))
 
-/**
- * Wrapper for simple logs.
- */
 #ifdef kCKAPPDEBUG
+
+/**
+ * @brief Wrapper for logging.
+ * @code
+ * CKLog("Hello! My value is %d", myval);
+ * @endcode
+ * @note Only active if kCKAPPDEBUG defined.
+ */
 #define CKLog(s, ...)		  __CKDebugLog(0, s __VA_OPT__(, ) __VA_ARGS__)
 #define CKDebugLog(l, s, ...) __CKDebugLog(l, s __VA_OPT__(, ) __VA_ARGS__)
 #else
+
+/**
+ * @brief Wrapper for logging.
+ * @note Only active if kCKAPPDEBUG defined.
+ */
 #define CKLog(s, ...) \
 	do {              \
 	} while (0)
@@ -44,22 +58,35 @@
 	} while (0)
 #endif
 
-/**
- * These are hidden behind a macro as they might leak easily.
- */
-
 unsigned char* __CKC2P(const char* src, const char* func, int line, const char* file);
 char* __CKP2C(const unsigned char* src, const char* func, int line, const char* file);
 
-/**
- * Use these macros instead.
- */
-
 #ifdef kCKAPPDEBUG
+/**
+ * @ingroup Utils
+ * @brief Convert a C-string to a Pascal-string
+ * @returns unsigned char* or null on failure.
+ */
 #define CKC2P(s) __CKC2P(s, __func__, __LINE__, __FILENAME__)
+
+/**
+ * @ingroup Utils
+ * @brief Convert a Pascal-string to a C-String
+ * @returns char* or null on failure.
+ */
 #define CKP2C(s) __CKP2C(s, __func__, __LINE__, __FILENAME__)
 #else
+/**
+ * @ingroup Utils
+ * @brief Convert a C-string to a Pascal-string
+ */
 #define CKC2P(s) __CKC2P(s, "", 0, "")
+
+/**
+ * @ingroup Utils
+ * @brief Convert a Pascal-string to a C-String
+ * @returns char* or null on failure.
+ */
 #define CKP2C(s) __CKP2C(s, "", 0, "")
 #endif
 

@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -21,6 +21,10 @@ using CKIPAddress = std::array<unsigned char, 4>;
 
 class CKNetBaseSocket;
 
+/**
+ * @ingroup Networking
+ * @brief Networking (MacTCP) functionality globals
+ */
 namespace CKNetworking {
 
 bool IsAvailable();

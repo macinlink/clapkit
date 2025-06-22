@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -17,6 +17,10 @@
 #include "ckControl.h"
 #include "ck_pTextableControl.h"
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a text label.
+ */
 class CKLabel : public CKControl, public CKTextableControl {
 
 	public:

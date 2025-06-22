@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -17,6 +17,10 @@
 #include "ckLabel.h"
 #include "ck_pFocusableControl.h"
 
+/**
+ * @ingroup UIControls
+ * @brief Defines a one-line editable text field.
+ */
 class CKTextField : public CKLabel, public CKFocusableControl {
 
 	public:

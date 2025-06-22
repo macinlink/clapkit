@@ -1,0 +1,35 @@
+name: Generate Doxygen Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'examples/**'
+      - 'Doxyfile'
+      - '.github/workflows/doxygen.yml'
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Doxygen and Graphviz
+      run: sudo apt-get install doxygen graphviz -y
+
+    - name: Generate Docs to temp folder
+      run: |
+        mkdir -p build/docs
+        sed 's|^OUTPUT_DIRECTORY.*|OUTPUT_DIRECTORY = build/docs|' Doxyfile > Doxyfile.tmp
+        doxygen Doxyfile.tmp
+
+    - name: Deploy to gh-pages branch
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/docs/html
+        publish_branch: gh-pages
+        force_orphan: true

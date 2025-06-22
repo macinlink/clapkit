@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -240,7 +240,6 @@ void CKMenuItem::DoCallback(CKApp* app) {
 			}
 			break;
 		case CKMenuItemType::Clear:
-			CKLog("Clear got. Has event handler? %s", ((CKControl*)control)->HasHandler(CKEventType::dataClear) ? "yes" : "no");
 			if (control) {
 				if (((CKControl*)control)->HasHandler(CKEventType::dataClear)) {
 					((CKControl*)control)->HandleEvent(CKEventType::dataClear);

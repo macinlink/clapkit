@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -20,6 +20,10 @@
 
 class CKWindow;
 
+/**
+ * @ingroup UIControls
+ * @brief Defines the base of all UIControls that are managed by Macintosh Toolbox.
+ */
 class CKControlToolbox : public CKControl, public CKTextableControl {
 
 	public:

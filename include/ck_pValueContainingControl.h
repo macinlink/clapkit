@@ -1,4 +1,4 @@
-/**
+/*
  *
  * Clapkit
  * ----------------------------------------------------------------------
@@ -22,6 +22,9 @@ enum class CKValueType {
 	Misc
 };
 
+/**
+ * @brief A base for controls that have a 'main' boolean or custom property.
+ */
 class CKValueContainingControl {
 
 	public:
