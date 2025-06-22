@@ -34,8 +34,6 @@ CKCanvas::~CKCanvas() {
 
 	CKPROFILE
 
-	CKLog("~CKCanvas called.");
-
 	if (this->__gworldptr) {
 		DisposeGWorld(this->__gworldptr);
 		this->__gworldptr = NULL;

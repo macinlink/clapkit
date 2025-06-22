@@ -92,8 +92,6 @@ void CKTextArea::ResizeTE() {
 		return;
 	}
 
-	CKLog("CKTextArea's resize called.");
-
 	// A ResizeTE call means our rect and/or our scrollbars have
 	// changed, meaning we need to clear the background or we'll have
 	// artifacts stuck on the screen.

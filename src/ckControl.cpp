@@ -30,7 +30,6 @@ CKControl::CKControl(const CKControlInitParams& params, CKControlType type)
 
 CKControl::~CKControl() {
 
-	CKLog("~CKControl called");
 	CKEvent evt = CKEvent(CKEventType::deleted);
 	this->HandleEvent(evt);
 

@@ -88,15 +88,11 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	this->backgroundColor.onChange = CKOBSERVEVALUE("backgroundColor");
 	this->hasCustomBackgroundColor.onChange = CKOBSERVEVALUE("hasCustomBackgroundColor");
 	this->rect.onChange = CKOBSERVEVALUE("rect");
-
-	CKLog("Created window %x", this);
 }
 
 CKWindow::~CKWindow() {
 
 	CKPROFILE
-
-	CKLog("Destroying window %x", this);
 
 	CKEvent evt = CKEvent(CKEventType::deleted);
 	this->HandleEvent(evt);
@@ -281,7 +277,6 @@ void CKWindow::RemoveControl(CKControl* control, bool free) {
 	if (!found) {
 		CKLog("RemoveControl called for %x but can't find it!");
 	} else {
-		CKLog("RemoveControl successfully removed control %x.", control);
 		if (free) {
 			CKDelete(control);
 		}

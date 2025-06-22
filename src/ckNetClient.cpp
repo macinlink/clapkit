@@ -49,8 +49,6 @@ CKError CKNetClient::Connect(CKIPAddress address, UInt16 port) {
 		}
 	}
 
-	CKLog("Calling TCPActiveOpen with stream %d and address %d.%d.%d.%d and port %d", this->__stream, address[0], address[1], address[2], address[3], port);
-
 	TCPiopb* pb = (TCPiopb*)CKMalloc(sizeof(*pb));
 	if (!pb) {
 		return CKError_OutOfMemory;
@@ -106,8 +104,6 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 	pb.csParam.receive.rcvBuffLen = len;
 	pb.csParam.receive.userDataPtr = (Ptr)this;
 
-	CKLog("Calling Read...");
-
 	OSErr err = PBControlSync((ParmBlkPtr)&pb);
 
 	if (err != noErr) {
@@ -117,7 +113,6 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 
 	if (actuallyRead) {
 		*actuallyRead = pb.csParam.receive.rcvBuffLen;
-		CKLog("ActuallyRead: %d", *actuallyRead);
 	} else {
 		CKLog("Warning! actuallyRead is null!");
 	}
@@ -154,7 +149,6 @@ CKError CKNetClient::Write(const void* data, UInt32 len) {
 	wds[1].ptr = nullptr;
 	pb.csParam.send.wdsPtr = (Ptr)wds;
 
-	CKLog("Calling Write...");
 	OSErr err = PBControlSync((ParmBlkPtr)&pb);
 	DisposePtr((Ptr)wds);
 

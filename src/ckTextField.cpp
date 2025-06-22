@@ -66,8 +66,6 @@ void CKTextField::TECreated() {
 
 void CKTextField::Blurred() {
 
-	CKLog("CKTextField %x blurred.", this);
-
 	this->focused = false;
 
 	if (!this->__teHandle) {
@@ -79,8 +77,6 @@ void CKTextField::Blurred() {
 }
 
 void CKTextField::Focused() {
-
-	CKLog("CKTextField %x Focused.", this);
 
 	this->focused = true;
 
@@ -132,12 +128,10 @@ void CKTextField::PrepareForDraw() {
 bool CKTextField::HandleEvent(const CKEvent& evt) {
 
 	if (evt.type == CKEventType::mouseDown) {
-		CKLog("TEClick on %x at %dx%d", this, evt.point.x.get(), evt.point.y.get());
 		TEClick(evt.point.ToOS(), evt.shiftDown, this->__teHandle);
 	}
 
 	if (evt.type == CKEventType::keyDown) {
-		CKLog("TEKey on %x (key = %x)", this, evt.key);
 		TEKey(evt.key, this->__teHandle);
 		CKEvent e = CKEvent(CKEventType::changed);
 		this->HandleEvent(e);
@@ -147,7 +141,6 @@ bool CKTextField::HandleEvent(const CKEvent& evt) {
 }
 
 void CKTextField::PerformClear() {
-	CKLog("perform clear...");
 	this->SetText(nullptr);
 }
 

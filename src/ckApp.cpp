@@ -83,7 +83,6 @@ int CKApp::CKLoop(int waitTime) {
 	CKPROFILE
 
 	if (this->__gc_windows.size() > 0) {
-		CKLog("Doing Window garbage collectionism..");
 		while (this->__gc_windows.size() > 0) {
 			CKDelete(this->__gc_windows.at(0));
 			this->__gc_windows.erase(this->__gc_windows.begin());
@@ -972,7 +971,6 @@ void CKApp::CKRemoveTimer(CKTimer* timer) {
 
 	for (auto it = __timers.begin(); it != __timers.end(); ++it) {
 		if (*it == timer) {
-			CKLog("Deleting timer %x...", *it);
 			CKDelete(*it);
 			__timers.erase(it);
 			return;

@@ -128,8 +128,6 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 
 	OSErr err;
 
-	CKLog("Opening DNS resolver.. (checking: %s)", hostname);
-
 	err = OpenResolver(nil);
 	if (err != noErr) {
 		CKLog("Failed to open DNR: %d", err);
@@ -143,8 +141,6 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 	// Define completion routine
 	ResultUPP completionUPP = NewResultProc(ResolveNameResultUPP);
 
-	CKLog("Calling StrToAddress for name resolving...");
-
 	err = StrToAddr((char*)hostname, &hResult, completionUPP, (char*)&done);
 	if (err != noErr && err != cacheFault) {
 		CKLog("Calling StrToAddress failed: %d", err);
@@ -153,7 +149,6 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 
 	if (err == cacheFault) {
 		UInt32 timeout = TickCount() + 60 * 5;
-		CKLog("Calling StrToAddress succeeded with cacheFault, entering DNR loop...");
 		while (!done && TickCount() < timeout) {
 			SystemTask();
 			EventRecord evt;
@@ -163,12 +158,9 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 				}
 			}
 		}
-		CKLog("Exited DNR loop.");
 	} else {
 		CKLog("Got cached DNR result.");
 	}
-
-	CKLog("hResult.rtnCode is %d.", hResult.rtnCode);
 	if (hResult.rtnCode == noErr && hResult.addr[0] != 0) {
 		// Convert the address (it's in network byte order)
 		unsigned long addr = hResult.addr[0];
@@ -177,9 +169,6 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 		(*result)[1] = (unsigned char)((addr >> 16) & 0xFF);
 		(*result)[2] = (unsigned char)((addr >> 8) & 0xFF);
 		(*result)[3] = (unsigned char)(addr & 0xFF);
-
-		CKLog("Resolved %s to %d.%d.%d.%d", hostname,
-			  (*result)[0], (*result)[1], (*result)[2], (*result)[3]);
 		return CKPass;
 	}
 
