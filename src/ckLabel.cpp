@@ -331,8 +331,6 @@ void CKLabel::AutoHeight(int maxHeight) {
 	// Get total height using TEGetHeight
 	int totalHeight = TEGetHeight((*tempTE)->nLines, 0, tempTE);
 
-	CKLog("TotalHeight for auto-height is %d", totalHeight);
-
 	// Limit max height if needed
 	if (maxHeight > 0 && totalHeight > maxHeight) {
 		totalHeight = maxHeight;
