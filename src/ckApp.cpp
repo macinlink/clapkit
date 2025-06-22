@@ -895,8 +895,6 @@ void CKApp::__HandleEvtUpdate(EventRecord event) {
 	CKWindow* ckFoundWindow = this->CKFindWindow(window);
 	if (ckFoundWindow) {
 		ckFoundWindow->Redraw(drk);
-	} else {
-		CKLog("__HandleEvtUpdate called, but ckFoundWindow is nil");
 	}
 
 	EndUpdate((WindowRef)event.message);
@@ -916,8 +914,6 @@ void CKApp::__HandleEvtActivate(EventRecord event) {
 	CKWindow* ckFoundWindow = this->CKFindWindow(window);
 	if (ckFoundWindow) {
 		ckFoundWindow->SetIsActive(isActivating);
-	} else {
-		CKLog("HandleEvtActivate called, but ckFoundWindow is nil");
 	}
 }
 
@@ -993,7 +989,9 @@ void CKApp::CKRemoveTimersOfOwner(CKObject* owner) {
 		}
 	}
 
-	CKLog("CKRemoveTimersOfOwner is looking for timers with owner %x, found %d", owner, toRemove.size());
+	if (toRemove.size()) {
+		CKLog("CKRemoveTimersOfOwner is looking for timers with owner %x, found %d", owner, toRemove.size());
+	}
 
 	for (auto* timer : toRemove) {
 		// We need this to avoid a loop as Timer's destructor also calls CKRemoveTimersOfOwner.

@@ -48,7 +48,9 @@ void CKCanvas::Redraw() {
 		return;
 	}
 
+#ifdef CKDEBUGTIMEDRAWS
 	long t_start = TickCount();
+#endif
 
 	GrafPtr oldPort;
 	GetPort(&oldPort);
@@ -70,7 +72,10 @@ void CKCanvas::Redraw() {
 
 	UnlockPixels(offscreenPixMap);
 
+#ifdef CKDEBUGTIMEDRAWS
 	CKLog("Redraw took %lu ticks.", (TickCount() - t_start));
+#endif
+
 	SetPort(oldPort);
 }
 
