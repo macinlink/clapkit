@@ -1,0 +1,56 @@
+var group__CoreApp =
+[
+    [ "CKApp", "classCKApp.html", [
+      [ "CKApp", "classCKApp.html#ac67718c05e80e280ef8824dfb4526e6e", null ],
+      [ "~CKApp", "classCKApp.html#a340467b69bf944e503fded8bb0b7173e", null ],
+      [ "CKAddTimer", "classCKApp.html#a861eb469b152ce3b28aaf1325685890f", null ],
+      [ "CKDecreaseWork", "classCKApp.html#aa03581ee59509d6986be0edbb10eff9a", null ],
+      [ "CKFindWindow", "classCKApp.html#aa90e8da71c770a0506ace2dbd02a9793", null ],
+      [ "CKFontToId", "classCKApp.html#afc9fbb42cf091764a2af0011d5f1de26", null ],
+      [ "CKHideMenuBar", "classCKApp.html#aee2edb0a59e0be61b6f2fb26302aae0c", null ],
+      [ "CKIncreaseWork", "classCKApp.html#a8fc69944673ee9f6b33dbfcd0f24c6fd", null ],
+      [ "CKLoop", "classCKApp.html#aa3bfc5160ead7264578e7992ff275792", null ],
+      [ "CKNewMsgBoxError", "classCKApp.html#af3b9d8ecf68c991fb8275802be6f3e36", null ],
+      [ "CKNewMsgBoxNote", "classCKApp.html#adc74c054aba87cee315564e0e50cc40d", null ],
+      [ "CKNewMsgBoxPlain", "classCKApp.html#a91771336e09460e1cebbb54e5b7e54b6", null ],
+      [ "CKNewMsgBoxWarning", "classCKApp.html#af44388c4ef3482871c4535ff063d769e", null ],
+      [ "CKNewWindow", "classCKApp.html#a8af95f6b22544a68ece65b78aece1f46", null ],
+      [ "CKQuit", "classCKApp.html#a7b94f96e3d42ec7dc9c375d4ea6707c9", null ],
+      [ "CKRemoveTimer", "classCKApp.html#a31d8546f73c05d2bccbfe0420c32bdde", null ],
+      [ "CKRemoveTimersOfOwner", "classCKApp.html#af612503a5d69647604c3018047e05b83", null ],
+      [ "CKRemoveWindow", "classCKApp.html#ad35521de2f1e422c7bf910e7e65e37ca", null ],
+      [ "CKRestoreCursor", "classCKApp.html#af776ee2e958851b89aed2c89dfa9c2dc", null ],
+      [ "CKSetMenu", "classCKApp.html#ae41610cff558a7befed4551811344c5b", null ],
+      [ "CKShowMenuBar", "classCKApp.html#ac2ab6e79e8e8ea2f260f66a49b4b6a8c", null ],
+      [ "CKTopMostWindow", "classCKApp.html#a929d140665246e8ae07654128a81eaad", null ],
+      [ "CKUpdateMenuBarItems", "classCKApp.html#ac7036c8266f7a24edc8068b9faa8be11", null ]
+    ] ],
+    [ "CKObject", "classCKObject.html", [
+      [ "CKObject", "classCKObject.html#aab86beac83e4647a581c25971964e5cd", null ],
+      [ "~CKObject", "classCKObject.html#a901827edde90ecd740d2154cd38510d7", null ],
+      [ "AddHandler", "classCKObject.html#a54861efaee9c2c8a2a7a7ec0d34da962", null ],
+      [ "HandleEvent", "classCKObject.html#a94461883edc17d6a1c1f27e04b9698a4", null ],
+      [ "HasHandler", "classCKObject.html#a2c60307f6b046ec2e6ecd862f02e927b", null ],
+      [ "RaisePropertyChange", "classCKObject.html#af4d424ce0e501a68bf67f4a0df71edd8", null ],
+      [ "RemoveHandler", "classCKObject.html#ab3637d6915b12a22a033d2f00b1b0c28", null ],
+      [ "SetPropertyObserver", "classCKObject.html#ac0491b25b75a6dd4852697e6fb73aa93", null ],
+      [ "UnsetPropertyObserver", "classCKObject.html#abd39f381b899a9d6b860d58ae81100a6", null ],
+      [ "__handlers", "classCKObject.html#a52f0e4ff3b8ee33e12c669255e09f5e9", null ],
+      [ "propertyObserverCB", "classCKObject.html#a21e649c5d1f0b86a962bef605cba866b", null ]
+    ] ],
+    [ "CKTimer", "classCKTimer.html", [
+      [ "CKTimer", "classCKTimer.html#afbe50e4ace711ce239b3f0ba3bff6a4f", null ],
+      [ "~CKTimer", "classCKTimer.html#af15970fa51d4d5df928a49cbc60d3833", null ],
+      [ "Start", "classCKTimer.html#ade15c7c446cdd931a41283e396995d41", null ],
+      [ "Stop", "classCKTimer.html#a4430871432c4b637ceeb2c6f48208ce7", null ],
+      [ "Update", "classCKTimer.html#ad69a166f8340389a1207a3f1cb093441", null ],
+      [ "app", "classCKTimer.html#ae3e8be0ea2b9c74eaa2e01b9f40ebcd1", null ],
+      [ "callback", "classCKTimer.html#a6b40203cc1bf1ed617b323c635693b6e", null ],
+      [ "enabled", "classCKTimer.html#af228182ad772d83db75b178e92a6841d", null ],
+      [ "interval", "classCKTimer.html#a9d30a9ab29f3c0e6b67a0e3ba01dc851", null ],
+      [ "multiRun", "classCKTimer.html#a702f4647578e7d030ab538c69ca8aabb", null ],
+      [ "nextRun", "classCKTimer.html#ab8fe47adff1a97a4ec7844260a693953", null ],
+      [ "owner", "classCKTimer.html#a40f5cdd3e508d9249d89c7cd328fc166", null ],
+      [ "userData", "classCKTimer.html#a26c7c7e612f9434e65746975400f8790", null ]
+    ] ]
+];

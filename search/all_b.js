@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['kckapplemenuid_0',['kCKAppleMenuID',['../ckPlatform_8h.html#ae5bf04ecabacdcd9bdb902cde919e797',1,'ckPlatform.h']]],
+  ['kckbuttonheight_1',['kCKButtonHeight',['../group__Utils.html#gaa26011a5ddcbe4034a0d1e7589f90353',1,'ckPlatform.h']]],
+  ['kckcheckboxheight_2',['kCKCheckboxHeight',['../group__Utils.html#gaac2f2dc06a3ffb89c9baa13559f4e785',1,'ckPlatform.h']]],
+  ['kckdropdownheight_3',['kCKDropdownHeight',['../group__Utils.html#ga6cec4585d3de205dcac4ce9f44d5316b',1,'ckPlatform.h']]],
+  ['kckradioboxheight_4',['kCKRadioboxHeight',['../group__Utils.html#ga2dcc9da17d2d9a238ef352d601d27c70',1,'ckPlatform.h']]],
+  ['kcktextfieldheight_5',['kCKTextFieldHeight',['../group__Utils.html#ga071280d58bcb14de7039db50609d16a2',1,'ckPlatform.h']]],
+  ['kckusermenustartid_6',['kCKUserMenuStartID',['../ckPlatform_8h.html#a8d9754af8637f61d57c99a7a3d702710',1,'ckPlatform.h']]],
+  ['kcontroldownbuttonpart_7',['kControlDownButtonPart',['../ckTextArea_8cpp.html#af65875014af8959d79ad952695f278fa',1,'ckTextArea.cpp']]],
+  ['kcontrolpagedownpart_8',['kControlPageDownPart',['../ckTextArea_8cpp.html#af8712e090721d5b75c5284127d2563c1',1,'ckTextArea.cpp']]],
+  ['kcontrolpageuppart_9',['kControlPageUpPart',['../ckTextArea_8cpp.html#a7159db69806f51f59a7eb166a7bf8792',1,'ckTextArea.cpp']]],
+  ['kcontrolprocidbutton_10',['kControlProcIDButton',['../ckPlatform_8h.html#af73ed351a4a94a09c45d3aac74722c1f',1,'ckPlatform.h']]],
+  ['kcontrolprocidcheckbox_11',['kControlProcIDCheckbox',['../ckPlatform_8h.html#a40d736de2dc6ccf09d8bebddc40b87d5',1,'ckPlatform.h']]],
+  ['kcontrolprocidradio_12',['kControlProcIDRadio',['../ckPlatform_8h.html#ad8b700d1ddab5bd257edda670e607646',1,'ckPlatform.h']]],
+  ['kcontrolprocidscrollbar_13',['kControlProcIDScrollbar',['../ckPlatform_8h.html#a275a073a46e0b75aac6e6f390aafea57',1,'ckPlatform.h']]],
+  ['kcontrolprocpopup_14',['kControlProcPopup',['../ckPlatform_8h.html#afce60f315f4bd9886f04ccda25913a08',1,'ckPlatform.h']]],
+  ['kcontrolupbuttonpart_15',['kControlUpButtonPart',['../ckTextArea_8cpp.html#a1b3e28f9ab2e12f8da9a1cffdc390580',1,'ckTextArea.cpp']]],
+  ['key_16',['key',['../structCKEvent.html#af0c350621d82b00748ebf772ebe54d4f',1,'CKEvent']]],
+  ['keydown_17',['keyDown',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308ca5667d5662d560afa94832ef44521d1bd',1,'ckTypes.h']]],
+  ['keyup_18',['keyUp',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308caef6c5fbb63e58b95c09d30a6c2de5b02',1,'ckTypes.h']]],
+  ['kitchen_20sink_20a_20in_20the_20the_20tt_20examples_20tt_20folder_20strong_19',['&lt;strong&gt;Note: For a sample app, check out &lt;a href=&quot;https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink&quot; &gt;The Kitchen Sink&lt;/a&gt; in the the &lt;tt&gt;Examples&lt;/tt&gt; folder.&lt;/strong&gt;',['../index.html#autotoc_md5',1,'']]],
+  ['kitchen_20sink_20the_20kitchen_20sink_20a_20in_20the_20the_20tt_20examples_20tt_20folder_20strong_20',['&lt;strong&gt;Note: For a sample app, check out &lt;a href=&quot;https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink&quot; &gt;The Kitchen Sink&lt;/a&gt; in the the &lt;tt&gt;Examples&lt;/tt&gt; folder.&lt;/strong&gt;',['../index.html#autotoc_md5',1,'']]],
+  ['kscrollbarwidth_21',['kScrollBarWidth',['../ckTextArea_8cpp.html#ae7c8d67124b0f4d7c3abb4030b870961',1,'ckTextArea.cpp']]]
+];
