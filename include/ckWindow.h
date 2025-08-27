@@ -19,6 +19,7 @@
 #include <MacWindows.h>
 #include <cstring>
 #include <vector>
+#include <optional>
 
 /**
  * @ingroup Types

@@ -35,6 +35,7 @@
 #include <functional>
 #include <stdlib.h>
 #include <vector>
+#include <cctype>
 
 class CKObject;
 class CKWindow;
