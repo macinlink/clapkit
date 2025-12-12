@@ -55,7 +55,7 @@ class CKNetBaseSocket : public CKObject {
 			return this->__mactcpBufferSize;
 		}
 
-		void Loop();
+		virtual void Loop();
 
 	protected:
 		CKError __openStream();

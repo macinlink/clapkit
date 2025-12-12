@@ -257,6 +257,7 @@ const char* CKLabel::GetText() {
 	}
 
 	// Use a static buffer or member variable to hold the text
+	// WARNING: This buffer is overwritten on each call. Caller must copy if needed.
 	static char* textBuffer = nullptr;
 
 	HLock((Handle)this->__teHandle);
@@ -265,20 +266,25 @@ const char* CKLabel::GetText() {
 	CharsHandle textHandle = TEGetText(this->__teHandle);
 	long textLength = te->teLength;
 
-	// Clean up old buffer
 	if (textBuffer) {
-		delete[] textBuffer;
+		CKFree(textBuffer);
+		textBuffer = nullptr;
 	}
 
 	if (textHandle && textLength > 0) {
 		HLock(textHandle);
-		textBuffer = new char[textLength + 1];
-		memcpy(textBuffer, *textHandle, textLength);
-		textBuffer[textLength] = '\0';
+		// Use CKMalloc for POD types (char), not CKNewArray
+		textBuffer = (char*)CKMalloc(textLength + 1);
+		if (textBuffer) {
+			memcpy(textBuffer, *textHandle, textLength);
+			textBuffer[textLength] = '\0';
+		}
 		HUnlock(textHandle);
 	} else {
-		textBuffer = new char[1];
-		textBuffer[0] = '\0';
+		textBuffer = (char*)CKMalloc(1);
+		if (textBuffer) {
+			textBuffer[0] = '\0';
+		}
 	}
 
 	HUnlock((Handle)this->__teHandle);

@@ -125,16 +125,26 @@ void CKMemoryDumpLeaks() {
 
 	if (leak == 0) {
 		__CKWriteToExitFile("Congrats, you have zero leaks!");
-		return;
 	} else {
 		__CKWriteToExitFile("- %d bytes leaked:", leak);
+
+		for (auto& p : __allocationRecs) {
+			__CKWriteToExitFile("-- <%s> %d bytes - %s on %s, Line %d", p.viaNew ? "new" : "mal", p.size, p.funcName, p.fileName, p.line);
+		}
+
+		__CKWriteToExitFile("-- END OF LEAK LIST --");
 	}
 
+	// Clean up tracking data structures to prevent false positives
 	for (auto& p : __allocationRecs) {
-		__CKWriteToExitFile("-- <%s> %d bytes - %s on %s, Line %d", p.viaNew ? "new" : "mal", p.size, p.funcName, p.fileName, p.line);
+		if (p.funcName) {
+			dlfree(p.funcName);
+		}
+		if (p.fileName) {
+			dlfree(p.fileName);
+		}
 	}
-
-	__CKWriteToExitFile("-- END OF LEAK LIST --");
+	__allocationRecs.clear();
 
 #else
 
@@ -169,6 +179,8 @@ bool __CKSafeCopyString(char** dest, const char* src, const char* func, int line
 #endif
 		if (*dest) {
 			strncpy(*dest, src, len);
+			// Ensure null termination to prevent buffer overflow
+			(*dest)[len - 1] = '\0';
 			return true;
 		} else {
 			return false;

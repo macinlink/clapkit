@@ -428,6 +428,11 @@ enum class CKEventType {
 	tcpBufferFull,
 
 	/**
+	 * @brief TCP socket has an error.
+	 */
+	tcpError,
+
+	/**
 	 * @brief User wants to perform an undo (Cmd + Z)
 	 * If no such event handler is installed, Clapkit will try to
 	 * perform the task itself if it's a known type.
@@ -503,6 +508,8 @@ struct CKEvent {
 
 		const CKWindow* window = nullptr;	// always set
 		const CKControl* control = nullptr; // can be nullptr for window-only events
+
+		CKError errCode; // Set on tcpError.
 
 		CKEvent(CKEventType type)
 			: type(type) {}

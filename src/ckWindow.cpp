@@ -104,6 +104,12 @@ CKWindow::~CKWindow() {
 	while (this->__controls.size() > 0) {
 		this->RemoveControl(this->__controls.at(0), true);
 	}
+
+	// Release Mac OS window resource to prevent leak
+	if (this->__windowPtr) {
+		DisposeWindow(this->__windowPtr);
+		this->__windowPtr = nullptr;
+	}
 }
 
 /**
@@ -205,7 +211,11 @@ void CKWindow::Close() {
 	CKEvent evt = CKEvent(CKEventType::removed);
 	this->HandleEvent(evt);
 
-	this->__owner->CKRemoveWindow(this);
+	if (this->__owner) {
+		this->__owner->CKRemoveWindow(this);
+	} else {
+		CKLog("Warning: Window %x has no owner, cannot remove from app!", this);
+	}
 }
 
 /**

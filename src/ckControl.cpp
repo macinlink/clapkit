@@ -82,13 +82,22 @@ void CKControl::MarkAsDirty() {
 		return;
 	}
 
-	this->owner.get()->DirtyArea(this->rect);
+	CKWindow* ownerWindow = this->owner.get();
+	if (!ownerWindow) {
+		CKLog("Warning: Control %x has null owner window!", this);
+		return;
+	}
+
+	ownerWindow->DirtyArea(this->rect);
 }
 
 void CKControl::RaisePropertyChange(const char* propertyName) {
 	if (!strcmp(propertyName, "rect")) {
 		if (this->owner) {
-			this->owner->DirtyArea(this->__lastRect);
+			CKWindow* ownerWindow = this->owner.get();
+			if (ownerWindow) {
+				ownerWindow->DirtyArea(this->__lastRect);
+			}
 		}
 		this->__lastRect = this->rect;
 	}

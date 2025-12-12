@@ -132,7 +132,7 @@ CKMenu::~CKMenu() {
 
 	CKSafeCopyString(this->text, nullptr);
 	for (auto* m : this->items.get()) {
-		delete m;
+		CKDelete(m);
 	}
 }
 

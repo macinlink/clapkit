@@ -63,9 +63,45 @@ CKApp::CKApp() {
 }
 
 /**
- * Nothing much here.
+ * Cleanup - destroy all windows, timers, and network resources.
+ * Note: Normally CKQuit() should be called before destructor,
+ * but we handle cleanup here as a safety net.
  */
 CKApp::~CKApp() {
+
+	// Clean up windows
+	while (this->__windows.size() > 0) {
+		CKWindow* window = this->__windows.at(0);
+		this->__windows.erase(this->__windows.begin());
+		CKDelete(window);
+	}
+
+	// Clean up garbage collected windows
+	while (this->__gc_windows.size() > 0) {
+		CKWindow* window = this->__gc_windows.at(0);
+		this->__gc_windows.erase(this->__gc_windows.begin());
+		CKDelete(window);
+	}
+
+	// Clean up timers
+	while (this->__timers.size() > 0) {
+		CKTimer* timer = this->__timers.at(0);
+		this->__timers.erase(this->__timers.begin());
+		CKDelete(timer);
+	}
+
+	// Close network sockets
+	for (auto& socket : this->__net_sockets) {
+		socket->Close();
+	}
+	this->__net_sockets.clear();
+
+	// Clean up menu bar
+	if (this->__menubar) {
+		CKDelete(this->__menubar);
+		this->__menubar = nullptr;
+	}
+
 	__ckgCurrentCKApp = nullptr;
 }
 
@@ -563,12 +599,14 @@ void CKApp::__HandleEvtKey(EventRecord event, bool isKeyUp, bool isAutoKey) {
 			return;
 		}
 
-		for (auto& m : this->__menubar->items) {
-			auto& vec = m->items.get();
-			for (auto& sm : vec) {
-				if (toupper(sm->shortcut) == toupper(theChar)) {
-					sm->DoCallback(this);
-					return;
+		if (this->__menubar) {
+			for (auto& m : this->__menubar->items) {
+				auto& vec = m->items.get();
+				for (auto& sm : vec) {
+					if (toupper(sm->shortcut) == toupper(theChar)) {
+						sm->DoCallback(this);
+						return;
+					}
 				}
 			}
 		}
@@ -1118,6 +1156,11 @@ void CKApp::__HandleMenuPropertyChange(const CKObject* obj, const char* propName
  * (i.e. enable/disable) the standard menu items (Cut, Copy, Paste, etc.)
  */
 void CKApp::CKUpdateMenuBarItems() {
+
+	// Early exit if no menubar
+	if (!this->__menubar) {
+		return;
+	}
 
 	bool enableItems = false;
 
