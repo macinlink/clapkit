@@ -53,7 +53,7 @@ add_application(CKTest
 # Debug vs Release settings
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Configuring Debug Build")
-    target_compile_definitions(CKTest PRIVATE kCKAPPDEBUG=1)
+    target_compile_definitions(CKTest PRIVATE kCKAPPDEBUG=1 kCKDEBUGMEMORY=1)
     target_compile_definitions(clapkit PRIVATE kCKAPPDEBUG=1)
 
     set_target_properties(CKTest PROPERTIES 
