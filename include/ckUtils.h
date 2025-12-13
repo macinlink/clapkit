@@ -97,6 +97,7 @@ void CKConsolePrint(const char* toPrint);
  * Profiling
  */
 #ifdef kCKAPPDEBUG
+#include <Timer.h>
 #include <vector>
 class CKProfilerData {
 	public:
@@ -153,4 +154,6 @@ void __CKWriteToExitFile(const char* s, ...);
 #endif
 
 bool CKHasAppearanceManager();
+bool CKHasColorQuickDraw();
+bool CKHasDebugger();
 UInt32 CKMillis();

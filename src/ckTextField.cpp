@@ -43,11 +43,19 @@ void CKTextField::Redraw() {
 	} else {
 
 		if (this->enabled) {
-			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-			RGBForeColor(&white);
+			if (CKHasColorQuickDraw()) {
+				RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+				RGBForeColor(&white);
+			} else {
+				ForeColor(whiteColor);
+			}
 		} else {
-			RGBColor gray = {0xC000, 0xC000, 0xC000};
-			RGBForeColor(&gray);
+			if (CKHasColorQuickDraw()) {
+				RGBColor gray = {0xC000, 0xC000, 0xC000};
+				RGBForeColor(&gray);
+			} else {
+				ForeColor(blackColor);
+			}
 		}
 		PaintRect(&r);
 		ForeColor(blackColor);
@@ -101,12 +109,20 @@ void CKTextField::PrepareForDraw() {
 	trecord->fontAscent = this->fontSize;
 
 	if (this->enabled) {
-		RGBColor color = this->color.get().ToOS();
-		RGBForeColor(&color);
+		if (CKHasColorQuickDraw()) {
+			RGBColor color = this->color.get().ToOS();
+			RGBForeColor(&color);
+		} else {
+			ForeColor(blackColor);
+		}
 	} else {
 		// 50% gray.
-		RGBColor gray = {0x8000, 0x8000, 0x8000};
-		RGBForeColor(&gray);
+		if (CKHasColorQuickDraw()) {
+			RGBColor gray = {0x8000, 0x8000, 0x8000};
+			RGBForeColor(&gray);
+		} else {
+			ForeColor(blackColor);
+		}
 	}
 
 	// TODO: This padding works perfectly fine for

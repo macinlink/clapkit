@@ -178,11 +178,19 @@ void CKTextArea::Redraw() {
 
 	if (this->__needsFullRedraw) {
 		if (this->enabled) {
-			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-			RGBForeColor(&white);
+			if (CKHasColorQuickDraw()) {
+				RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+				RGBForeColor(&white);
+			} else {
+				ForeColor(whiteColor);
+			}
 		} else {
-			RGBColor gray = {0xC000, 0xC000, 0xC000};
-			RGBForeColor(&gray);
+			if (CKHasColorQuickDraw()) {
+				RGBColor gray = {0xC000, 0xC000, 0xC000};
+				RGBForeColor(&gray);
+			} else {
+				ForeColor(blackColor);
+			}
 		}
 		EraseRect(&cr);
 		this->__needsFullRedraw = false;

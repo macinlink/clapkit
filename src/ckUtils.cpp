@@ -15,6 +15,19 @@
 #include <Appearance.h>
 #include <Gestalt.h>
 #include <Timer.h>
+#include <Quickdraw.h>
+
+#ifndef gestaltQuickdrawFeatures
+#define gestaltQuickdrawFeatures 'qd  '
+#endif
+
+#ifndef gestaltHasColor
+#define gestaltHasColor 0
+#endif
+
+#ifndef gestaltHasDeepGWorlds
+#define gestaltHasDeepGWorlds 1
+#endif
 
 #ifdef kCKAPPDEBUG
 std::vector<CKProfilerData*> _profilerData;
@@ -258,6 +271,21 @@ bool CKHasAppearanceManager() {
 
 	long result;
 	return (Gestalt(gestaltAppearanceAttr, &result) == noErr) && (result & (1 << gestaltAppearanceExists));
+}
+
+/**
+ * @ingroup Utils
+ * @brief Checks if Color QuickDraw is available.
+ * @return True if Color QuickDraw is available
+ */
+bool CKHasColorQuickDraw() {
+
+	long result;
+	if (Gestalt(gestaltQuickdrawFeatures, &result) != noErr) {
+		return false;
+	}
+
+	return (result & (1 << gestaltHasColor)) != 0;
 }
 
 /**

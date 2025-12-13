@@ -36,5 +36,5 @@ class CKCanvas : public CKControl {
 		bool DrawResourceIcon(short resourceId, CKPoint where);
 
 	private:
-		GWorldPtr __gworldptr;
+		GWorldPtr __gworldptr = NULL;
 };

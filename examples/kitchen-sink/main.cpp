@@ -48,7 +48,7 @@ int main() {
 
 	tests["Message box"] = []() {
 		app->CKNewMsgBoxNote("If you are seeing this, then compile was fine!", "Hello world", "OK", "Quit", [](int button) {
-			CKLog("Got button index: %d", button);
+			// CKLog("Got button index: %d", button);
 			if (button == 0) {
 				app->CKQuit();
 			}

@@ -21,6 +21,13 @@ CKCanvas::CKCanvas(const CKControlInitParams& params)
 
 	CKPROFILE
 
+	this->__gworldptr = NULL;
+
+	if (!CKHasColorQuickDraw()) {
+		CKLog("CKCanvas requires Color QuickDraw; offscreen drawing disabled.");
+		return;
+	}
+
 	Rect bounds = {0, 0, (short)params.height, (short)params.width};
 	OSErr err = NewGWorld(&(this->__gworldptr), 16, &bounds, NULL, NULL, 0);
 	if (err != noErr) {
@@ -45,6 +52,10 @@ void CKCanvas::Redraw() {
 	CKPROFILE
 
 	if (this->owner == nil) {
+		return;
+	}
+
+	if (!this->__gworldptr) {
 		return;
 	}
 
@@ -91,6 +102,10 @@ void CKCanvas::FillRect(CKRect rect, CKColor c) {
 
 	CKPROFILE
 
+	if (!this->__gworldptr) {
+		return;
+	}
+
 	RGBColor rgb = c.ToOS();
 	PixPatHandle pixPat = NewPixPat();
 	if (pixPat != NULL) {
@@ -133,6 +148,10 @@ void CKCanvas::SetPixel(CKPoint p, CKColor c) {
 
 	CKPROFILE
 
+	if (!this->__gworldptr) {
+		return;
+	}
+
 	if (p.x < 0 || p.x > this->rect->size->width) {
 		return;
 	}
@@ -160,6 +179,10 @@ void CKCanvas::SetPixel(CKPoint p, CKColor c) {
 
 void CKCanvas::DrawLine(CKPoint start, CKPoint end, CKColor c) {
 
+	if (!this->__gworldptr) {
+		return;
+	}
+
 	RGBColor rgb = c.ToOS();
 	CGrafPtr oldPort;
 	GDHandle oldGD;
@@ -174,6 +197,10 @@ void CKCanvas::DrawLine(CKPoint start, CKPoint end, CKColor c) {
 }
 
 bool CKCanvas::DrawResourceIcon(short resourceId, CKPoint where) {
+
+	if (!this->__gworldptr) {
+		return false;
+	}
 
 	PixMapHandle offscreenPixMap = GetGWorldPixMap(this->__gworldptr);
 	if (!LockPixels(offscreenPixMap)) {

@@ -64,7 +64,15 @@ CKWindow::CKWindow(CKWindowInitParams params)
 	}
 
 	this->__type = params.type;
-	this->__windowPtr = NewCWindow(nil, &r, "\p", false, windowProcId, 0, this->closable, 0);
+	if (CKHasColorQuickDraw()) {
+		this->__windowPtr = NewCWindow(nil, &r, "\p", false, windowProcId, 0, this->closable, 0);
+	} else {
+		this->__windowPtr = NewWindow(nil, &r, "\p", false, windowProcId, 0, this->closable, 0);
+	}
+
+	if (!this->__windowPtr) {
+		throw CKNew CKException("Can't create window.");
+	}
 
 	if (CKHasAppearanceManager()) {
 		SetThemeWindowBackground(this->__windowPtr, kThemeBrushDialogBackgroundActive, true);
@@ -316,8 +324,13 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 
 		if (this->hasCustomBackgroundColor) {
 			// Use the user's picked color.
-			RGBColor c = this->backgroundColor->ToOS();
-			RGBBackColor(&c);
+			if (CKHasColorQuickDraw()) {
+				RGBColor c = this->backgroundColor->ToOS();
+				RGBBackColor(&c);
+			} else {
+				// No color QuickDraw – fall back to black/white palette.
+				BackColor(whiteColor);
+			}
 			EraseRect(&r);
 		} else if (CKHasAppearanceManager()) {
 			// Mac OS 8 and above: use theme color.

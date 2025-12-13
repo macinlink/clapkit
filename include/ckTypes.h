@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "ckPlatform.h"
 #include "ckMacros.h"
 #include "ckObject.h"
 #include "ckProperty.h"
