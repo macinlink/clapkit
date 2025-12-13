@@ -14,7 +14,55 @@
 #include "ckCanvas.h"
 #include "ckWindow.h"
 #include <Quickdraw.h>
+#include <Icons.h>
 #include <Resources.h>
+#include <Memory.h>
+
+static bool __CKPlotBWIcon(short resourceId, const Rect& destRect, const WindowPtr window) {
+
+	Handle iconHandle = GetResource('ICN#', resourceId);
+	bool hasMask = true;
+	if (!iconHandle) {
+		iconHandle = GetResource('ICON', resourceId);
+		hasMask = false;
+	}
+
+	if (!iconHandle) {
+		CKLog("Resource %d not found.", resourceId);
+		return false;
+	}
+
+	HLock(iconHandle);
+	const UInt8* data = (const UInt8*)*iconHandle;
+
+	const UInt8* maskData = hasMask ? data : nullptr;
+	const UInt8* iconData = hasMask ? data + 128 : data;
+
+	BitMap srcBM;
+	srcBM.baseAddr = (Ptr)iconData;
+	srcBM.rowBytes = 4;
+	SetRect(&srcBM.bounds, 0, 0, 32, 32);
+
+	const BitMap* dstBits = &(window->portBits);
+
+	Rect srcRect = srcBM.bounds;
+	Rect dstRectCopy = destRect;
+
+	if (hasMask) {
+		BitMap maskBM;
+		maskBM.baseAddr = (Ptr)maskData;
+		maskBM.rowBytes = 4;
+		SetRect(&maskBM.bounds, 0, 0, 32, 32);
+		Rect maskRect = maskBM.bounds;
+		CopyMask(&srcBM, &maskBM, dstBits, &srcRect, &maskRect, &dstRectCopy);
+	} else {
+		CopyBits(&srcBM, dstBits, &srcRect, &dstRectCopy, srcCopy, NULL);
+	}
+
+	HUnlock(iconHandle);
+	ReleaseResource(iconHandle);
+	return true;
+}
 
 CKCanvas::CKCanvas(const CKControlInitParams& params)
 	: CKControl(params, CKControlType::Canvas) {
@@ -24,7 +72,7 @@ CKCanvas::CKCanvas(const CKControlInitParams& params)
 	this->__gworldptr = NULL;
 
 	if (!CKHasColorQuickDraw()) {
-		CKLog("CKCanvas requires Color QuickDraw; offscreen drawing disabled.");
+		CKLog("Color QuickDraw not available; offscreen drawing disabled (drawing directly to window).");
 		return;
 	}
 
@@ -55,7 +103,47 @@ void CKCanvas::Redraw() {
 		return;
 	}
 
+	// No offscreen buffer – draw directly into the window (mono fallback).
 	if (!this->__gworldptr) {
+		if (!this->__hasQueuedIcon) {
+			return;
+		}
+
+		GrafPtr oldPort;
+		GetPort(&oldPort);
+		SetPort(this->owner->GetWindowPtr());
+
+		short top = this->rect->origin->y + this->__queuedIconWhere.y;
+		short left = this->rect->origin->x + this->__queuedIconWhere.x;
+		Rect destRect = {(short)top, (short)left, (short)(top + 32), (short)(left + 32)};
+
+		const bool hasIconUtils = CKHasIconUtilities();
+		const bool hasColorQD = CKHasColorQuickDraw();
+
+		if (!hasColorQD || !hasIconUtils) {
+			if (!__CKPlotBWIcon(this->__queuedIconResourceId, destRect, this->owner->GetWindowPtr())) {
+				this->__hasQueuedIcon = false;
+			}
+		} else {
+
+			CIconHandle cIconHandle = GetCIcon(this->__queuedIconResourceId);
+			if (!cIconHandle) {
+				Handle iconHandle = GetIcon(this->__queuedIconResourceId);
+				if (!iconHandle) {
+					CKLog("Resource %d not found.", this->__queuedIconResourceId);
+					this->__hasQueuedIcon = false;
+					SetPort(oldPort);
+					return;
+				}
+				PlotIcon(&destRect, iconHandle);
+				ReleaseResource(iconHandle);
+			} else {
+				PlotCIcon(&destRect, cIconHandle);
+				DisposeCIcon(cIconHandle);
+			}
+		}
+
+		SetPort(oldPort);
 		return;
 	}
 
@@ -74,7 +162,7 @@ void CKCanvas::Redraw() {
 		return;
 	}
 
-	Rect destRect = {this->rect->origin->x, this->rect->origin->y, (short)(this->rect->size->height + this->rect->origin->y), (short)(this->rect->size->width + this->rect->origin->x)};
+	Rect destRect = {(short)this->rect->origin->x, (short)this->rect->origin->y, (short)(this->rect->size->height + this->rect->origin->y), (short)(this->rect->size->width + this->rect->origin->x)};
 	Rect srcRect = {0, 0, (short)this->rect->size->height, (short)this->rect->size->width};
 
 	CopyBits((BitMap*)&(**offscreenPixMap),
@@ -198,7 +286,20 @@ void CKCanvas::DrawLine(CKPoint start, CKPoint end, CKColor c) {
 
 bool CKCanvas::DrawResourceIcon(short resourceId, CKPoint where) {
 
+	this->__hasQueuedIcon = true;
+	this->__queuedIconResourceId = resourceId;
+	this->__queuedIconWhere = where;
+
 	if (!this->__gworldptr) {
+		if (this->owner) {
+			this->MarkAsDirty();
+		}
+		return true;
+	}
+
+	if (!CKHasIconUtilities()) {
+		CKLog("Icon Utilities unavailable; cannot draw icons.");
+		this->__hasQueuedIcon = false;
 		return false;
 	}
 
@@ -213,29 +314,35 @@ bool CKCanvas::DrawResourceIcon(short resourceId, CKPoint where) {
 	GetGWorld(&oldPort, &oldGD);		// Save the old port
 	SetGWorld(this->__gworldptr, NULL); // Set the GWorld as the current port
 
+	const bool hasIconUtils = CKHasIconUtilities();
+	const bool hasColorQD = CKHasColorQuickDraw();
+
 	CIconHandle cIconHandle = nullptr;
 	Handle iconHandle = nullptr;
 
 	// Try color first.
-	cIconHandle = GetCIcon(resourceId);
-	bool isColor = true;
+	if (hasIconUtils && hasColorQD) {
+		cIconHandle = GetCIcon(resourceId);
+	}
 	if (!cIconHandle) {
 		// OK, try monochrome.
 		iconHandle = GetIcon(resourceId);
-		isColor = false;
 		if (!iconHandle) {
 			CKLog("Resource %d not found.", resourceId);
+			this->__hasQueuedIcon = false;
 			SetGWorld(oldPort, oldGD);
 			UnlockPixels(offscreenPixMap);
 			return false;
 		}
 	}
-	Rect destRect = {0, 0, 32, 32};
+	Rect destRect = {(short)where.y, (short)where.x, (short)(where.y + 32), (short)(where.x + 32)};
 
-	if (isColor) {
+	if (cIconHandle) {
 		PlotCIcon(&destRect, cIconHandle);
 	} else {
-		PlotIcon(&destRect, iconHandle);
+		if (hasIconUtils) {
+			PlotIcon(&destRect, iconHandle);
+		}
 	}
 
 	SetGWorld(oldPort, oldGD); // Restore the old port
@@ -247,5 +354,8 @@ bool CKCanvas::DrawResourceIcon(short resourceId, CKPoint where) {
 	}
 
 	UnlockPixels(offscreenPixMap);
+	if (this->owner) {
+		this->MarkAsDirty();
+	}
 	return true;
 }

@@ -371,7 +371,7 @@ CKWindow* CKApp::__CreateAlertDialog(const char* message, const char* title, con
 	CKWindow* toReturn = this->CKNewWindow(params);
 
 	int labelX = padding;
-	const bool shouldShowIcon = icon != CKSystemIcon::noIcon && CKHasColorQuickDraw();
+	const bool shouldShowIcon = icon != CKSystemIcon::noIcon;
 	if (shouldShowIcon) {
 		labelX += 32 + padding;
 	}

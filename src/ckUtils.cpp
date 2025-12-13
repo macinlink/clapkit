@@ -14,20 +14,8 @@
 #include "ckUtils.h"
 #include <Appearance.h>
 #include <Gestalt.h>
-#include <Timer.h>
 #include <Quickdraw.h>
-
-#ifndef gestaltQuickdrawFeatures
-#define gestaltQuickdrawFeatures 'qd  '
-#endif
-
-#ifndef gestaltHasColor
-#define gestaltHasColor 0
-#endif
-
-#ifndef gestaltHasDeepGWorlds
-#define gestaltHasDeepGWorlds 1
-#endif
+#include <Timer.h>
 
 #ifdef kCKAPPDEBUG
 std::vector<CKProfilerData*> _profilerData;
@@ -92,7 +80,9 @@ void __CKDebugLog(int level, const char* s, ...) {
 	// Allocate a larger buffer to avoid overflows
 	char* buffer = (char*)dlmalloc(250);
 	if (!buffer) {
-		DebugStr("\pCant Allocate Mem to Print Debug Str! (1)");
+		if (CKHasDebugger()) {
+			DebugStr("\pCant Allocate Mem to Print Debug Str! (1)");
+		}
 		ExitToShell();
 		return;
 	}
@@ -103,7 +93,9 @@ void __CKDebugLog(int level, const char* s, ...) {
 	va_end(va);
 
 	if (ret < 0 || ret >= 250) { // Check if vsprintf overflowed
-		DebugStr("\pCant do vsprintf to Print Debug Str!");
+		if (CKHasDebugger()) {
+			DebugStr("\pCant do vsprintf to Print Debug Str!");
+		}
 		dlfree(buffer);
 		return;
 	}
@@ -125,7 +117,9 @@ void __CKDebugLog(int level, const char* s, ...) {
 	// Create a new buffer for the prefixed log
 	char* finalBuffer = (char*)dlmalloc(300);
 	if (!finalBuffer) {
-		DebugStr("\pCant Allocate Mem to Print Debug Str! (2)");
+		if (CKHasDebugger()) {
+			DebugStr("\pCant Allocate Mem to Print Debug Str! (2)");
+		}
 		dlfree(buffer);
 		ExitToShell();
 		return;
@@ -159,9 +153,15 @@ void CKConsolePrint(const char* toPrint) {
 	if (!toPrint)
 		return; // Avoid passing NULL to DebugStr
 
+	if (!CKHasDebugger()) {
+		return;
+	}
+
 	unsigned char* toPStrd = CKC2P(toPrint);
 	if (!toPStrd) {
-		DebugStr("\pCant Allocate Mem to Print Debug Str! (2)");
+		if (CKHasDebugger()) {
+			DebugStr("\pCant Allocate Mem to Print Debug Str! (2)");
+		}
 		ExitToShell();
 	} else {
 		DebugStr(toPStrd);
@@ -179,7 +179,9 @@ void __CKWriteToExitFile(const char* s, ...) {
 	char* buffer = (char*)CKMalloc(250);
 	if (!buffer) {
 		// We are in deep shit.
-		DebugStr("\pCant Allocate Mem to Print Debug Str! (1)");
+		if (CKHasDebugger()) {
+			DebugStr("\pCant Allocate Mem to Print Debug Str! (1)");
+		}
 		ExitToShell();
 		return;
 	}
@@ -190,7 +192,9 @@ void __CKWriteToExitFile(const char* s, ...) {
 	va_end(va);
 
 	if (ret < 0) {
-		DebugStr("\pCant do vsprintf to Print Debug Str!");
+		if (CKHasDebugger()) {
+			DebugStr("\pCant do vsprintf to Print Debug Str!");
+		}
 		return;
 	}
 
@@ -281,11 +285,46 @@ bool CKHasAppearanceManager() {
 bool CKHasColorQuickDraw() {
 
 	long result;
-	if (Gestalt(gestaltQuickdrawFeatures, &result) != noErr) {
+	if (Gestalt(gestaltQuickdrawVersion, &result) != noErr) {
 		return false;
 	}
 
 	return (result & (1 << gestaltHasColor)) != 0;
+}
+
+/**
+ * @ingroup Utils
+ * @brief Checks if Icon Utilities are available (PlotIcon/GetCIcon, etc.)
+ * @return True if Icon Utilities are available.
+ */
+bool CKHasIconUtilities() {
+
+	long result;
+	if (Gestalt(gestaltIconUtilitiesAttr, &result) != noErr) {
+		return false;
+	}
+
+	return (result & (1 << gestaltIconUtilitiesPresent)) != 0;
+}
+
+/**
+ * @ingroup Utils
+ * @brief Checks if a low-level debugger (like MacsBug) is installed and callable.
+ * @return True if a low-level debugger is installed and callable.
+ */
+bool CKHasDebugger() {
+
+	// Same logic as Debugging.h's ISLOWLEVELDEBUGGERCALLABLE().
+	const volatile UInt8* macJmpFlag = (const volatile UInt8*)0x0BFF;
+	const volatile unsigned long* macJmp = (const volatile unsigned long*)0x0120;
+
+	const UInt8 flag = *macJmpFlag;
+	const unsigned long jmp = *macJmp;
+
+	return (flag != (UInt8)0xFF) &&
+		   ((flag & (UInt8)0xE0) == (UInt8)0x60) &&
+		   (jmp != 0) &&
+		   (jmp != (unsigned long)0xFFFFFFFF);
 }
 
 /**

@@ -155,5 +155,6 @@ void __CKWriteToExitFile(const char* s, ...);
 
 bool CKHasAppearanceManager();
 bool CKHasColorQuickDraw();
+bool CKHasIconUtilities();
 bool CKHasDebugger();
 UInt32 CKMillis();

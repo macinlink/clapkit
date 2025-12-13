@@ -37,4 +37,7 @@ class CKCanvas : public CKControl {
 
 	private:
 		GWorldPtr __gworldptr = NULL;
+		bool __hasQueuedIcon = false;
+		short __queuedIconResourceId = 0;
+		CKPoint __queuedIconWhere;
 };
