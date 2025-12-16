@@ -370,6 +370,13 @@ void CKTextArea::RaisePropertyChange(const char* propertyName) {
 
 bool CKTextArea::HandleEvent(const CKEvent& evt) {
 
+	// TODO: Fix this horrible horrible horrible hack.
+	// Honestly, I am so tired, so fuck it.
+	// This should be in a UPP set by TESetClickLoop
+	// But I can't get that shit to work properly for
+	// whatever reason.
+	this->__SyncScrollbarsFromTE();
+
 	if (evt.type == CKEventType::mouseDown) {
 
 		if (this->__vScrollBar) {
@@ -427,4 +434,37 @@ void CKTextArea::__UpdateTextScroll(int vDelta, int hDelta) {
 	TEPinScroll(-hDelta, -vDelta, this->__teHandle);
 	this->__needsPreparing = true;
 	this->MarkAsDirty();
+}
+
+void CKTextArea::__SyncScrollbarsFromTE() {
+	if (!this->__teHandle) {
+		CKLog("__SyncScrollbarsFromTE: teHandle is null.");
+		return;
+	}
+
+	HLock((Handle)this->__teHandle);
+	TEPtr te = *(this->__teHandle);
+
+	int v = te->viewRect.top - te->destRect.top;
+	int h = te->viewRect.left - te->destRect.left;
+
+	HUnlock((Handle)this->__teHandle);
+
+	if (this->__vScrollBar) {
+		int maxV = GetControlMaximum(this->__vScrollBar);
+		if (v < 0)
+			v = 0;
+		if (v > maxV)
+			v = maxV;
+		SetControlValue(this->__vScrollBar, v);
+	}
+
+	if (this->__hScrollBar) {
+		int maxH = GetControlMaximum(this->__hScrollBar);
+		if (h < 0)
+			h = 0;
+		if (h > maxH)
+			h = maxH;
+		SetControlValue(this->__hScrollBar, h);
+	}
 }

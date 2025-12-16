@@ -72,6 +72,7 @@ class CKTextArea : public CKTextField {
 		virtual void ResizeTE();
 		virtual void TECreated();
 
+		void __SyncScrollbarsFromTE();
 	private:
 		virtual void __SetupScrollbars(bool removeOnly = false);
 		virtual void __HandleScrollBarClick(ControlHandle ctl, CKPoint point);
