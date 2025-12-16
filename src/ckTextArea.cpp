@@ -170,40 +170,57 @@ void CKTextArea::Redraw() {
 
 	RgnHandle clipHandle = NewRgn();
 	GetClip(clipHandle);
+
+	RGBColor oldFore;
+	RGBColor oldBack;
+	GetForeColor(&oldFore);
+	GetBackColor(&oldBack);
+
 	Rect cr = this->rect->ToOS();
-	cr.top += 1;
-	cr.left += 1;
-
 	Rect r = this->rect->ToOS();
+	Rect fillRect = r;
+	InsetRect(&fillRect, 1, 1);
 
-	if (this->__needsFullRedraw) {
+	bool hasAppearance = CKHasAppearanceManager();
+	SInt16 gPixelDepth = 0;
+	Boolean isColorDevice = true;
+	if (hasAppearance) {
+		GDHandle deviceHdl = LMGetMainDevice();
+		gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
+		isColorDevice = gPixelDepth > 1;
+	}
+
+	if (hasAppearance) {
+		ThemeBrush backgroundBrush = this->enabled ? kThemeBrushWhite : (ThemeBrush)kThemeBrushDialogBackgroundInactive;
+		SetThemeBackground(backgroundBrush, gPixelDepth, isColorDevice);
+	} else {
 		if (this->enabled) {
 			if (CKHasColorQuickDraw()) {
 				RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-				RGBForeColor(&white);
+				RGBBackColor(&white);
 			} else {
-				ForeColor(whiteColor);
+				BackColor(whiteColor);
 			}
 		} else {
 			if (CKHasColorQuickDraw()) {
 				RGBColor gray = {0xC000, 0xC000, 0xC000};
-				RGBForeColor(&gray);
+				RGBBackColor(&gray);
 			} else {
-				ForeColor(blackColor);
+				BackColor(blackColor);
 			}
 		}
-		EraseRect(&cr);
-		this->__needsFullRedraw = false;
 	}
 
-	if (CKHasAppearanceManager()) {
+	EraseRect(&fillRect);
+	this->__needsFullRedraw = false;
+
+	cr.top += 1;
+	cr.left += 1;
+
+	if (hasAppearance) {
 		ThemeDrawState s = kThemeStateActive;
 		if (!this->enabled) {
 			s = kThemeStateDisabled;
-		} else {
-			if (this->focused) {
-				s = kThemeStatePressed;
-			}
 		}
 		DrawThemeEditTextFrame(&r, s);
 	} else {
@@ -239,6 +256,8 @@ void CKTextArea::Redraw() {
 	SetClip(clipHandle);
 	DisposeRgn(clipHandle);
 
+	RGBForeColor(&oldFore);
+	RGBBackColor(&oldBack);
 	SetPort(oldPort);
 	HUnlock((Handle)this->__teHandle);
 }
@@ -325,7 +344,46 @@ bool CKTextArea::HandleEvent(const CKEvent& evt) {
 		}
 	}
 
-	return CKTextField::HandleEvent(evt);
+	GrafPtr oldPort;
+	RGBColor oldFore;
+	RGBColor oldBack;
+	RGBColor oldHilite;
+
+	GetPort(&oldPort);
+	GetForeColor(&oldFore);
+	GetBackColor(&oldBack);
+	LMGetHiliteRGB(&oldHilite);
+
+	SetPort(this->owner->GetWindowPtr());
+
+	if (this->enabled) {
+		if (CKHasColorQuickDraw()) {
+			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+			RGBBackColor(&white);
+		} else {
+			BackColor(whiteColor);
+		}
+	} else {
+		if (CKHasColorQuickDraw()) {
+			RGBColor gray = {0xC000, 0xC000, 0xC000};
+			RGBBackColor(&gray);
+		} else {
+			BackColor(blackColor);
+		}
+	}
+
+	RGBColor hilite;
+	LMGetHiliteRGB(&hilite);
+	HiliteColor(&hilite);
+
+	bool handled = CKTextField::HandleEvent(evt);
+
+	LMSetHiliteRGB(&oldHilite);
+	RGBForeColor(&oldFore);
+	RGBBackColor(&oldBack);
+	SetPort(oldPort);
+
+	return handled;
 }
 
 void CKTextArea::__HandleScrollBarClick(ControlHandle control, CKPoint point) {

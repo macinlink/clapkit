@@ -168,15 +168,25 @@ void CKLabel::PrepareForDraw() {
 		style.tsColor = this->color.get().ToOS();
 	} else {
 		if (this->color.get() == black && CKHasAppearanceManager()) {
-			RGBColor color;
 			GDHandle deviceHdl = LMGetMainDevice();
 			SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
-			ThemeBrush brush = kThemeInactiveDialogTextColor;
+			Boolean isColorDevice = gPixelDepth > 1;
+
+			ThemeTextColor textColor = kThemeTextColorDialogInactive;
 			if (this->owner && this->owner->GetIsActive()) {
-				brush = kThemeActiveDialogTextColor;
+				textColor = kThemeTextColorDialogActive;
 			}
-			SetThemeTextColor(brush, gPixelDepth, true); // TODO: Maybe not hardcode 'isColorDevice'?
-			style.tsColor = color;
+
+			RGBColor prevFore;
+			RGBColor themeColor;
+			GetForeColor(&prevFore);
+			if (SetThemeTextColor(textColor, gPixelDepth, isColorDevice) == noErr) {
+				GetForeColor(&themeColor);
+				style.tsColor = themeColor;
+			} else {
+				style.tsColor = this->color.get().ToOS();
+			}
+			RGBForeColor(&prevFore);
 		}
 	}
 

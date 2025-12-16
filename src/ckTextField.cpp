@@ -28,41 +28,60 @@ void CKTextField::Redraw() {
 	// Draw the outline.
 
 	Rect r = this->rect->ToOS();
+	Rect fillRect = r;
+	InsetRect(&fillRect, 1, 1);
+
+	RGBColor oldFore;
+	RGBColor oldBack;
+	GetForeColor(&oldFore);
+	GetBackColor(&oldBack);
 
 	if (CKHasAppearanceManager()) {
 
 		ThemeDrawState s = kThemeStateActive;
 		if (!this->enabled) {
 			s = kThemeStateDisabled;
-		} else {
-			if (this->focused) {
-				s = kThemeStatePressed;
-			}
 		}
+
+		GDHandle deviceHdl = LMGetMainDevice();
+		SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
+		Boolean isColorDevice = gPixelDepth > 1;
+
+		ThemeBrush backgroundBrush = kThemeBrushWhite;
+		if (!this->enabled) {
+			backgroundBrush = kThemeBrushDialogBackgroundInactive;
+		}
+
+		SetThemeBackground(backgroundBrush, gPixelDepth, isColorDevice);
+		EraseRect(&fillRect);
 		DrawThemeEditTextFrame(&r, s);
 	} else {
 
 		if (this->enabled) {
 			if (CKHasColorQuickDraw()) {
 				RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-				RGBForeColor(&white);
+				RGBBackColor(&white);
 			} else {
-				ForeColor(whiteColor);
+				BackColor(whiteColor);
 			}
 		} else {
 			if (CKHasColorQuickDraw()) {
 				RGBColor gray = {0xC000, 0xC000, 0xC000};
-				RGBForeColor(&gray);
+				RGBBackColor(&gray);
 			} else {
-				ForeColor(blackColor);
+				BackColor(blackColor);
 			}
 		}
-		PaintRect(&r);
+
+		EraseRect(&fillRect);
 		ForeColor(blackColor);
 		FrameRect(&r);
 	}
 
 	CKLabel::Redraw();
+
+	RGBForeColor(&oldFore);
+	RGBBackColor(&oldBack);
 }
 
 void CKTextField::TECreated() {
