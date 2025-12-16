@@ -13,7 +13,41 @@
 
 #include "ckTextArea.h"
 #include "ckWindow.h"
-#include <Appearance.h>
+#include <Gestalt.h>
+
+// Check if we need bkPixPat manipulation for TextEdit
+// System 7.x and early Mac OS 8.x need it, Mac OS 8.5+ doesn't
+static bool __CKNeedsBkPixPatForTextEdit() {
+	long version;
+	if (Gestalt(gestaltSystemVersion, &version) != noErr) {
+		return true;  // Assume old system, be safe
+	}
+	return version < 0x0850;  // True for < Mac OS 8.5
+}
+
+static PixPatHandle __CKWhiteBkPixPat() {
+	static PixPatHandle pat = nullptr;
+	if (!pat) {
+		pat = NewPixPat();
+		if (pat) {
+			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+			MakeRGBPat(pat, &white);
+		}
+	}
+	return pat;
+}
+
+static PixPatHandle __CKDisabledGrayBkPixPat() {
+	static PixPatHandle pat = nullptr;
+	if (!pat) {
+		pat = NewPixPat();
+		if (pat) {
+			RGBColor gray = {0xC000, 0xC000, 0xC000};
+			MakeRGBPat(pat, &gray);
+		}
+	}
+	return pat;
+}
 
 const short kScrollBarWidth = 16;
 
@@ -121,16 +155,14 @@ void CKTextArea::ResizeTE() {
 }
 
 void CKTextArea::TECreated() {
-
 	TEAutoView(true, this->__teHandle);
-	TEFeatureFlag(teFOutlineHilite, teBitSet, this->__teHandle);
-	TEFeatureFlag(teFUseWhiteBackground, teBitSet, this->__teHandle);
 	this->ResizeTE();
 }
 
 void CKTextArea::PrepareForDraw() {
 
-	CKLabel::PrepareForDraw();
+	// Call TextField's PrepareForDraw to get proper disabled text handling
+	CKTextField::PrepareForDraw();
 
 	if (!this->__teHandle) {
 		return;
@@ -183,24 +215,23 @@ void CKTextArea::Redraw() {
 	Rect fillRect = r;
 	InsetRect(&fillRect, 1, 1);
 
-	bool hasAppearance = CKHasAppearanceManager();
-
 	auto setBackColorForText = [&](bool enabled) {
 		if (CKHasColorQuickDraw()) {
-			RGBColor back = enabled ? RGBColor{0xFFFF, 0xFFFF, 0xFFFF} : RGBColor{0xC000, 0xC000, 0xC000};
+			RGBColor back = {0xFFFF, 0xFFFF, 0xFFFF};  // White for both enabled/disabled
 			RGBBackColor(&back);
 		} else {
-			BackColor(enabled ? whiteColor : blackColor);
+			// On B&W Macs, always use white background
+			BackColor(whiteColor);
 		}
 	};
 
 	auto paintSolid = [&](const Rect& rectToPaint, bool enabled) {
 		PenNormal(); // Ensure solid pattern for PaintRect
 		if (CKHasColorQuickDraw()) {
-			RGBColor fill = enabled ? RGBColor{0xFFFF, 0xFFFF, 0xFFFF} : RGBColor{0xC000, 0xC000, 0xC000};
+			RGBColor fill = {0xFFFF, 0xFFFF, 0xFFFF};  // White for both enabled/disabled
 			RGBForeColor(&fill);
 		} else {
-			ForeColor(enabled ? whiteColor : blackColor);
+			ForeColor(whiteColor);
 		}
 		PaintRect(&rectToPaint);
 		RGBForeColor(&oldFore);
@@ -214,16 +245,9 @@ void CKTextArea::Redraw() {
 	cr.top += 1;
 	cr.left += 1;
 
-	if (hasAppearance) {
-		ThemeDrawState s = kThemeStateActive;
-		if (!this->enabled) {
-			s = kThemeStateDisabled;
-		}
-		DrawThemeEditTextFrame(&r, s);
-	} else {
-		ForeColor(blackColor);
-		FrameRect(&r);
-	}
+	// Draw the frame - simple black frame on all systems
+	ForeColor(blackColor);
+	FrameRect(&r);
 
 	if (this->__hScrollBar) {
 		Draw1Control(this->__hScrollBar);
@@ -247,8 +271,35 @@ void CKTextArea::Redraw() {
 
 	cr.bottom -= 1;
 	cr.right -= 1;
+
+	// Ensure background color is set before TextEdit drawing
+	// This is critical for proper selection highlighting
+	setBackColorForText(this->enabled);
+
+	// Paint the text area background
 	paintSolid(trecord->viewRect, this->enabled);
+
+	// Swap bkPixPat if needed for old TextEdit (System 7.x - Mac OS 8.1)
+	bool swappedBkPixPat = false;
+	PixPatHandle savedBkPixPat = nullptr;
+	if (__CKNeedsBkPixPatForTextEdit() && CKHasColorQuickDraw() && this->owner) {
+		CGrafPtr port = (CGrafPtr)this->owner->GetWindowPtr();
+		if (port) {
+			savedBkPixPat = port->bkPixPat;
+			port->bkPixPat = this->enabled ? __CKWhiteBkPixPat() : __CKDisabledGrayBkPixPat();
+			swappedBkPixPat = true;
+		}
+	}
+
+	// Let TextEdit handle its own selection highlighting
 	TEUpdate(&(trecord->viewRect), this->__teHandle);
+
+	if (swappedBkPixPat) {
+		CGrafPtr port = (CGrafPtr)this->owner->GetWindowPtr();
+		if (port) {
+			port->bkPixPat = savedBkPixPat;
+		}
+	}
 
 	SetClip(clipHandle);
 	DisposeRgn(clipHandle);
