@@ -15,6 +15,31 @@
 #include "ckWindow.h"
 #include <Appearance.h>
 #include <Scrap.h>
+#include <Quickdraw.h>
+
+static PixPatHandle __CKWhiteBkPixPat() {
+	static PixPatHandle pat = nullptr;
+	if (!pat) {
+		pat = NewPixPat();
+		if (pat) {
+			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+			MakeRGBPat(pat, &white);
+		}
+	}
+	return pat;
+}
+
+static PixPatHandle __CKDisabledGrayBkPixPat() {
+	static PixPatHandle pat = nullptr;
+	if (!pat) {
+		pat = NewPixPat();
+		if (pat) {
+			RGBColor gray = {0xC000, 0xC000, 0xC000};
+			MakeRGBPat(pat, &gray);
+		}
+	}
+	return pat;
+}
 
 CKTextField::CKTextField(const CKControlInitParams& params)
 	: CKLabel(params) {
@@ -33,8 +58,30 @@ void CKTextField::Redraw() {
 
 	RGBColor oldFore;
 	RGBColor oldBack;
+	PenState penState;
 	GetForeColor(&oldFore);
 	GetBackColor(&oldBack);
+	GetPenState(&penState);
+
+	auto setBackColorForText = [&](bool enabled) {
+		if (CKHasColorQuickDraw()) {
+			RGBColor back = enabled ? RGBColor{0xFFFF, 0xFFFF, 0xFFFF} : RGBColor{0xC000, 0xC000, 0xC000};
+			RGBBackColor(&back);
+		} else {
+			BackColor(enabled ? whiteColor : blackColor);
+		}
+	};
+
+	auto paintInteriorSolid = [&](const Rect& rectToPaint, bool enabled) {
+		PenNormal(); // Ensure solid pattern for PaintRect
+		if (CKHasColorQuickDraw()) {
+			RGBColor fill = enabled ? RGBColor{0xFFFF, 0xFFFF, 0xFFFF} : RGBColor{0xC000, 0xC000, 0xC000};
+			RGBForeColor(&fill);
+		} else {
+			ForeColor(enabled ? whiteColor : blackColor);
+		}
+		PaintRect(&rectToPaint);
+	};
 
 	if (CKHasAppearanceManager()) {
 
@@ -43,45 +90,44 @@ void CKTextField::Redraw() {
 			s = kThemeStateDisabled;
 		}
 
-		GDHandle deviceHdl = LMGetMainDevice();
-		SInt16 gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
-		Boolean isColorDevice = gPixelDepth > 1;
-
-		ThemeBrush backgroundBrush = kThemeBrushWhite;
-		if (!this->enabled) {
-			backgroundBrush = kThemeBrushDialogBackgroundInactive;
-		}
-
-		SetThemeBackground(backgroundBrush, gPixelDepth, isColorDevice);
-		EraseRect(&fillRect);
+		setBackColorForText(this->enabled);
+		paintInteriorSolid(fillRect, this->enabled);
+		RGBForeColor(&oldFore);
+		SetPenState(&penState);
 		DrawThemeEditTextFrame(&r, s);
 	} else {
 
-		if (this->enabled) {
-			if (CKHasColorQuickDraw()) {
-				RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-				RGBBackColor(&white);
-			} else {
-				BackColor(whiteColor);
-			}
-		} else {
-			if (CKHasColorQuickDraw()) {
-				RGBColor gray = {0xC000, 0xC000, 0xC000};
-				RGBBackColor(&gray);
-			} else {
-				BackColor(blackColor);
-			}
-		}
-
-		EraseRect(&fillRect);
+		setBackColorForText(this->enabled);
+		paintInteriorSolid(fillRect, this->enabled);
+		RGBForeColor(&oldFore);
+		SetPenState(&penState);
 		ForeColor(blackColor);
 		FrameRect(&r);
 	}
 
+	bool swappedBkPixPat = false;
+	PixPatHandle savedBkPixPat = nullptr;
+	if (CKHasAppearanceManager() && CKHasColorQuickDraw() && this->owner && this->__teHandle) {
+		CGrafPtr port = (CGrafPtr)this->owner->GetWindowPtr();
+		if (port) {
+			savedBkPixPat = port->bkPixPat;
+			port->bkPixPat = this->enabled ? __CKWhiteBkPixPat() : __CKDisabledGrayBkPixPat();
+			swappedBkPixPat = true;
+		}
+	}
+
 	CKLabel::Redraw();
+
+	if (swappedBkPixPat) {
+		CGrafPtr port = (CGrafPtr)this->owner->GetWindowPtr();
+		if (port) {
+			port->bkPixPat = savedBkPixPat;
+		}
+	}
 
 	RGBForeColor(&oldFore);
 	RGBBackColor(&oldBack);
+	SetPenState(&penState);
 }
 
 void CKTextField::TECreated() {
@@ -162,14 +208,63 @@ void CKTextField::PrepareForDraw() {
 
 bool CKTextField::HandleEvent(const CKEvent& evt) {
 
-	if (evt.type == CKEventType::mouseDown) {
-		TEClick(evt.point.ToOS(), evt.shiftDown, this->__teHandle);
-	}
+	if ((evt.type == CKEventType::mouseDown || evt.type == CKEventType::keyDown) && this->__teHandle && this->owner) {
 
-	if (evt.type == CKEventType::keyDown) {
-		TEKey(evt.key, this->__teHandle);
-		CKEvent e = CKEvent(CKEventType::changed);
-		this->HandleEvent(e);
+		GrafPtr oldPort;
+		GetPort(&oldPort);
+
+		RGBColor oldFore;
+		RGBColor oldBack;
+		PenState oldPen;
+		GetForeColor(&oldFore);
+		GetBackColor(&oldBack);
+		GetPenState(&oldPen);
+
+		SetPort(this->owner->GetWindowPtr());
+		PenNormal();
+		PenMode(patCopy);
+		TextMode(srcCopy);
+
+		bool swappedBkPixPat = false;
+		PixPatHandle savedBkPixPat = nullptr;
+		if (CKHasAppearanceManager() && CKHasColorQuickDraw()) {
+			CGrafPtr port = (CGrafPtr)this->owner->GetWindowPtr();
+			if (port) {
+				savedBkPixPat = port->bkPixPat;
+				port->bkPixPat = this->enabled ? __CKWhiteBkPixPat() : __CKDisabledGrayBkPixPat();
+				swappedBkPixPat = true;
+			}
+		}
+
+		if (evt.type == CKEventType::mouseDown) {
+			TEClick(evt.point.ToOS(), evt.shiftDown, this->__teHandle);
+		} else {
+			TEKey(evt.key, this->__teHandle);
+			CKEvent e = CKEvent(CKEventType::changed);
+			this->HandleEvent(e);
+		}
+
+		if (swappedBkPixPat) {
+			CGrafPtr port = (CGrafPtr)this->owner->GetWindowPtr();
+			if (port) {
+				port->bkPixPat = savedBkPixPat;
+			}
+		}
+
+		SetPenState(&oldPen);
+		RGBForeColor(&oldFore);
+		RGBBackColor(&oldBack);
+		SetPort(oldPort);
+	} else {
+		if (evt.type == CKEventType::mouseDown) {
+			TEClick(evt.point.ToOS(), evt.shiftDown, this->__teHandle);
+		}
+
+		if (evt.type == CKEventType::keyDown) {
+			TEKey(evt.key, this->__teHandle);
+			CKEvent e = CKEvent(CKEventType::changed);
+			this->HandleEvent(e);
+		}
 	}
 
 	return CKLabel::HandleEvent(evt);

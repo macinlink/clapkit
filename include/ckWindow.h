@@ -17,6 +17,7 @@
 #include "ckControl.h"
 #include "ckObject.h"
 #include <MacWindows.h>
+#include <Quickdraw.h>
 #include <cstring>
 #include <vector>
 #include <optional>
@@ -106,6 +107,7 @@ class CKWindow : public CKObject {
 		bool AddControl(CKControl* control);
 		void RemoveControl(CKControl* control, bool free);
 		void Redraw(CKRect rectToRedraw);
+		void PreparePortForControlDraw();
 
 		void SetOwner(CKApp* owner);
 		CKApp* GetOwner();
@@ -185,4 +187,6 @@ class CKWindow : public CKObject {
 		bool __isCurrentlyActive = false;
 		CKWindowType __type;
 		std::vector<CKRect> __controlDirtifiedAreas;
+		// Note: intentionally do not cache/force global hilite state; the OS
+		// manages it (active/inactive window, theme changes, etc.).
 };

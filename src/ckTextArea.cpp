@@ -173,8 +173,10 @@ void CKTextArea::Redraw() {
 
 	RGBColor oldFore;
 	RGBColor oldBack;
+	PenState penState;
 	GetForeColor(&oldFore);
 	GetBackColor(&oldBack);
+	GetPenState(&penState);
 
 	Rect cr = this->rect->ToOS();
 	Rect r = this->rect->ToOS();
@@ -182,36 +184,31 @@ void CKTextArea::Redraw() {
 	InsetRect(&fillRect, 1, 1);
 
 	bool hasAppearance = CKHasAppearanceManager();
-	SInt16 gPixelDepth = 0;
-	Boolean isColorDevice = true;
-	if (hasAppearance) {
-		GDHandle deviceHdl = LMGetMainDevice();
-		gPixelDepth = (*(*deviceHdl)->gdPMap)->pixelSize;
-		isColorDevice = gPixelDepth > 1;
-	}
 
-	if (hasAppearance) {
-		ThemeBrush backgroundBrush = this->enabled ? kThemeBrushWhite : (ThemeBrush)kThemeBrushDialogBackgroundInactive;
-		SetThemeBackground(backgroundBrush, gPixelDepth, isColorDevice);
-	} else {
-		if (this->enabled) {
-			if (CKHasColorQuickDraw()) {
-				RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-				RGBBackColor(&white);
-			} else {
-				BackColor(whiteColor);
-			}
+	auto setBackColorForText = [&](bool enabled) {
+		if (CKHasColorQuickDraw()) {
+			RGBColor back = enabled ? RGBColor{0xFFFF, 0xFFFF, 0xFFFF} : RGBColor{0xC000, 0xC000, 0xC000};
+			RGBBackColor(&back);
 		} else {
-			if (CKHasColorQuickDraw()) {
-				RGBColor gray = {0xC000, 0xC000, 0xC000};
-				RGBBackColor(&gray);
-			} else {
-				BackColor(blackColor);
-			}
+			BackColor(enabled ? whiteColor : blackColor);
 		}
-	}
+	};
 
-	EraseRect(&fillRect);
+	auto paintSolid = [&](const Rect& rectToPaint, bool enabled) {
+		PenNormal(); // Ensure solid pattern for PaintRect
+		if (CKHasColorQuickDraw()) {
+			RGBColor fill = enabled ? RGBColor{0xFFFF, 0xFFFF, 0xFFFF} : RGBColor{0xC000, 0xC000, 0xC000};
+			RGBForeColor(&fill);
+		} else {
+			ForeColor(enabled ? whiteColor : blackColor);
+		}
+		PaintRect(&rectToPaint);
+		RGBForeColor(&oldFore);
+		SetPenState(&penState);
+	};
+
+	setBackColorForText(this->enabled);
+	paintSolid(fillRect, this->enabled);
 	this->__needsFullRedraw = false;
 
 	cr.top += 1;
@@ -250,7 +247,7 @@ void CKTextArea::Redraw() {
 
 	cr.bottom -= 1;
 	cr.right -= 1;
-	EraseRect(&(trecord->viewRect));
+	paintSolid(trecord->viewRect, this->enabled);
 	TEUpdate(&(trecord->viewRect), this->__teHandle);
 
 	SetClip(clipHandle);
@@ -258,6 +255,7 @@ void CKTextArea::Redraw() {
 
 	RGBForeColor(&oldFore);
 	RGBBackColor(&oldBack);
+	SetPenState(&penState);
 	SetPort(oldPort);
 	HUnlock((Handle)this->__teHandle);
 }
@@ -343,47 +341,7 @@ bool CKTextArea::HandleEvent(const CKEvent& evt) {
 			}
 		}
 	}
-
-	GrafPtr oldPort;
-	RGBColor oldFore;
-	RGBColor oldBack;
-	RGBColor oldHilite;
-
-	GetPort(&oldPort);
-	GetForeColor(&oldFore);
-	GetBackColor(&oldBack);
-	LMGetHiliteRGB(&oldHilite);
-
-	SetPort(this->owner->GetWindowPtr());
-
-	if (this->enabled) {
-		if (CKHasColorQuickDraw()) {
-			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
-			RGBBackColor(&white);
-		} else {
-			BackColor(whiteColor);
-		}
-	} else {
-		if (CKHasColorQuickDraw()) {
-			RGBColor gray = {0xC000, 0xC000, 0xC000};
-			RGBBackColor(&gray);
-		} else {
-			BackColor(blackColor);
-		}
-	}
-
-	RGBColor hilite;
-	LMGetHiliteRGB(&hilite);
-	HiliteColor(&hilite);
-
-	bool handled = CKTextField::HandleEvent(evt);
-
-	LMSetHiliteRGB(&oldHilite);
-	RGBForeColor(&oldFore);
-	RGBBackColor(&oldBack);
-	SetPort(oldPort);
-
-	return handled;
+	return CKTextField::HandleEvent(evt);
 }
 
 void CKTextArea::__HandleScrollBarClick(ControlHandle control, CKPoint point) {

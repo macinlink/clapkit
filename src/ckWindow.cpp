@@ -17,6 +17,7 @@
 #include "ck_pFocusableControl.h"
 #include <Appearance.h>
 #include <MacWindows.h>
+#include <Quickdraw.h>
 
 /**
  * Create a new window with the parameters passed.
@@ -360,6 +361,7 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 	Rect dr = (**wp->updateRgn).rgnBBox;
 	for (auto& c : this->__controls) {
 		if (c->rect->IntersectsRect(rectToRedraw)) {
+			this->PreparePortForControlDraw();
 			c->Redraw();
 		}
 	}
@@ -372,6 +374,37 @@ void CKWindow::Redraw(CKRect rectToRedraw) {
 
 	SetPort(oldPort);
 	this->__controlDirtifiedAreas.clear();
+}
+
+void CKWindow::PreparePortForControlDraw() {
+
+	SetPort(this->__windowPtr);
+
+	// Reset drawing state to a known baseline so misbehaving controls
+	// can't leak colors, modes, or hilite settings into others.
+	PenNormal();
+	PenMode(patCopy);
+	TextMode(srcCopy);
+
+	if (CKHasAppearanceManager()) {
+		SetThemeWindowBackground(this->__windowPtr,
+								 this->__isCurrentlyActive ? kThemeBrushDialogBackgroundActive : kThemeBrushDialogBackgroundInactive,
+								 false);
+	} else {
+		if (CKHasColorQuickDraw()) {
+			RGBColor black = {0, 0, 0};
+			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+			RGBForeColor(&black);
+			RGBBackColor(&white);
+		} else {
+			ForeColor(blackColor);
+			BackColor(whiteColor);
+		}
+	}
+
+	// Clear any inherited clipping that might hide control drawing.
+	Rect portRect = this->__windowPtr->portRect;
+	ClipRect(&portRect);
 }
 
 /**
