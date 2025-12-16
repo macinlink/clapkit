@@ -20,9 +20,9 @@
 static bool __CKNeedsBkPixPatForTextEdit() {
 	long version;
 	if (Gestalt(gestaltSystemVersion, &version) != noErr) {
-		return true;  // Assume old system, be safe
+		return true; // Assume old system, be safe
 	}
-	return version < 0x0850;  // True for < Mac OS 8.5
+	return version < 0x0850; // True for < Mac OS 8.5
 }
 
 static PixPatHandle __CKWhiteBkPixPat() {
@@ -161,9 +161,6 @@ void CKTextArea::TECreated() {
 
 void CKTextArea::PrepareForDraw() {
 
-	// Call TextField's PrepareForDraw to get proper disabled text handling
-	CKTextField::PrepareForDraw();
-
 	if (!this->__teHandle) {
 		return;
 	}
@@ -171,6 +168,21 @@ void CKTextArea::PrepareForDraw() {
 	HLock((Handle)this->__teHandle);
 	TEPtr te = *(this->__teHandle);
 
+	// Set text mode for disabled state (like TextField does, but without resetting rects)
+	if (this->enabled) {
+		te->txMode = srcCopy;
+	} else {
+		if (CKHasColorQuickDraw()) {
+			RGBColor gray = {0x8000, 0x8000, 0x8000};
+			RGBForeColor(&gray);
+			te->txMode = srcCopy;
+		} else {
+			ForeColor(blackColor);
+			te->txMode = grayishTextOr;
+		}
+	}
+
+	// IMPORTANT: Read scroll position from TERec, don't reset it
 	if (this->__vScrollBar) {
 		int viewHeight = te->viewRect.bottom - te->viewRect.top;
 		int textHeight = TEGetHeight(te->nLines, 0, this->__teHandle);
@@ -203,60 +215,43 @@ void CKTextArea::Redraw() {
 	RgnHandle clipHandle = NewRgn();
 	GetClip(clipHandle);
 
-	RGBColor oldFore;
-	RGBColor oldBack;
-	PenState penState;
-	GetForeColor(&oldFore);
-	GetBackColor(&oldBack);
-	GetPenState(&penState);
-
 	Rect cr = this->rect->ToOS();
 	Rect r = this->rect->ToOS();
-	Rect fillRect = r;
-	InsetRect(&fillRect, 1, 1);
 
-	auto setBackColorForText = [&](bool enabled) {
+	// Only erase on full redraw to avoid flicker
+	if (this->__needsFullRedraw) {
 		if (CKHasColorQuickDraw()) {
-			RGBColor back = {0xFFFF, 0xFFFF, 0xFFFF};  // White for both enabled/disabled
-			RGBBackColor(&back);
+			RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+			RGBBackColor(&white);
 		} else {
-			// On B&W Macs, always use white background
 			BackColor(whiteColor);
 		}
-	};
-
-	auto paintSolid = [&](const Rect& rectToPaint, bool enabled) {
-		PenNormal(); // Ensure solid pattern for PaintRect
-		if (CKHasColorQuickDraw()) {
-			RGBColor fill = {0xFFFF, 0xFFFF, 0xFFFF};  // White for both enabled/disabled
-			RGBForeColor(&fill);
-		} else {
-			ForeColor(whiteColor);
-		}
-		PaintRect(&rectToPaint);
-		RGBForeColor(&oldFore);
-		SetPenState(&penState);
-	};
-
-	setBackColorForText(this->enabled);
-	paintSolid(fillRect, this->enabled);
-	this->__needsFullRedraw = false;
+		EraseRect(&cr);
+		this->__needsFullRedraw = false;
+	}
 
 	cr.top += 1;
 	cr.left += 1;
 
-	// Draw the frame - simple black frame on all systems
 	ForeColor(blackColor);
 	FrameRect(&r);
 
+	// Adjust content rect BEFORE drawing scrollbars
 	if (this->__hScrollBar) {
-		Draw1Control(this->__hScrollBar);
 		cr.bottom -= kScrollBarWidth;
 	}
 
 	if (this->__vScrollBar) {
-		Draw1Control(this->__vScrollBar);
 		cr.right -= kScrollBarWidth;
+	}
+
+	// Now draw scrollbars - they know their own positions
+	if (this->__hScrollBar) {
+		Draw1Control(this->__hScrollBar);
+	}
+
+	if (this->__vScrollBar) {
+		Draw1Control(this->__vScrollBar);
 	}
 
 	if (this->__needsPreparing) {
@@ -272,12 +267,14 @@ void CKTextArea::Redraw() {
 	cr.bottom -= 1;
 	cr.right -= 1;
 
-	// Ensure background color is set before TextEdit drawing
-	// This is critical for proper selection highlighting
-	setBackColorForText(this->enabled);
+	if (CKHasColorQuickDraw()) {
+		RGBColor white = {0xFFFF, 0xFFFF, 0xFFFF};
+		RGBBackColor(&white);
+	} else {
+		BackColor(whiteColor);
+	}
 
-	// Paint the text area background
-	paintSolid(trecord->viewRect, this->enabled);
+	EraseRect(&(trecord->viewRect));
 
 	// Swap bkPixPat if needed for old TextEdit (System 7.x - Mac OS 8.1)
 	bool swappedBkPixPat = false;
@@ -304,9 +301,6 @@ void CKTextArea::Redraw() {
 	SetClip(clipHandle);
 	DisposeRgn(clipHandle);
 
-	RGBForeColor(&oldFore);
-	RGBBackColor(&oldBack);
-	SetPenState(&penState);
 	SetPort(oldPort);
 	HUnlock((Handle)this->__teHandle);
 }
@@ -392,6 +386,7 @@ bool CKTextArea::HandleEvent(const CKEvent& evt) {
 			}
 		}
 	}
+
 	return CKTextField::HandleEvent(evt);
 }
 
