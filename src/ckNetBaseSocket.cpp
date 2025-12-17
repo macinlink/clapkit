@@ -241,7 +241,7 @@ void CKNetBaseSocket::Loop() {
 		while (true) {
 			CKNetBaseSocketNotifyEvt* n = &this->__notifyEvents[this->__notifyEventsReadIdx];
 			if (n->isWritten && !n->isRead) {
-				CKLog("MacTCP notify: stream %lx event %u reason %u", this->__stream, n->eventCode, n->terminReason);
+				// CKLog("MacTCP notify: stream %lx event %u reason %u", this->__stream, n->eventCode, n->terminReason);
 				n->isRead = true;
 				foundNotify = true;
 				this->__notifyEventsReadIdx++;
