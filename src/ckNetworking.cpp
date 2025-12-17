@@ -239,7 +239,6 @@ void CKNetworking::Loop(std::vector<CKNetBaseSocket*> sockets) {
 	}
 	for (auto& s : sockets) {
 		if (s) {
-			CKLog("CKNetworking::Loop driving socket %p", s);
 			s->Loop();
 		}
 	}

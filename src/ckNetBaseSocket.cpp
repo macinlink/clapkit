@@ -235,9 +235,6 @@ void CKNetBaseSocket::__postIOCompletionEvent(unsigned short csCode, bool result
 
 void CKNetBaseSocket::Loop() {
 
-	CKLog("CKNetBaseSocket::Loop stream=%lx hasInt=%d hasNotify=%d incoming=%d disc=%d pending=%u",
-		  this->__stream, this->__hasIntEvents, this->__hasNotifyEvents, this->__hasIncomingData, this->__hasDisconnected, this->__pendingAsyncOps);
-
 	if (this->__hasNotifyEvents) {
 		bool foundNotify = false;
 		int loopCount = 0;
@@ -311,13 +308,13 @@ void CKNetBaseSocket::Loop() {
 
 		found->isRead = true;
 
-		CKLog("MacTCP completion: csCode %d result %d stream %lx pb %p", found->csCode, found->result, this->__stream, found->pb);
-		if (found->pb) {
-			CKLog("MacTCP completion detail: ioResult %d userData %p", found->pb->ioResult, (void*)(found->pb->csCode == TCPActiveOpen ? found->pb->csParam.open.userDataPtr : found->pb->csCode == TCPRcv ? found->pb->csParam.receive.userDataPtr
-																																										   : found->pb->csCode == TCPSend  ? found->pb->csParam.send.userDataPtr
-																																										   : found->pb->csCode == TCPClose ? found->pb->csParam.close.userDataPtr
-																																																		   : nullptr));
-		}
+		// CKLog("MacTCP completion: csCode %d result %d stream %lx pb %p", found->csCode, found->result, this->__stream, found->pb);
+		// if (found->pb) {
+		// 	CKLog("MacTCP completion detail: ioResult %d userData %p", found->pb->ioResult, (void*)(found->pb->csCode == TCPActiveOpen ? found->pb->csParam.open.userDataPtr : found->pb->csCode == TCPRcv ? found->pb->csParam.receive.userDataPtr
+		// 																																								   : found->pb->csCode == TCPSend  ? found->pb->csParam.send.userDataPtr
+		// 																																								   : found->pb->csCode == TCPClose ? found->pb->csParam.close.userDataPtr
+		// 																																																   : nullptr));
+		// }
 
 		switch (found->csCode) {
 			case TCPCreate:
