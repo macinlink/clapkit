@@ -14,6 +14,7 @@
 #include "ckNetClient.h"
 #include "ckErrors.h"
 #include <Devices.h>
+#include <Memory.h>
 
 CKNetClient::CKNetClient()
 	: CKNetBaseSocket() {
@@ -25,6 +26,7 @@ CKNetClient::~CKNetClient() {
 CKError CKNetClient::Connect(const char* address, UInt16 port) {
 
 	CKIPAddress r;
+	CKLog("CKNetClient::Connect host=%s port=%u", address, port);
 	CKError err = CKNetworking::ResolveName(address, &r);
 
 	if (err == CKPass) {
@@ -40,20 +42,24 @@ CKError CKNetClient::Connect(CKIPAddress address, UInt16 port) {
 		this->Close();
 	}
 
+	CKLog("CKNetClient::Connect(IP) start stream=%lx connected=%d", this->__stream, this->__isConnected);
 	this->__isConnected = false;
 
 	if (!this->__hasStream) {
+		CKLog("CKNetClient::Connect opening stream for %u.%u.%u.%u:%u", address[0], address[1], address[2], address[3], port);
 		CKError streamInitResult = this->__openStream();
 		if (streamInitResult != CKPass) {
 			return streamInitResult;
 		}
 	}
 
-	TCPiopb* pb = (TCPiopb*)CKMalloc(sizeof(*pb));
+	TCPiopb* pb = (TCPiopb*)NewPtrSysClear(sizeof(*pb));
+	if (!pb) {
+		pb = (TCPiopb*)NewPtrClear(sizeof(*pb));
+	}
 	if (!pb) {
 		return CKError_OutOfMemory;
 	}
-	memset(pb, 0, sizeof(*pb));
 	pb->ioCRefNum = CKNetworking::GetDriverRefNum();
 	pb->tcpStream = this->__stream;
 	pb->ioCompletion = ckgIOCompletionUPP;
@@ -70,13 +76,15 @@ CKError CKNetClient::Connect(CKIPAddress address, UInt16 port) {
 	pb->csParam.open.security = 0;
 	pb->csParam.open.optionCnt = 0;
 
+	CKLog("CKNetClient::Connect issuing TCPActiveOpen stream=%lx remote=%u.%u.%u.%u:%u",
+		this->__stream, address[0], address[1], address[2], address[3], port);
 	OSErr err = PBControlAsync((ParmBlkPtr)pb);
 	CKLog("PB result is %d", err);
 	if (err != noErr && err != inProgress) {
 		CKLog("TCPActiveOpen failed with error code %d", err);
 		this->Close();
 		this->HandleEvent(CKEvent(CKEventType::tcpConnectionFailed));
-		CKFree(pb);
+		DisposePtr((Ptr)pb);
 		if (err == connectionExists) {
 			// A stray connection?
 			// TODO: In this case, should we retry or not?
@@ -84,6 +92,7 @@ CKError CKNetClient::Connect(CKIPAddress address, UInt16 port) {
 		}
 		return CKError_TCPConnectionFailed;
 	}
+	this->__pendingAsyncOps++;
 
 	return CKPass;
 }
@@ -93,6 +102,8 @@ CKError CKNetClient::Read(void* out, short len, short* actuallyRead) {
 	if (!this->__isConnected) {
 		return CKError_TCPNotConnected;
 	}
+
+	CKLog("CKNetClient::Read len=%d stream=%lx", len, this->__stream);
 
 	TCPiopb pb;
 	memset(&pb, 0, sizeof(pb));
@@ -136,6 +147,8 @@ CKError CKNetClient::Write(const void* data, UInt32 len) {
 	pb.csParam.send.validityFlags = timeoutValue | timeoutAction;
 	pb.csParam.send.pushFlag = 1; // Push data immediately
 	pb.csParam.send.urgentFlag = 0;
+
+	CKLog("CKNetClient::Write len=%lu stream=%lx", len, this->__stream);
 
 	wdsEntry* wds = (wdsEntry*)NewPtr(sizeof(wdsEntry) * 2);
 	if (!wds) {

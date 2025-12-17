@@ -16,6 +16,8 @@
 #include "ckErrors.h"
 #include "ckGlobals.h"
 #include "ckNetworking.h"
+#include <Events.h>
+#include <Memory.h>
 
 TCPNotifyUPP ckgNotifyUPP = nullptr;
 TCPIOCompletionUPP ckgIOCompletionUPP = nullptr;
@@ -51,37 +53,44 @@ CKError CKNetBaseSocket::__closeStream() {
 		return CKPass;
 	}
 
-	// TODO: Do we need to `close` first or can we just release?
+	CKLog("CKNetBaseSocket::__closeStream stream=%lx pendingOps=%u", this->__stream, this->__pendingAsyncOps);
 
-	TCPiopb pb;
-	memset(&pb, 0, sizeof(pb));
-	pb.ioCRefNum = CKNetworking::GetDriverRefNum();
-	pb.csCode = TCPClose;
-	pb.tcpStream = this->__stream;
+	TCPiopb* pb = (TCPiopb*)NewPtrSysClear(sizeof(*pb));
+	if (!pb) {
+		pb = (TCPiopb*)NewPtrClear(sizeof(*pb));
+	}
+	if (!pb) {
+		return CKError_OutOfMemory;
+	}
+	pb->ioCRefNum = CKNetworking::GetDriverRefNum();
+	pb->csCode = TCPClose;
+	pb->tcpStream = this->__stream;
+	pb->ioCompletion = ckgIOCompletionUPP;
+	pb->csParam.close.userDataPtr = (Ptr)this;
 
-	OSErr err = PBControlSync((ParmBlkPtr)&pb);
-	if (err != noErr) {
+	OSErr err = PBControlAsync((ParmBlkPtr)pb);
+	if (err != noErr && err != inProgress) {
 		CKLog("Closing of stream failed: %d", err);
+		DisposePtr((Ptr)pb);
 		return CKError_DriverActionFailed;
 	}
 
-	memset(&pb, 0, sizeof(pb));
-	pb.ioCRefNum = CKNetworking::GetDriverRefNum();
-	pb.csCode = TCPRelease;
-	pb.tcpStream = this->__stream;
+	this->__pendingAsyncOps++;
+	this->__waitingForClose = true;
 
-	err = PBControlSync((ParmBlkPtr)&pb);
-	if (err != noErr) {
-		CKLog("Releasing of stream failed: %d", err);
-		return CKError_DriverActionFailed;
+	UInt32 timeout = TickCount() + 60 * 5; // wait up to ~5 seconds for close completion
+	while (this->__waitingForClose && TickCount() < timeout) {
+		SystemTask();
+		this->Loop();
 	}
 
-	if (this->__mactcpBuffer) {
-		CKFree(this->__mactcpBuffer);
+	if (this->__waitingForClose) {
+		CKLog("TCPClose did not complete before timeout; forcing release");
+		this->__waitingForClose = false;
+		// Fall through to release attempts to avoid leaks.
+		this->__releaseStream();
 	}
 
-	CKLog("this->__stream closed via closeStream successfully");
-	this->__stream = 0;
 	return CKPass;
 }
 
@@ -108,7 +117,12 @@ CKError CKNetBaseSocket::__openStream() {
 		return CKError_InvalidParameters;
 	}
 
-	this->__mactcpBuffer = (Ptr)CKMalloc(this->__mactcpBufferSize);
+	CKLog("CKNetBaseSocket::__openStream bufferSize=%u", this->__mactcpBufferSize);
+	// Allocate receive buffer in the system heap first to stay 24-bit clean and compatible with MacTCP driver expectations.
+	this->__mactcpBuffer = NewPtrSysClear(this->__mactcpBufferSize);
+	if (!this->__mactcpBuffer) {
+		this->__mactcpBuffer = NewPtrClear(this->__mactcpBufferSize);
+	}
 	if (!this->__mactcpBuffer) {
 		CKLog("Can't create TCP buffer!");
 		return CKError_OutOfMemory;
@@ -127,6 +141,10 @@ CKError CKNetBaseSocket::__openStream() {
 	OSErr err = PBControlSync((ParmBlkPtr)&pb);
 	if (err != noErr) {
 		CKLog("Opening of stream failed: %d", err);
+		if (this->__mactcpBuffer) {
+			DisposePtr(this->__mactcpBuffer);
+			this->__mactcpBuffer = nullptr;
+		}
 		return CKError_DriverActionFailed;
 	}
 
@@ -136,7 +154,50 @@ CKError CKNetBaseSocket::__openStream() {
 	return CKPass;
 }
 
+CKError CKNetBaseSocket::__releaseStream() {
+
+	CKLog("CKNetBaseSocket::__releaseStream stream=%lx", this->__stream);
+
+	if (!this->__stream) {
+		return CKPass;
+	}
+
+	TCPiopb pb;
+	memset(&pb, 0, sizeof(pb));
+	pb.ioCRefNum = CKNetworking::GetDriverRefNum();
+	pb.csCode = TCPRelease;
+	pb.tcpStream = this->__stream;
+
+	OSErr err = PBControlSync((ParmBlkPtr)&pb);
+	if (err != noErr) {
+		CKLog("Releasing of stream failed: %d", err);
+		return CKError_DriverActionFailed;
+	}
+
+	if (this->__mactcpBuffer) {
+		DisposePtr(this->__mactcpBuffer);
+		this->__mactcpBuffer = nullptr;
+	}
+
+	this->__stream = 0;
+	this->__hasStream = false;
+	CKLog("CKNetBaseSocket::__releaseStream done");
+	return CKPass;
+}
+
 void CKNetBaseSocket::__postNotifyEvent(unsigned short eventCode, unsigned short terminReason, struct ICMPReport* icmpMsg) {
+	// Record for later logging in the main loop to avoid doing any heavy work at interrupt time.
+	CKNetBaseSocketNotifyEvt* slot = &this->__notifyEvents[this->__notifyEventsWriteIdx];
+	slot->eventCode = eventCode;
+	slot->terminReason = terminReason;
+	slot->icmpMsg = icmpMsg;
+	slot->isWritten = true;
+	slot->isRead = false;
+	this->__notifyEventsWriteIdx++;
+	if (this->__notifyEventsWriteIdx >= 32) {
+		this->__notifyEventsWriteIdx = 0;
+	}
+	this->__hasNotifyEvents = true;
 
 	switch (eventCode) {
 		case TCPUrgent:
@@ -144,19 +205,24 @@ void CKNetBaseSocket::__postNotifyEvent(unsigned short eventCode, unsigned short
 			this->__hasIncomingData = true;
 			break;
 		case TCPClosing:
+		case TCPULPTimeout:
 		case TCPTerminate:
+		case TCPICMPReceived:
 			this->__hasDisconnected = true;
 			break;
 		default:
-			DebugStr("\pUnknown notification received from MacTCP!");
+			// Logging deferred to Loop to remain interrupt-safe.
 			break;
 	}
 }
 
-void CKNetBaseSocket::__postIOCompletionEvent(unsigned short csCode, bool result) {
+void CKNetBaseSocket::__postIOCompletionEvent(unsigned short csCode, bool result, TCPiopb* pb, bool countsPending, bool pbFromNewPtr) {
 
 	this->__intEvents[this->__intEventsWriteIdx].csCode = csCode;
 	this->__intEvents[this->__intEventsWriteIdx].result = result;
+	this->__intEvents[this->__intEventsWriteIdx].pb = pb;
+	this->__intEvents[this->__intEventsWriteIdx].countsPending = countsPending;
+	this->__intEvents[this->__intEventsWriteIdx].pbFromNewPtr = pbFromNewPtr;
 	this->__intEvents[this->__intEventsWriteIdx].isWritten = true;
 	this->__intEvents[this->__intEventsWriteIdx].isRead = false;
 
@@ -169,70 +235,140 @@ void CKNetBaseSocket::__postIOCompletionEvent(unsigned short csCode, bool result
 
 void CKNetBaseSocket::Loop() {
 
+	CKLog("CKNetBaseSocket::Loop stream=%lx hasInt=%d hasNotify=%d incoming=%d disc=%d pending=%u",
+		  this->__stream, this->__hasIntEvents, this->__hasNotifyEvents, this->__hasIncomingData, this->__hasDisconnected, this->__pendingAsyncOps);
+
+	if (this->__hasNotifyEvents) {
+		bool foundNotify = false;
+		int loopCount = 0;
+		while (true) {
+			CKNetBaseSocketNotifyEvt* n = &this->__notifyEvents[this->__notifyEventsReadIdx];
+			if (n->isWritten && !n->isRead) {
+				CKLog("MacTCP notify: stream %lx event %u reason %u", this->__stream, n->eventCode, n->terminReason);
+				n->isRead = true;
+				foundNotify = true;
+				this->__notifyEventsReadIdx++;
+				if (this->__notifyEventsReadIdx >= 32) {
+					this->__notifyEventsReadIdx = 0;
+				}
+				break;
+			}
+
+			this->__notifyEventsReadIdx++;
+			if (this->__notifyEventsReadIdx >= 32) {
+				this->__notifyEventsReadIdx = 0;
+				loopCount++;
+			}
+			if (loopCount >= 2) {
+				break;
+			}
+		}
+		if (!foundNotify) {
+			this->__hasNotifyEvents = false;
+		}
+	}
+
 	if (this->__hasIncomingData) {
-		this->HandleEvent(CKEvent(CKEventType::tcpReceivedData));
+		CKEvent evt(CKEventType::tcpReceivedData);
+		this->HandleEvent(evt);
 		this->__hasIncomingData = false;
 	}
 
 	if (this->__hasDisconnected) {
-		this->HandleEvent(CKEvent(CKEventType::tcpDisconnected));
+		CKEvent evt(CKEventType::tcpDisconnected);
+		this->HandleEvent(evt);
 		this->__isConnected = false;
 		this->__hasDisconnected = false;
 	}
 
-	if (!this->__hasIntEvents) {
-		return;
-	}
+	while (this->__hasIntEvents) {
 
-	bool foundOne = false;
-	int loopCount = 0;
-	CKNetBaseSocketEvtFromInterrupt* found;
-	while (true) {
-		found = &this->__intEvents[this->__intEventsReadIdx];
-		if (found->isWritten && !found->isRead) {
-			CKLog("Found unread int evt at index %d", this->__intEventsReadIdx);
-			foundOne = true;
-			break;
-		}
-
-		this->__intEventsReadIdx++;
-		if (this->__intEventsReadIdx >= 32) {
-			this->__intEventsReadIdx = 0;
-			loopCount++;
-		}
-		if (loopCount >= 2) {
-			break;
-		}
-	}
-
-	if (!foundOne) {
-		this->__hasIntEvents = false;
-		return;
-	}
-
-	found->isRead = true;
-
-	switch (found->csCode) {
-		case TCPCreate:
-			// Not handling, this is sync.
-			break;
-		case TCPActiveOpen:
-			CKLog("Got TCPActiveOpen result of %s", found->result ? "success" : "failure");
-			if (found->result) {
-				this->__isConnected = true;
-				this->HandleEvent(CKEvent(CKEventType::tcpConnected));
-			} else {
-				this->__isConnected = false;
-				this->HandleEvent(CKEvent(CKEventType::tcpConnectionFailed));
+		bool foundOne = false;
+		int loopCount = 0;
+		CKNetBaseSocketEvtFromInterrupt* found;
+		while (true) {
+			found = &this->__intEvents[this->__intEventsReadIdx];
+			if (found->isWritten && !found->isRead) {
+				CKLog("Found unread int evt at index %d", this->__intEventsReadIdx);
+				foundOne = true;
+				break;
 			}
-			break;
-		default:
-			CKLog("Warning! Unimplemented csCode %d!", found->csCode);
-			break;
-	}
 
-	// Call one more time to flush.
-	this->Loop();
+			this->__intEventsReadIdx++;
+			if (this->__intEventsReadIdx >= 32) {
+				this->__intEventsReadIdx = 0;
+				loopCount++;
+			}
+			if (loopCount >= 2) {
+				break;
+			}
+		}
+
+		if (!foundOne) {
+			this->__hasIntEvents = false;
+			break;
+		}
+
+		found->isRead = true;
+
+		CKLog("MacTCP completion: csCode %d result %d stream %lx pb %p", found->csCode, found->result, this->__stream, found->pb);
+		if (found->pb) {
+			CKLog("MacTCP completion detail: ioResult %d userData %p", found->pb->ioResult, (void*)(found->pb->csCode == TCPActiveOpen ? found->pb->csParam.open.userDataPtr : found->pb->csCode == TCPRcv ? found->pb->csParam.receive.userDataPtr
+																																										   : found->pb->csCode == TCPSend  ? found->pb->csParam.send.userDataPtr
+																																										   : found->pb->csCode == TCPClose ? found->pb->csParam.close.userDataPtr
+																																																		   : nullptr));
+		}
+
+		switch (found->csCode) {
+			case TCPCreate:
+				// Not handling, this is sync.
+				break;
+			case TCPActiveOpen:
+				CKLog("Got TCPActiveOpen result of %s", found->result ? "success" : "failure");
+				if (found->pb) {
+					CKLog("TCPActiveOpen detail: remote %lu.%lu.%lu.%lu port %u localPort %u",
+						  (unsigned long)((found->pb->csParam.open.remoteHost >> 24) & 0xFF),
+						  (unsigned long)((found->pb->csParam.open.remoteHost >> 16) & 0xFF),
+						  (unsigned long)((found->pb->csParam.open.remoteHost >> 8) & 0xFF),
+						  (unsigned long)(found->pb->csParam.open.remoteHost & 0xFF),
+						  found->pb->csParam.open.remotePort,
+						  found->pb->csParam.open.localPort);
+				}
+				if (found->result) {
+					this->__isConnected = true;
+					this->HandleEvent(CKEvent(CKEventType::tcpConnected));
+				} else {
+					this->__isConnected = false;
+					this->HandleEvent(CKEvent(CKEventType::tcpConnectionFailed));
+				}
+				break;
+			case TCPClose:
+				CKLog("TCPClose completed with result %s", found->result ? "success" : "failure");
+				this->__waitingForClose = false;
+				if (found->result) {
+					this->__releaseStream();
+				} else {
+					CKLog("TCPClose reported failure; attempting release anyway");
+					this->__releaseStream();
+				}
+				break;
+			default:
+				CKLog("Warning! Unimplemented csCode %d!", found->csCode);
+				break;
+		}
+
+		if (found->pb) {
+			if (found->pbFromNewPtr) {
+				DisposePtr((Ptr)found->pb);
+			} else {
+				CKFree(found->pb);
+			}
+			found->pb = nullptr;
+		}
+		if (found->countsPending && this->__pendingAsyncOps > 0) {
+			this->__pendingAsyncOps--;
+		}
+	}
 }
 
 pascal void CKNBSNotify(StreamPtr stream, unsigned short eventCode, Ptr userDataPtr, unsigned short terminReason, struct ICMPReport* icmpMsg) {
@@ -240,12 +376,11 @@ pascal void CKNBSNotify(StreamPtr stream, unsigned short eventCode, Ptr userData
 	auto* sock = reinterpret_cast<CKNetBaseSocket*>(userDataPtr);
 	if (sock) {
 		sock->__postNotifyEvent(eventCode, terminReason, icmpMsg);
-	} else {
-		CKLog("CKNBSNotify got an object (%x) that's not a base socket!", userDataPtr);
 	}
 }
 
-pascal void CKNBSIOCompletion(TCPiopb* iopb) {
+// MacTCP IO completion callbacks use the C calling convention (stack cleaned by caller on 68k).
+void CKNBSIOCompletion(TCPiopb* iopb) {
 
 	if (!iopb) {
 		return;
@@ -254,9 +389,12 @@ pascal void CKNBSIOCompletion(TCPiopb* iopb) {
 	CKNetBaseSocket* socket = nullptr;
 
 	void* userPtr = nullptr;
+	bool countsPending = false;
+	bool pbFromNewPtr = true; // async PBs allocated via NewPtr*
 	switch (iopb->csCode) {
 		case TCPActiveOpen:
 			userPtr = iopb->csParam.open.userDataPtr;
+			countsPending = true;
 			break;
 		case TCPRcv:
 			userPtr = iopb->csParam.receive.userDataPtr;
@@ -266,6 +404,7 @@ pascal void CKNBSIOCompletion(TCPiopb* iopb) {
 			break;
 		case TCPClose:
 			userPtr = iopb->csParam.close.userDataPtr;
+			countsPending = true;
 			break;
 		default:
 			return;
@@ -277,7 +416,5 @@ pascal void CKNBSIOCompletion(TCPiopb* iopb) {
 	}
 
 	bool opSuccessful = iopb->ioResult == noErr;
-	socket->__postIOCompletionEvent(iopb->csCode, opSuccessful);
-
-	CKFree(iopb);
+	socket->__postIOCompletionEvent(iopb->csCode, opSuccessful, iopb, countsPending, pbFromNewPtr);
 }

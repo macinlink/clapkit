@@ -57,7 +57,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(clapkit PRIVATE kCKAPPDEBUG=1)
 
     set_target_properties(CKTest PROPERTIES 
-        COMPILE_FLAGS "-O0 -Wall -g -fdata-sections -ffunction-sections"
+        COMPILE_FLAGS "-O0 -Wall -g -fdata-sections -ffunction-sections -msoft-float -m68020"
         LINK_FLAGS "-Wl,--mac-single"
     )
 
@@ -67,7 +67,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(clapkit PRIVATE NDEBUG)
 
     set_target_properties(CKTest PROPERTIES 
-        COMPILE_FLAGS "-s -O1 -Wall -fmerge-all-constants -fmerge-constants -fstrict-aliasing -fomit-frame-pointer -fdata-sections -ffunction-sections -finline-functions"
+        COMPILE_FLAGS "-s -O1 -Wall -fmerge-all-constants -fmerge-constants -fstrict-aliasing -fomit-frame-pointer -fdata-sections -ffunction-sections -finline-functions -msoft-float -m68020"
         LINK_FLAGS "-Wl,--mac-single -Wl,--mac-strip-macsbug"
     )
 endif()

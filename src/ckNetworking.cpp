@@ -76,14 +76,14 @@ bool CKNetworking::Deinitialize() {
 	if (!MacTCPDriverOpened) {
 		return false;
 	}
+	CKLog("CKNetworking::Deinitialize closing driver (%d)", MacTCPDriverRefNum);
 	MacCloseDriver(MacTCPDriverRefNum);
 	MacTCPDriverRefNum = -1;
 	MacTCPDriverOpened = false;
 	return true;
 }
 
-/**
- * @brief Return the IP Address of the current device
+/** * @brief Return the IP Address of the current device
  * @return Returns a blank (0.0.0.0) IP address on failure.
  */
 CKIPAddress CKNetworking::GetLocalIP() {
@@ -91,18 +91,18 @@ CKIPAddress CKNetworking::GetLocalIP() {
 		return {0, 0, 0, 0};
 	}
 
-	TCPiopb pbr = {};
-	pbr.ioCRefNum = MacTCPDriverRefNum;
-	pbr.csCode = TCPStatus;
+	GetAddrParamBlock pb = {};
+	pb.ioCRefNum = MacTCPDriverRefNum;
+	pb.csCode = ipctlGetAddr;
 
-	OSErr err = PBControlSync((ParmBlkPtr)&pbr);
+	OSErr err = PBControlSync((ParmBlkPtr)&pb);
 	if (err != noErr) {
-		CKLog("PBControlSync failed: %d\n", err);
+		CKLog("GetLocalIP PBControlSync failed: %d (ioResult=%d)", err, pb.ioResult);
 		return {0, 0, 0, 0};
 	}
 
-	TCPStatusPB result = pbr.csParam.status;
-	ip_addrbytes* ipAddrBytes = (ip_addrbytes*)&pbr.csParam.status.localHost;
+	ip_addrbytes* ipAddrBytes = (ip_addrbytes*)&pb.ourAddress;
+	CKLog("CKNetworking::GetLocalIP ioResult=%d localHost=%lu", pb.ioResult, (unsigned long)pb.ourAddress);
 	return {ipAddrBytes->a.byte[0], ipAddrBytes->a.byte[1], ipAddrBytes->a.byte[2], ipAddrBytes->a.byte[3]};
 }
 
@@ -127,24 +127,30 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 	}
 
 	OSErr err;
+	CKError finalErr = CKPass;
+	bool resolverOpened = false;
+	ResultUPP completionUPP = nullptr;
 
+	CKLog("CKNetworking::ResolveName start host=%s", hostname);
 	err = OpenResolver(nil);
 	if (err != noErr) {
 		CKLog("Failed to open DNR: %d", err);
 		return CKError_DriverActionFailed;
 	}
+	resolverOpened = true;
 
 	struct hostInfo hResult;
 
 	volatile Boolean done = false;
 
 	// Define completion routine
-	ResultUPP completionUPP = NewResultProc(ResolveNameResultUPP);
+	completionUPP = NewResultProc(ResolveNameResultUPP);
 
 	err = StrToAddr((char*)hostname, &hResult, completionUPP, (char*)&done);
 	if (err != noErr && err != cacheFault) {
 		CKLog("Calling StrToAddress failed: %d", err);
-		return CKError_DriverActionFailed;
+		finalErr = CKError_DriverActionFailed;
+		goto cleanup;
 	}
 
 	if (err == cacheFault) {
@@ -154,9 +160,15 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 			EventRecord evt;
 			if (EventAvail(keyDownMask, &evt)) {
 				if ((evt.modifiers & cmdKey) && (evt.message & charCodeMask) == '.') {
-					return CKError_UserCancelled;
+					finalErr = CKError_UserCancelled;
+					goto cleanup;
 				}
 			}
+		}
+		if (!done) {
+			CKLog("DNR request timed out waiting for StrToAddr completion");
+			finalErr = CKError_DriverActionFailed;
+			goto cleanup;
 		}
 	} else {
 		CKLog("Got cached DNR result.");
@@ -169,30 +181,52 @@ CKError CKNetworking::ResolveName(const char* hostname, CKIPAddress* result) {
 		(*result)[1] = (unsigned char)((addr >> 16) & 0xFF);
 		(*result)[2] = (unsigned char)((addr >> 8) & 0xFF);
 		(*result)[3] = (unsigned char)(addr & 0xFF);
-		return CKPass;
+		finalErr = CKPass;
+		CKLog("CKNetworking::ResolveName success %u.%u.%u.%u", (*result)[0], (*result)[1], (*result)[2], (*result)[3]);
+		goto cleanup;
 	}
 
 	// Map DNR error codes
 	switch (hResult.rtnCode) {
 		case nameSyntaxErr:
 			CKLog("DNR result is nameSyntaxErr.");
-			return CKError_InvalidParameters;
+			finalErr = CKError_InvalidParameters;
+			break;
 		case noNameServer:
 			CKLog("DNR result is noNameServer.");
-			return CKError_TCPUnreachable;
+			finalErr = CKError_TCPUnreachable;
+			break;
 		case noAnsErr:
 			CKLog("DNR result is noAnsErr.");
-			return CKError_TCPUnreachable;
+			finalErr = CKError_TCPUnreachable;
+			break;
 		case authNameErr:
 			CKLog("DNR result is authNameErr.");
-			return CKError_NotFound;
+			finalErr = CKError_NotFound;
+			break;
 		case outOfMemory:
 			CKLog("DNR result is outOfMemory.");
-			return CKError_OutOfMemory;
+			finalErr = CKError_OutOfMemory;
+			break;
 		default:
 			CKLog("DNR failed with code: %d", hResult.rtnCode);
-			return CKError_DriverActionFailed;
+			finalErr = CKError_DriverActionFailed;
+			break;
 	}
+
+cleanup:
+#if GENERATINGCFM
+	if (completionUPP) {
+		DisposeRoutineDescriptor((UniversalProcPtr)completionUPP);
+	}
+#endif
+	if (resolverOpened) {
+		OSErr closeErr = CloseResolver();
+		if (closeErr != noErr) {
+			CKLog("CloseResolver failed: %d", closeErr);
+		}
+	}
+	return finalErr;
 }
 
 /**
@@ -204,6 +238,9 @@ void CKNetworking::Loop(std::vector<CKNetBaseSocket*> sockets) {
 		return;
 	}
 	for (auto& s : sockets) {
-		s->Loop();
+		if (s) {
+			CKLog("CKNetworking::Loop driving socket %p", s);
+			s->Loop();
+		}
 	}
 }

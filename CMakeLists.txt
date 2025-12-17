@@ -57,6 +57,8 @@ target_compile_definitions(clapkit
 
 target_compile_options(clapkit
   PRIVATE
+    -msoft-float
+    -m68020
     $<$<CONFIG:Debug>:-O0;-g;-Wall;-fdata-sections;-ffunction-sections>
     $<$<CONFIG:Release>:-s;-O1;-Wall;-fmerge-all-constants;-fmerge-constants;-fstrict-aliasing;-fomit-frame-pointer;-fdata-sections;-ffunction-sections;-finline-functions>
 )
