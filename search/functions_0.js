@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['_5f_5fckc2p_0',['__ckc2p',['../ckUtils_8h.html#aeb2e366bbfeefdae0cb3ce19393b99e5',1,'__CKC2P(const char *src, const char *func, int line, const char *file):&#160;ckUtils.cpp'],['../ckUtils_8cpp.html#aeb2e366bbfeefdae0cb3ce19393b99e5',1,'__CKC2P(const char *src, const char *func, int line, const char *file):&#160;ckUtils.cpp']]],
+  ['_5f_5fckdebuglog_1',['__ckdebuglog',['../ckUtils_8h.html#aa7a42466d6cb96a61d07769df1bdf47b',1,'__CKDebugLog(int level, const char *s,...):&#160;ckUtils.cpp'],['../ckUtils_8cpp.html#aa7a42466d6cb96a61d07769df1bdf47b',1,'__CKDebugLog(int level, const char *s,...):&#160;ckUtils.cpp']]],
+  ['_5f_5fckdelete_2',['__ckdelete',['../ckMemory_8h.html#a7d35356226269a6e290f0a3a6962427d',1,'__CKDelete(void *ptr, const char *func, int line, const char *file):&#160;ckMemory.cpp'],['../ckMemory_8cpp.html#a7d35356226269a6e290f0a3a6962427d',1,'__CKDelete(void *ptr, const char *func, int line, const char *file):&#160;ckMemory.cpp']]],
+  ['_5f_5fckdestroy_3',['__CKDestroy',['../ckMemory_8h.html#aa3e95bc51a1948608d7b5df85f8cb1f0',1,'ckMemory.h']]],
+  ['_5f_5fckdestroyarray_4',['__CKDestroyArray',['../ckMemory_8h.html#ab0644bbc56a752a2201d67149cc5ce88',1,'ckMemory.h']]],
+  ['_5f_5fckfree_5',['__ckfree',['../ckMemory_8h.html#a1db88115bb3cfc0857c21250dec1f356',1,'__CKFree(const char *func, int line, const char *file, void *ptr):&#160;ckMemory.cpp'],['../ckMemory_8cpp.html#a1db88115bb3cfc0857c21250dec1f356',1,'__CKFree(const char *func, int line, const char *file, void *ptr):&#160;ckMemory.cpp']]],
+  ['_5f_5fckmalloc_6',['__ckmalloc',['../ckMemory_8h.html#abf29ead97e057214caddcd593735921b',1,'__CKMalloc(const char *func, int line, const char *file, size_t size):&#160;ckMemory.cpp'],['../ckMemory_8cpp.html#abf29ead97e057214caddcd593735921b',1,'__CKMalloc(const char *func, int line, const char *file, size_t size):&#160;ckMemory.cpp']]],
+  ['_5f_5fcknew_7',['__cknew',['../ckMemory_8cpp.html#a2331820b6f1bcb8c343eca5892d89b87',1,'__CKNew(const char *func, int line, const char *file, size_t size):&#160;ckMemory.cpp'],['../ckMemory_8h.html#a2331820b6f1bcb8c343eca5892d89b87',1,'__CKNew(const char *func, int line, const char *file, size_t size):&#160;ckMemory.cpp']]],
+  ['_5f_5fckp2c_8',['__ckp2c',['../ckUtils_8cpp.html#acb0a551983d06c99149b54a2d22ec68f',1,'__CKP2C(const unsigned char *src, const char *func, int line, const char *file):&#160;ckUtils.cpp'],['../ckUtils_8h.html#acb0a551983d06c99149b54a2d22ec68f',1,'__CKP2C(const unsigned char *src, const char *func, int line, const char *file):&#160;ckUtils.cpp']]],
+  ['_5f_5fckreportallocation_9',['__CKReportAllocation',['../ckMemory_8cpp.html#a8db5d5ffd6443b143724895f20e46107',1,'ckMemory.cpp']]],
+  ['_5f_5fckreportdeallocation_10',['__CKReportDeallocation',['../ckMemory_8cpp.html#a651b1cac69e6b5f48c234dee87053c6e',1,'ckMemory.cpp']]],
+  ['_5f_5fcksafecopystring_11',['__cksafecopystring',['../ckMemory_8cpp.html#a77a7151a53d08e402c4d3332dbec2868',1,'__CKSafeCopyString(char **dest, const char *src, const char *func, int line, const char *file):&#160;ckMemory.cpp'],['../ckMemory_8h.html#a35b1657e27cd120374a2b735d378fdd9',1,'__CKSafeCopyString(char **dest, const char *src, const char *func=0, int line=0, const char *file=0):&#160;ckMemory.cpp']]],
+  ['_5f_5fckwritetoexitfile_12',['__ckwritetoexitfile',['../ckUtils_8cpp.html#a3745f7d2b02c678e0b52c6ecd8ce9427',1,'__CKWriteToExitFile(const char *s,...):&#160;ckUtils.cpp'],['../ckUtils_8h.html#a3745f7d2b02c678e0b52c6ecd8ce9427',1,'__CKWriteToExitFile(const char *s,...):&#160;ckUtils.cpp']]],
+  ['_5f_5fclosestream_13',['__closeStream',['../classCKNetBaseSocket.html#a8aaa4813e01d546b05d638d1406f7797',1,'CKNetBaseSocket']]],
+  ['_5f_5fgetlineheight_14',['__GetLineHeight',['../classCKTextArea.html#ab7eed4699673ea3d492e888d459a9705',1,'CKTextArea']]],
+  ['_5f_5fgetpageheight_15',['__GetPageHeight',['../classCKTextArea.html#a44c86f7f2d9773c397df487cde129a53',1,'CKTextArea']]],
+  ['_5f_5fopenstream_16',['__openStream',['../classCKNetBaseSocket.html#afafe6b11ff9acbf7df787bb1b442e4a1',1,'CKNetBaseSocket']]],
+  ['_5f_5fpostiocompletionevent_17',['__postIOCompletionEvent',['../classCKNetBaseSocket.html#aa10c8c0de39981474a7f22931b6cc665',1,'CKNetBaseSocket']]],
+  ['_5f_5fpostnotifyevent_18',['__postNotifyEvent',['../classCKNetBaseSocket.html#a3d681a598536ec1bdf81836e5704519b',1,'CKNetBaseSocket']]],
+  ['_5f_5freflecttoos_19',['__reflecttoos',['../classCKWindow.html#a8ec8e584a8b03c9f420dc7e10428c60c',1,'CKWindow::__ReflectToOS()'],['../classCKMenuItem.html#a4b54a316d110e8afdf2a13d27708df7a',1,'CKMenuItem::__ReflectToOS()'],['../classCKControlToolbox.html#abdaca4449bbe55ac7e13ea2ac9b34868',1,'CKControlToolbox::__ReflectToOS()'],['../classCKCheckbox.html#a023387e65b774ace6c8e5add192b0452',1,'CKCheckbox::__ReflectToOS()']]],
+  ['_5f_5freleasestream_20',['__releaseStream',['../classCKNetBaseSocket.html#ac71cef21abda6e08e501b2f72e28b1e7',1,'CKNetBaseSocket']]],
+  ['_5f_5fscrollactionupp_21',['__ScrollActionUPP',['../ckTextArea_8cpp.html#a3bbc39abc488a50968dfe5090791ee01',1,'ckTextArea.cpp']]],
+  ['_5f_5fsyncscrollbarsfromte_22',['__SyncScrollbarsFromTE',['../classCKTextArea.html#a697a43cc52b686c254c26717c2092d04',1,'CKTextArea']]],
+  ['_5f_5fupdatetextscroll_23',['__UpdateTextScroll',['../classCKTextArea.html#ac434fe2ad56203b1ff6e9530869acf2c',1,'CKTextArea']]]
+];

@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['target_5fos_5fmac_0',['TARGET_OS_MAC',['../ckApp_8h.html#a71bc360856d4b18c09e65dee5f476c19',1,'ckApp.h']]],
+  ['tcpbufferfull_1',['tcpBufferFull',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308ca9ee1cc0f74852282075ea51a649edaf9',1,'ckTypes.h']]],
+  ['tcpconnected_2',['tcpConnected',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308caf5cf820bc57717b88d045b886f5cd4ca',1,'ckTypes.h']]],
+  ['tcpconnectionfailed_3',['tcpConnectionFailed',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308ca5b5bfde46cd7aa49807784c70bd971b2',1,'ckTypes.h']]],
+  ['tcpdisconnected_4',['tcpDisconnected',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308ca3bfdc67b1a919b3dabb3491e9732df8f',1,'ckTypes.h']]],
+  ['tcperror_5',['tcpError',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308ca85f97b0c60ea182da08fec9949a3f40a',1,'ckTypes.h']]],
+  ['tcpreceiveddata_6',['tcpReceivedData',['../group__Types.html#gga70df7d5fb2893b258e7a55b2e949308cada05646d2484b252a86cf4501a14adae',1,'ckTypes.h']]],
+  ['tecreated_7',['tecreated',['../classCKTextArea.html#a7d576a002920b0a5472f204e3b121c04',1,'CKTextArea::TECreated()'],['../classCKTextField.html#a675856d56efc7ddd00e03f1d4a179617',1,'CKTextField::TECreated()'],['../classCKLabel.html#a38bc3d4c6079ee9582ecf8cbecbcdc32',1,'CKLabel::TECreated()']]],
+  ['terminreason_8',['terminReason',['../structCKNetBaseSocketNotifyEvt.html#a3ca95ab52b90a74f18c1fa579e5827a9',1,'CKNetBaseSocketNotifyEvt']]],
+  ['test_20app_9',['A test app',['../index.html#autotoc_md6',1,'']]],
+  ['text_10',['text',['../structCKTextFieldColors.html#a6f797d1e0a07ee4bbf9e413759b1d82f',1,'CKTextFieldColors::text'],['../ck__pValueContainingControl_8h.html#a77144303ba915d0f9be2e6ae36367ae5a9dffbf69ffba8bc38bc4e01abf4b1675',1,'Text:&#160;ck_pValueContainingControl.h'],['../classCKMenu.html#a6dbc0ff6fe7f40184bbed92e6e3cce6c',1,'CKMenu::text'],['../classCKMenuItem.html#a41f22c5c2ff1891ace61607a764dabac',1,'CKMenuItem::text']]],
+  ['textfield_11',['TextField',['../group__Types.html#gga3ce0291503d6e078db36d6b61ec51be9af0bfb289e820988a0d3e577bed6156a8',1,'ckTypes.h']]],
+  ['the_20documentation_20at_20a_20href_20https_3a_20macinlink_20github_20io_20clapkit_20https_3a_20macinlink_20github_20io_20clapkit_20a_12',['Check out the documentation at &lt;a href=&quot;https://macinlink.github.io/clapkit/&quot; &gt;https://macinlink.github.io/clapkit/&lt;/a&gt;',['../index.html#autotoc_md4',1,'']]],
+  ['the_20kitchen_20sink_20a_20in_20the_20the_20tt_20examples_20tt_20folder_20strong_13',['&lt;strong&gt;Note: For a sample app, check out &lt;a href=&quot;https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink&quot; &gt;The Kitchen Sink&lt;/a&gt; in the the &lt;tt&gt;Examples&lt;/tt&gt; folder.&lt;/strong&gt;',['../index.html#autotoc_md5',1,'']]],
+  ['the_20the_20tt_20examples_20tt_20folder_20strong_14',['&lt;strong&gt;Note: For a sample app, check out &lt;a href=&quot;https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink&quot; &gt;The Kitchen Sink&lt;/a&gt; in the the &lt;tt&gt;Examples&lt;/tt&gt; folder.&lt;/strong&gt;',['../index.html#autotoc_md5',1,'']]],
+  ['title_15',['title',['../structCKControlInitParams.html#add56ee380e40f2886f1ea0ad68306002',1,'CKControlInitParams::title'],['../structCKWindowInitParams.html#a857e51e9108073c0329a8ae4a80b74c8',1,'CKWindowInitParams::title']]],
+  ['toos_16',['toos',['../structCKColor.html#a6892e7322726902f101419ea42188371',1,'CKColor::ToOS()'],['../structCKRect.html#a8321f2b7300043e39a0fe5b10fa71f51',1,'CKRect::ToOS()'],['../structCKPoint.html#ad6b60dd71aeafcd874b4f4942821a2aa',1,'CKPoint::ToOS()'],['../structCKSize.html#a31c54cfca675a813f43d940845ff608e',1,'CKSize::ToOS()']]],
+  ['tooscopy_17',['ToOSCopy',['../structCKRect.html#a6f1e4c0b1c1a9b3b367fa50030ea23d8',1,'CKRect']]],
+  ['toosptr_18',['ToOSPtr',['../structCKPoint.html#a87049d7fb43d964a060514fd7d197b38',1,'CKPoint']]],
+  ['totaltime_19',['totalTime',['../classCKProfilerData.html#a98175dd7206709f33f0a5aa37c0b6d64',1,'CKProfilerData']]],
+  ['tree_20main_20examples_20kitchen_20sink_20the_20kitchen_20sink_20a_20in_20the_20the_20tt_20examples_20tt_20folder_20strong_20',['&lt;strong&gt;Note: For a sample app, check out &lt;a href=&quot;https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink&quot; &gt;The Kitchen Sink&lt;/a&gt; in the the &lt;tt&gt;Examples&lt;/tt&gt; folder.&lt;/strong&gt;',['../index.html#autotoc_md5',1,'']]],
+  ['tt_20examples_20tt_20folder_20strong_21',['&lt;strong&gt;Note: For a sample app, check out &lt;a href=&quot;https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink&quot; &gt;The Kitchen Sink&lt;/a&gt; in the the &lt;tt&gt;Examples&lt;/tt&gt; folder.&lt;/strong&gt;',['../index.html#autotoc_md5',1,'']]],
+  ['type_22',['type',['../structCKWindowInitParams.html#a411e7549223637bb0d720b09d4c172ae',1,'CKWindowInitParams::type'],['../structCKEvent.html#abed1876e9ebcff18e4f77d1793dc8e40',1,'CKEvent::type'],['../classCKMenuItem.html#ab1e69c34d567474b92767a52c47f7692',1,'CKMenuItem::type']]],
+  ['types_23',['Types',['../group__Types.html',1,'']]]
+];

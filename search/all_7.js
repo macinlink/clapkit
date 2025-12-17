@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['g_0',['g',['../structCKColor.html#af93e6572fa4dc587d1ba5ade2dc6370d',1,'CKColor']]],
+  ['get_1',['get',['../classCKProperty.html#a1074b0aececc0a06376702a645cda9d9',1,'CKProperty::get() const'],['../classCKProperty.html#aea9afc673745bd85668542c53a4db211',1,'CKProperty::get()']]],
+  ['getactivecontrol_2',['GetActiveControl',['../classCKWindow.html#aff593fed115cc1641ae0b61597497477',1,'CKWindow']]],
+  ['getboolean_3',['GetBoolean',['../classCKValueContainingControl.html#adec8aafd66a9432fe52275b54f1fd2f8',1,'CKValueContainingControl']]],
+  ['getbuffersize_4',['GetBufferSize',['../classCKNetBaseSocket.html#adc6e394d9f5ac1ac4d77070360c5bc8b',1,'CKNetBaseSocket']]],
+  ['getcontrols_5',['GetControls',['../classCKWindow.html#a1a09a8cfa5564e5a23bbb9de299cf9a2',1,'CKWindow']]],
+  ['getcontrolsoftype_6',['GetControlsOfType',['../classCKWindow.html#ac08bd839ea1e5163435847e7c81ed8e2',1,'CKWindow']]],
+  ['getdefault_7',['GetDefault',['../classCKButton.html#a1695696b766dc9e3d89c65141ab08fb0',1,'CKButton']]],
+  ['getdriverrefnum_8',['GetDriverRefNum',['../namespaceCKNetworking.html#af9560fbbb1c861b9b1cb7391305952d9',1,'CKNetworking']]],
+  ['getfont_9',['GetFont',['../classCKLabel.html#a6560bebe8bb4e5c9c30e2b3f4a9d85d4',1,'CKLabel']]],
+  ['getisactive_10',['GetIsActive',['../classCKWindow.html#a7ee88e3fb18ee40ae889a0dbcc98302e',1,'CKWindow']]],
+  ['getlastcontrol_11',['GetLastControl',['../classCKWindow.html#a28e49a376ca6c92f4eb770d193ddb6e5',1,'CKWindow']]],
+  ['getlocalip_12',['GetLocalIP',['../namespaceCKNetworking.html#abc34c8f381e54df445cbabdd30c47ddd',1,'CKNetworking']]],
+  ['getmisc_13',['GetMisc',['../classCKValueContainingControl.html#a8a62cf0bf6a7e79b195ae70997911885',1,'CKValueContainingControl']]],
+  ['getospointer_14',['GetOSPointer',['../classCKCanvas.html#ace0d60d54f1bd7e0921ff583703356b6',1,'CKCanvas']]],
+  ['getowner_15',['GetOwner',['../classCKWindow.html#a86baf344bea314fb8166fa5d028f5f92',1,'CKWindow']]],
+  ['getstdeditmenu_16',['GetStdEditMenu',['../classCKMenuBar.html#a5417dd478d683e49aa545ef7a8f9966f',1,'CKMenuBar']]],
+  ['getstdfilemenu_17',['GetStdFileMenu',['../classCKMenuBar.html#a321209eb00d7644d3eddeb23f32759a5',1,'CKMenuBar']]],
+  ['gettext_18',['gettext',['../classCKTextableControl.html#a214b66377fd0adf014b50d0ccce5f93d',1,'CKTextableControl::GetText()'],['../classCKLabel.html#a53b9b0a633cba03632046819775e9532',1,'CKLabel::GetText()']]],
+  ['gettitle_19',['GetTitle',['../classCKWindow.html#a90c157008844c078add1296368a8e489',1,'CKWindow']]],
+  ['getwindowptr_20',['GetWindowPtr',['../classCKWindow.html#a02953ff56efc0eda228710fc49a14e6a',1,'CKWindow']]],
+  ['github_20com_20macinlink_20clapkit_20tree_20main_20examples_20kitchen_20sink_20the_20kitchen_20sink_20a_20in_20the_20the_20tt_20examples_20tt_20folder_20strong_21',['&lt;strong&gt;Note: For a sample app, check out &lt;a href=&quot;https://github.com/macinlink/clapkit/tree/main/examples/kitchen-sink&quot; &gt;The Kitchen Sink&lt;/a&gt; in the the &lt;tt&gt;Examples&lt;/tt&gt; folder.&lt;/strong&gt;',['../index.html#autotoc_md5',1,'']]],
+  ['github_20io_20clapkit_20https_3a_20macinlink_20github_20io_20clapkit_20a_22',['Check out the documentation at &lt;a href=&quot;https://macinlink.github.io/clapkit/&quot; &gt;https://macinlink.github.io/clapkit/&lt;/a&gt;',['../index.html#autotoc_md4',1,'']]],
+  ['groupid_23',['groupID',['../classCKRadiobox.html#acb9b43dd129fc6c304972dba6125ea7d',1,'CKRadiobox']]]
+];
